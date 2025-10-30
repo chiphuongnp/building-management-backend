@@ -1,0 +1,42 @@
+import { db } from "./index";
+
+const getAllDocs = async (collectionName: string) => {
+  const snapshot = await db.collection(collectionName).get();
+  const data = snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+
+  return data;
+};
+
+const getDoc = async (collectionName: string, id: string) => {
+  return await db.collection(collectionName).where(id).get();
+};
+
+const createDoc = async (collectionName: string, data: Record<string, any>) => {
+  return await db.collection(collectionName).add({
+    ...data,
+    createdAt: new Date(),
+  });
+};
+
+const updateDoc = async (
+  collectionName: string,
+  id: string,
+  data: Record<string, any>
+) => {
+  return await db
+    .collection(collectionName)
+    .doc(id)
+    .update({
+      ...data,
+      updatedAt: new Date(),
+    });
+};
+
+const deleteDoc = async (collectionName: string, id: string) => {
+  return await db.collection(collectionName).doc(id).delete();
+};
+
+export { getAllDocs, getDoc, createDoc, updateDoc, deleteDoc };
