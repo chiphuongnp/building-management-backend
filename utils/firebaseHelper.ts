@@ -1,4 +1,4 @@
-import { db } from "./index";
+import { db } from './index';
 
 const getAllDocs = async (collectionName: string) => {
   const snapshot = await db.collection(collectionName).get();
@@ -17,21 +17,17 @@ const getDoc = async (collectionName: string, id: string) => {
 const createDoc = async (collectionName: string, data: Record<string, any>) => {
   return await db.collection(collectionName).add({
     ...data,
-    createdAt: new Date(),
+    created_at: new Date(),
   });
 };
 
-const updateDoc = async (
-  collectionName: string,
-  id: string,
-  data: Record<string, any>
-) => {
+const updateDoc = async (collectionName: string, id: string, data: Record<string, any>) => {
   return await db
     .collection(collectionName)
     .doc(id)
     .update({
       ...data,
-      updatedAt: new Date(),
+      updated_at: new Date(),
     });
 };
 
