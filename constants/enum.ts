@@ -17,4 +17,5 @@ export enum ActiveStatus {
 export enum Sites {
   NAME = 'sites',
   TOKYO = 'sites/tokyo',
+  CHICAGO = 'sites/chicago',
 }
