@@ -6,23 +6,38 @@ const getAllDocs = async (collectionName: string) => {
     id: doc.id,
     ...convertTimestamps(doc.data()),
   }));
-
   return data;
 };
 
-const getDoc = async (collectionName: string, id: string) => {
-  const snapshot = await db.collection(collectionName).doc(id).get();
-  return {
-    id: snapshot.id,
-    ...convertTimestamps(snapshot.data()),
-  };
+const getDocById = async (collectionName: string, id: string) => {
+  const docSnap = await db.collection(collectionName).doc(id).get();
+  if (!docSnap.exists) {
+    return null;
+  }
+
+  return { id: docSnap.id, ...convertTimestamps(docSnap.data()) };
 };
 
-const createDoc = async (collectionName: string, data: Record<string, any>) => {
-  return await db.collection(collectionName).add({
-    ...data,
+const getDocByField = async (collectionName: string, field: string, value: string) => {
+  return await db.collection(collectionName).where(field, '==', value).get();
+};
+
+const createDoc = async (
+  collectionName: string,
+  data: Record<string, any>,
+): Promise<FirebaseFirestore.DocumentReference> => {
+  const { id, ...cleanData } = data;
+  const docData = {
+    ...convertTimestamps(cleanData),
     created_at: new Date(),
-  });
+  };
+  if (id) {
+    const docRef = db.collection(collectionName).doc(id);
+    await docRef.set(docData);
+    return docRef;
+  }
+
+  return await db.collection(collectionName).add(docData);
 };
 
 const updateDoc = async (collectionName: string, id: string, data: Record<string, any>) => {
@@ -30,13 +45,9 @@ const updateDoc = async (collectionName: string, id: string, data: Record<string
     .collection(collectionName)
     .doc(id)
     .update({
-      ...data,
+      ...convertTimestamps(data),
       updated_at: new Date(),
     });
 };
 
-const deleteDoc = async (collectionName: string, id: string) => {
-  return await db.collection(collectionName).doc(id).delete();
-};
-
-export { getAllDocs, getDoc, createDoc, updateDoc, deleteDoc };
+export { getAllDocs, getDocById, getDocByField, createDoc, updateDoc };

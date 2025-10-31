@@ -15,7 +15,7 @@ const getRestaurants = async (req: Request, res: Response, next: NextFunction) =
 const getRestaurant = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const restaurant = await firebaseHelper.getDoc(`${Sites.TOKYO}/restaurants`, id);
+    const restaurant = await firebaseHelper.getDocById(`${Sites.TOKYO}/restaurants`, id);
 
     return res.status(200).json(restaurant);
   } catch (error) {
