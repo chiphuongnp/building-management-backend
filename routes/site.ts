@@ -1,10 +1,6 @@
 import express from 'express';
 import * as siteController from '../controllers/site';
-import {
-  validateCreateSite,
-  validateIdParam,
-  validateUpdateSite,
-} from '../middlewares/siteValidation';
+import { validateCreateSite, validateIdParam, validateUpdateSite } from '../validations/site';
 
 const siteRouter = express.Router();
 

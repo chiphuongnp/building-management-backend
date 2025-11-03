@@ -1,8 +1,5 @@
 import express from 'express';
-import {
-  validateCreateRestaurant,
-  validateUpdateRestaurant,
-} from '../middlewares/restaurantValidation';
+import { validateCreateRestaurant, validateUpdateRestaurant } from '../validations/restaurant';
 import {
   createRestaurant,
   getRestaurant,

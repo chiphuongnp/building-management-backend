@@ -1,9 +1,8 @@
 import Joi from 'joi';
 import { NextFunction, Request, Response } from 'express';
-import { User } from '../interfaces/userInterface';
 import { UserRank, UserRole } from '../constants/enum';
 
-export const userSchema = Joi.object<User>({
+export const userSchema = Joi.object({
   email: Joi.string().email().required(),
   username: Joi.string().min(3).max(30).required(),
   password: Joi.string()
@@ -13,6 +12,11 @@ export const userSchema = Joi.object<User>({
       'string.pattern.base':
         'Password must be at least 8 characters and include uppercase, lowercase, and a number.',
     }),
+  confirmPassword: Joi.string().min(8).optional().trim().valid(Joi.ref('password')).messages({
+    'string.empty': 'Confirm password is required',
+    'string.min': 'Confirm password must be at least 8 characters long',
+    'any.only': 'Confirm password must match password',
+  }),
   fullName: Joi.string().min(3).max(50).required(),
   phone: Joi.string().min(8).max(15).required(),
   avatar_url: Joi.string().uri().allow(null).optional(),

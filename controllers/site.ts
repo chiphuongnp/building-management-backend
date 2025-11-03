@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { firebaseHelper } from '../utils/index';
-import { Site } from '../interfaces/siteInterface';
+import { Site } from '../interfaces/site';
 
 const getSites = async (req: Request, res: Response) => {
   try {
