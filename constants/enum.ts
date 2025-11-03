@@ -14,10 +14,18 @@ export enum ActiveStatus {
   INACTIVE = 'inactive',
 }
 
+export enum DishCategory {
+  MAIN = 'main_dish',
+  SIDE = 'side_dish',
+  DRINK = 'drink',
+  DESSERT = 'dessert',
+  COMBO = 'combo',
+  OTHER = 'other',
+}
+
 export enum Sites {
   NAME = 'sites',
   TOKYO = 'sites/tokyo',
-  CHICAGO = 'sites/chicago',
 }
 
 export enum SitesName {
