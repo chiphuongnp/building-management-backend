@@ -22,6 +22,24 @@ const getDocByField = async (collectionName: string, field: string, value: strin
   return await db.collection(collectionName).where(field, '==', value).get();
 };
 
+const getDocsByFields = async (
+  collectionPath: string,
+  conditions: { field: string; operator: FirebaseFirestore.WhereFilterOp; value: any }[],
+  limit?: number,
+) => {
+  let query: FirebaseFirestore.Query = db.collection(collectionPath);
+
+  for (const condition of conditions) {
+    query = query.where(condition.field, condition.operator, condition.value);
+  }
+
+  if (limit) {
+    query = query.limit(limit);
+  }
+
+  return await query.get();
+};
+
 const createDoc = async (
   collectionName: string,
   data: Record<string, any>,
@@ -50,4 +68,4 @@ const updateDoc = async (collectionName: string, id: string, data: Record<string
     });
 };
 
-export { getAllDocs, getDocById, getDocByField, createDoc, updateDoc };
+export { getAllDocs, getDocById, getDocByField, createDoc, updateDoc, getDocsByFields };

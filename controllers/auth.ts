@@ -3,9 +3,10 @@ import { db, firebaseHelper } from '../utils/index';
 import bcrypt from 'bcrypt';
 import * as admin from 'firebase-admin';
 import { ActiveStatus, Sites, SitesName } from '../constants/enum';
-import { getDocById } from '../utils/firebaseHelper';
+import { getDocById, getDocsByFields } from '../utils/firebaseHelper';
 import { User } from '../interfaces/user';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt';
+import { AuthRequest } from '../interfaces/jwt';
 
 export const register = async (req: Request, res: Response) => {
   const {
@@ -135,7 +136,14 @@ export const login = async (req: Request, res: Response) => {
         },
       },
     });
-  } catch (error) {
+  } catch (error: any) {
+    if (error.code === 'auth/user-not-found') {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found with this email',
+      });
+    }
+
     return res.status(400).json({
       success: false,
       message: '[User][Login] Request failed!',
@@ -156,6 +164,19 @@ export const refreshToken = async (req: Request, res: Response) => {
     if (!userDoc || userDoc.status !== ActiveStatus.ACTIVE) {
       return res.status(403).json({ success: false, message: 'Invalid refresh token' });
     }
+
+    const tokenDoc = await getDocsByFields(
+      `${Sites.TOKYO}/users/${uid}/tokens`,
+      [
+        { field: 'refreshToken', operator: '==', value: refreshToken },
+        { field: 'revoked', operator: '==', value: false },
+      ],
+      1,
+    );
+    if (tokenDoc.empty) {
+      return res.status(403).json({ success: false, message: 'Token revoked or invalid' });
+    }
+
     const payload = {
       uid,
       email: userDoc.email,
@@ -176,6 +197,47 @@ export const refreshToken = async (req: Request, res: Response) => {
     return res.status(403).json({
       success: false,
       message: 'Invalid or expired refresh token',
+    });
+  }
+};
+
+export const logout = async (req: AuthRequest, res: Response) => {
+  const { refreshToken } = req.body;
+  const uid = req.user?.uid;
+  const site = req.user?.site;
+  if (!refreshToken || !uid || !site) {
+    return res.status(400).json({
+      success: false,
+      message: 'refreshToken, uid, siteId required',
+    });
+  }
+
+  try {
+    const snapshot = await getDocsByFields(`sites/${site}/users/${uid}/tokens`, [
+      { field: 'refreshToken', operator: '==', value: refreshToken },
+      { field: 'revoked', operator: '==', value: false },
+    ]);
+    if (snapshot.empty) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or already revoked token',
+      });
+    }
+
+    const batch = db.batch();
+    snapshot.docs.forEach((doc) => {
+      batch.update(doc.ref, { revoked: true });
+    });
+    await batch.commit();
+
+    return res.json({
+      success: true,
+      message: 'Logged out successfully',
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: '[Logout] Request failed',
     });
   }
 };
