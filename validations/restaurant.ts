@@ -1,6 +1,6 @@
 import Joi from 'joi';
 import { Request, Response, NextFunction } from 'express';
-import { Restaurant, OperatingHours, ContactInfo } from '../interfaces/restaurantInterface';
+import { Restaurant, OperatingHours, ContactInfo } from '../interfaces/restaurant';
 import { ActiveStatus } from '../constants/enum';
 
 const operatingHoursSchema = Joi.object<OperatingHours>({

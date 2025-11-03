@@ -19,3 +19,7 @@ export enum Sites {
   TOKYO = 'sites/tokyo',
   CHICAGO = 'sites/chicago',
 }
+
+export enum SitesName {
+  TOKYO = 'tokyo',
+}
