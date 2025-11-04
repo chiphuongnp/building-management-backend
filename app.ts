@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import express, { Application } from 'express';
-import { Sites } from './constants/enum';
+import { Collection, Sites } from './constants/enum';
 import siteRouter from './routes/site';
 import usersRoute from './routes/user';
 import restaurantRouter from './routes/restaurant';
@@ -12,12 +12,12 @@ dotenv.config();
 const app: Application = express();
 app.use(express.json());
 
-app.use(`/${Sites.NAME}`, siteRouter);
-app.use(`/${Sites.TOKYO}/users`, usersRoute);
-app.use(`/${Sites.TOKYO}/restaurants`, restaurantRouter);
-app.use(`/${Sites.TOKYO}/restaurants/:restaurantId/dishes`, dishRouter);
-app.use(`/${Sites.TOKYO}/auth`, authRouter);
-app.use(`/${Sites.TOKYO}/buildings`, buildingRouter);
+app.use(`/${Collection.SITES}`, siteRouter);
+app.use(`/${Sites.TOKYO}/${Collection.AUTH}`, authRouter);
+app.use(`/${Sites.TOKYO}/${Collection.USERS}`, usersRoute);
+app.use(`/${Sites.TOKYO}/${Collection.RESTAURANTS}`, restaurantRouter);
+app.use(`/${Sites.TOKYO}/${Collection.RESTAURANTS}/:restaurantId/${Collection.DISHES}`, dishRouter);
+app.use(`/${Sites.TOKYO}/${Collection.BUILDINGS}`, buildingRouter);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

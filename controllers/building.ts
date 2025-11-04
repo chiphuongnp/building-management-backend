@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
 import { firebaseHelper } from '../utils/index';
-import { Sites } from '../constants/enum';
+import { Collection, Sites } from '../constants/enum';
 
 const getBuildings = async (req: Request, res: Response) => {
   try {
-    const building = await firebaseHelper.getAllDocs(`${Sites.TOKYO}/buildings`);
+    const building = await firebaseHelper.getAllDocs(`${Sites.TOKYO}/${Collection.BUILDINGS}`);
 
     return res.status(200).json({
       success: true,
@@ -18,7 +18,7 @@ const getBuildings = async (req: Request, res: Response) => {
 const getBuildingById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const building = await firebaseHelper.getDocById(`${Sites.TOKYO}/buildings`, id);
+    const building = await firebaseHelper.getDocById(`${Sites.TOKYO}/${Collection.BUILDINGS}`, id);
     if (!building) {
       return res.status(404).json({
         success: false,
@@ -42,7 +42,7 @@ const createBuilding = async (req: Request, res: Response) => {
   try {
     const data = req.body;
     const nameExists = await firebaseHelper.getDocByField(
-      `${Sites.TOKYO}/buildings`,
+      `${Sites.TOKYO}/${Collection.BUILDINGS}`,
       'name',
       data.name,
     );
@@ -54,7 +54,7 @@ const createBuilding = async (req: Request, res: Response) => {
     }
 
     const codeExists = await firebaseHelper.getDocByField(
-      `${Sites.TOKYO}/buildings`,
+      `${Sites.TOKYO}/${Collection.BUILDINGS}`,
       'code',
       data.code,
     );
@@ -65,7 +65,7 @@ const createBuilding = async (req: Request, res: Response) => {
       });
     }
 
-    const docRef = await firebaseHelper.createDoc(`${Sites.TOKYO}/buildings`, data);
+    const docRef = await firebaseHelper.createDoc(`${Sites.TOKYO}/${Collection.BUILDINGS}`, data);
     return res.status(200).json({
       success: true,
       message: 'Building created successfully.',
@@ -79,7 +79,7 @@ const createBuilding = async (req: Request, res: Response) => {
 const updateBuilding = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const building = await firebaseHelper.getDocById(`${Sites.TOKYO}/buildings`, id);
+    const building = await firebaseHelper.getDocById(`${Sites.TOKYO}/${Collection.BUILDINGS}`, id);
     if (!building) {
       return res.status(404).json({
         success: false,
@@ -90,7 +90,7 @@ const updateBuilding = async (req: Request, res: Response) => {
     const { name, code } = req.body;
     if (name) {
       const nameSnapshot = await firebaseHelper.getDocByField(
-        `${Sites.TOKYO}/buildings`,
+        `${Sites.TOKYO}/${Collection.BUILDINGS}`,
         'name',
         name,
       );
@@ -105,7 +105,7 @@ const updateBuilding = async (req: Request, res: Response) => {
 
     if (code) {
       const codeSnapshot = await firebaseHelper.getDocByField(
-        `${Sites.TOKYO}/buildings`,
+        `${Sites.TOKYO}/${Collection.BUILDINGS}`,
         'code',
         code,
       );
@@ -118,7 +118,11 @@ const updateBuilding = async (req: Request, res: Response) => {
       }
     }
 
-    const docRef = await firebaseHelper.updateDoc(`${Sites.TOKYO}/buildings`, id, req.body);
+    const docRef = await firebaseHelper.updateDoc(
+      `${Sites.TOKYO}/${Collection.BUILDINGS}`,
+      id,
+      req.body,
+    );
     return res.status(200).json({
       success: true,
       message: 'Building updated successfully.',

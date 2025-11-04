@@ -2,7 +2,7 @@ import multer, { FileFilterCallback } from 'multer';
 import fs from 'fs';
 import path from 'path';
 import { Request } from 'express';
-import { MAX_IMAGE_SIZE } from '../constants/constants';
+import { MAX_IMAGE_SIZE } from '../constants/constant';
 
 const baseDir = 'uploads';
 if (!fs.existsSync(baseDir)) {

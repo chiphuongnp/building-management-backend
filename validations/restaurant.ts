@@ -74,6 +74,19 @@ const updateRestaurantSchema = Joi.object<Partial<Restaurant>>({
     }),
 });
 
+const idParamSchema = Joi.object({
+  id: Joi.string()
+    .length(20)
+    .regex(/^[A-Za-z0-9]+$/)
+    .required()
+    .messages({
+      'string.empty': 'Restaurant ID cannot be empty',
+      'any.required': 'Restaurant ID is required',
+      'string.length': 'Restaurant ID must be exactly 20 characters',
+      'string.pattern.base': 'Restaurant ID must contain only letters and numbers',
+    }),
+});
+
 export const validateCreateRestaurant = (req: Request, res: Response, next: NextFunction) => {
   const { error } = createRestaurantSchema.validate(req.body);
   if (error) {
@@ -86,6 +99,14 @@ export const validateUpdateRestaurant = (req: Request, res: Response, next: Next
   const { error } = updateRestaurantSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ status: false, message: error.details[0].message });
+  }
+  next();
+};
+
+export const validateIdParam = (req: Request, res: Response, next: NextFunction) => {
+  const { error } = idParamSchema.validate(req.params);
+  if (error) {
+    return res.status(400).json({ success: false, message: error.details[0].message });
   }
   next();
 };

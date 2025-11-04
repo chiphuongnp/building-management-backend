@@ -1,3 +1,4 @@
+import { firestore } from 'firebase-admin';
 import { ActiveStatus } from '../constants/enum';
 
 export interface OperatingHours {
@@ -23,8 +24,8 @@ export interface Restaurant {
   contact?: ContactInfo;
   status: ActiveStatus;
   today_menu: string[];
-  created_at: Date;
-  updated_at?: Date;
+  created_at: Date | firestore.Timestamp;
+  updated_at?: Date | firestore.Timestamp | null;
   created_by?: string;
   updated_by?: string;
 }
