@@ -2,10 +2,13 @@ import { db, convertTimestamps } from './index';
 
 const getAllDocs = async (collectionName: string) => {
   const snapshot = await db.collection(collectionName).get();
-  const data = snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...convertTimestamps(doc.data()),
-  }));
+  const data = snapshot.docs
+    .map((doc) => ({
+      id: doc.id,
+      ...convertTimestamps(doc.data()),
+    }))
+    .filter((item) => !item.deleted_at);
+
   return data;
 };
 
@@ -15,11 +18,24 @@ const getDocById = async (collectionName: string, id: string) => {
     return null;
   }
 
-  return { id: docSnap.id, ...convertTimestamps(docSnap.data()) };
+  const data = convertTimestamps(docSnap.data());
+  if (data?.deleted_at) {
+    return null;
+  }
+
+  return { id: docSnap.id, ...data };
 };
 
 const getDocByField = async (collectionName: string, field: string, value: string) => {
-  return await db.collection(collectionName).where(field, '==', value).get();
+  const snapshot = await db.collection(collectionName).where(field, '==', value).get();
+  const data = snapshot.docs
+    .map((doc) => ({
+      id: doc.id,
+      ...convertTimestamps(doc.data()),
+    }))
+    .filter((item) => !item.deleted_at);
+
+  return data;
 };
 
 const getDocsByFields = async (
@@ -37,7 +53,15 @@ const getDocsByFields = async (
     query = query.limit(limit);
   }
 
-  return await query.get();
+  const snapshot = await query.get();
+  const data = snapshot.docs
+    .map((doc) => ({
+      id: doc.id,
+      ...convertTimestamps(doc.data()),
+    }))
+    .filter((item) => !item.deleted_at);
+
+  return data;
 };
 
 const createDoc = async (
