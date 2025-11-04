@@ -38,4 +38,16 @@ export enum Collection {
   RESTAURANTS = 'restaurants',
   DISHES = 'available_dishes',
   BUILDINGS = 'buildings',
+  PARKING_SPACES = 'parking_spaces',
+}
+
+export enum ParkingSpaceType {
+  MOTORBIKE = 'motorbike',
+  CAR = 'car',
+}
+
+export enum ParkingSpaceStatus {
+  AVAILABLE = 'available',
+  MAINTENANCE = 'maintenance',
+  RESERVED = 'reserved',
 }
