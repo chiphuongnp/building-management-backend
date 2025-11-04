@@ -24,10 +24,18 @@ export enum DishCategory {
 }
 
 export enum Sites {
-  NAME = 'sites',
   TOKYO = 'sites/tokyo',
 }
 
 export enum SitesName {
   TOKYO = 'tokyo',
+}
+
+export enum Collection {
+  AUTH = 'auth',
+  SITES = 'sites',
+  USERS = 'users',
+  RESTAURANTS = 'restaurants',
+  DISHES = 'available_dishes',
+  BUILDINGS = 'buildings',
 }

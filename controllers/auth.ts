@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { db, firebaseHelper } from '../utils/index';
 import bcrypt from 'bcrypt';
 import * as admin from 'firebase-admin';
-import { ActiveStatus, Sites, SitesName } from '../constants/enum';
+import { ActiveStatus, Collection, Sites, SitesName } from '../constants/enum';
 import { getDocById, getDocsByFields } from '../utils/firebaseHelper';
 import { User } from '../interfaces/user';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt';
@@ -55,7 +55,7 @@ export const register = async (req: Request, res: Response) => {
       updated_at: null,
       updated_by: null,
     };
-    const result = await firebaseHelper.createDoc(`${Sites.TOKYO}/users`, userData);
+    const result = await firebaseHelper.createDoc(`${Sites.TOKYO}/${Collection.USERS}`, userData);
     if (!result) {
       res.status(400).json({
         status: false,
@@ -88,7 +88,10 @@ export const login = async (req: Request, res: Response) => {
 
   try {
     const userRecord = await admin.auth().getUserByEmail(email);
-    const userDoc = (await getDocById(`${Sites.TOKYO}/users`, userRecord.uid)) as User;
+    const userDoc = (await getDocById(
+      `${Sites.TOKYO}/${Collection.USERS}`,
+      userRecord.uid,
+    )) as User;
     if (!userDoc) {
       return res.status(404).json({
         success: false,
@@ -112,7 +115,7 @@ export const login = async (req: Request, res: Response) => {
     };
     const accessToken = signAccessToken(payload);
     const refreshToken = signRefreshToken(payload);
-    await db.collection(`${Sites.TOKYO}/users/${userRecord.uid}/tokens`).add({
+    await db.collection(`${Sites.TOKYO}/${Collection.USERS}/${userRecord.uid}/tokens`).add({
       refreshToken,
       created_at: admin.firestore.Timestamp.now(),
       revoked: false,
@@ -160,13 +163,13 @@ export const refreshToken = async (req: Request, res: Response) => {
   try {
     const decoded = verifyRefreshToken(refreshToken) as any;
     const { uid, siteId } = decoded;
-    const userDoc = (await getDocById(`${Sites.TOKYO}/users`, uid)) as User;
+    const userDoc = (await getDocById(`${Sites.TOKYO}/${Collection.USERS}`, uid)) as User;
     if (!userDoc || userDoc.status !== ActiveStatus.ACTIVE) {
       return res.status(403).json({ success: false, message: 'Invalid refresh token' });
     }
 
     const tokenDoc = await getDocsByFields(
-      `${Sites.TOKYO}/users/${uid}/tokens`,
+      `${Sites.TOKYO}/${Collection.USERS}/${uid}/tokens`,
       [
         { field: 'refreshToken', operator: '==', value: refreshToken },
         { field: 'revoked', operator: '==', value: false },
@@ -213,7 +216,7 @@ export const logout = async (req: AuthRequest, res: Response) => {
   }
 
   try {
-    const snapshot = await getDocsByFields(`sites/${site}/users/${uid}/tokens`, [
+    const snapshot = await getDocsByFields(`sites/${site}/${Collection.USERS}/${uid}/tokens`, [
       { field: 'refreshToken', operator: '==', value: refreshToken },
       { field: 'revoked', operator: '==', value: false },
     ]);

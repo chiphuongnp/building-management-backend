@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
 import { firebaseHelper } from '../utils/index';
 import { Site } from '../interfaces/site';
+import { Collection } from '../constants/enum';
 
 const getSites = async (req: Request, res: Response) => {
   try {
-    const sites = await firebaseHelper.getAllDocs('sites');
+    const sites = await firebaseHelper.getAllDocs(`${Collection.SITES}`);
     return res.status(200).json({
       success: true,
       data: sites,
@@ -17,7 +18,7 @@ const getSites = async (req: Request, res: Response) => {
 const getSiteById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const site = await firebaseHelper.getDocById('sites', id);
+    const site = await firebaseHelper.getDocById(`${Collection.SITES}`, id);
     if (!site) {
       return res.status(404).json({
         success: false,
@@ -41,7 +42,7 @@ const getSiteById = async (req: Request, res: Response) => {
 const createSite = async (req: Request, res: Response) => {
   try {
     const data: Site = req.body;
-    const idSnapshot = await firebaseHelper.getDocByField('sites', 'id', data.id);
+    const idSnapshot = await firebaseHelper.getDocByField(`${Collection.SITES}`, 'id', data.id);
     if (!idSnapshot.empty) {
       return res.status(409).json({
         success: false,
@@ -49,7 +50,11 @@ const createSite = async (req: Request, res: Response) => {
       });
     }
 
-    const codeSnapshot = await firebaseHelper.getDocByField('sites', 'code', data.code);
+    const codeSnapshot = await firebaseHelper.getDocByField(
+      `${Collection.SITES}`,
+      'code',
+      data.code,
+    );
     if (!codeSnapshot.empty) {
       return res.status(409).json({
         success: false,
@@ -57,7 +62,7 @@ const createSite = async (req: Request, res: Response) => {
       });
     }
 
-    const docRef = await firebaseHelper.createDoc('sites', data);
+    const docRef = await firebaseHelper.createDoc(`${Collection.SITES}`, data);
     return res.status(200).json({
       success: true,
       message: 'Site created successfully.',
@@ -71,7 +76,7 @@ const createSite = async (req: Request, res: Response) => {
 const updateSite = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const site = await firebaseHelper.getDocById('sites', id);
+    const site = await firebaseHelper.getDocById(`${Collection.SITES}`, id);
     if (!site) {
       return res.status(404).json({
         success: false,
@@ -82,7 +87,7 @@ const updateSite = async (req: Request, res: Response) => {
     const data: Site = req.body;
     const { code } = data;
     if (code) {
-      const codeSnapshot = await firebaseHelper.getDocByField('sites', 'code', code);
+      const codeSnapshot = await firebaseHelper.getDocByField(`${Collection.SITES}`, 'code', code);
       const isDuplicate = codeSnapshot.docs.some((doc) => doc.id !== id);
       if (isDuplicate) {
         return res.status(409).json({
@@ -92,7 +97,7 @@ const updateSite = async (req: Request, res: Response) => {
       }
     }
 
-    const docRef = await firebaseHelper.updateDoc('sites', id, data);
+    const docRef = await firebaseHelper.updateDoc(`${Collection.SITES}`, id, data);
     return res.status(200).json({
       success: true,
       message: 'Site updated successfully.',
