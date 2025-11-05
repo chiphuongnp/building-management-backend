@@ -12,15 +12,16 @@ import {
 } from '../validations/building';
 import { requireRole, requirePermission } from '../middlewares/permission';
 import { authenticate } from '../middlewares/auth';
+import { UserRole } from '../constants/enum';
 
 const buildingRouter = express.Router({ mergeParams: true });
 
-buildingRouter.get('/', authenticate, requireRole('user', 'manager'), getBuildings);
+buildingRouter.get('/', authenticate, requireRole(UserRole.MANAGER, UserRole.USER), getBuildings);
 
 buildingRouter.get(
   '/:id',
   authenticate,
-  requireRole('user', 'manager'),
+  requireRole(UserRole.MANAGER, UserRole.USER),
   validateIdParam,
   getBuildingById,
 );
@@ -28,7 +29,7 @@ buildingRouter.get(
 buildingRouter.post(
   '/create',
   authenticate,
-  requireRole('manager'),
+  requireRole(UserRole.MANAGER),
   requirePermission('create_building'),
   validateCreateBuilding,
   createBuilding,
@@ -37,7 +38,7 @@ buildingRouter.post(
 buildingRouter.patch(
   '/update/:id',
   authenticate,
-  requireRole('manager'),
+  requireRole(UserRole.MANAGER),
   requirePermission('update_building'),
   validateIdParam,
   validateUpdateBuilding,
