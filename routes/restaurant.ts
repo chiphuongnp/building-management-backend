@@ -17,7 +17,7 @@ import { UserRole } from '../constants/enum';
 const restaurantRouter = express.Router();
 
 restaurantRouter.post(
-  '/',
+  '/create',
   authenticate,
   requireRole(UserRole.MANAGER),
   requirePermission('create_restaurant'),
@@ -41,7 +41,7 @@ restaurantRouter.get(
 );
 
 restaurantRouter.patch(
-  '/:id',
+  '/update/:id',
   authenticate,
   requireRole(UserRole.MANAGER),
   requirePermission('update_restaurant'),
