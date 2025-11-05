@@ -1,15 +1,16 @@
 export enum ErrorMessage {
   // Restaurant messages
   RESTAURANT_NOT_FOUND = 'Restaurant not found!',
+  RESTAURANT_NAME_EXISTS = 'Restaurant with the same name already exists',
   CANNOT_CREATE_RESTAURANT = 'Cannot create restaurant!',
   CANNOT_UPDATE_RESTAURANT = 'Cannot update restaurant!',
   // Dish messages
-  DISH_ID_REQUIRED = 'Dish ID is required.',
+  DISH_ID_REQUIRED = 'Dish ID is required!',
   DISH_NOT_FOUND = 'Dish not found!',
+  DISH_NAME_EXISTS = 'Dish with the same name already exists',
+  CANNOT_GET_DISH_LIST = 'Cannot get restaurant dish list!',
   CANNOT_CREATE_DISH = 'Cannot create restaurant dish!',
   CANNOT_UPDATE_DISH = 'Cannot update restaurant dish!',
-  // General messages
-  NO_UPDATE_DATA = 'No update data provided.',
   // Site messages
   CANNOT_GET_SITE_LIST = 'Can not get list of sites!',
   SITE_NOT_FOUND = 'Site not found!',
@@ -31,6 +32,7 @@ export enum ErrorMessage {
   PARKING_SPACE_CODE_ALREADY_EXISTS = 'Parking space code already exists!',
   CANNOT_CREATE_PARKING_SPACE = 'Cannot create parking space!',
   CANNOT_UPDATE_PARKING_SPACE = 'Cannot update parking space!',
+  NO_UPDATE_DATA = 'No update data provided!',
 }
 
 export enum Message {
