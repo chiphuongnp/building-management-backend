@@ -42,6 +42,7 @@ export enum Collection {
   PARKING_SPACES = 'parking_spaces',
   MENU_SCHEDULES = 'menu_schedules',
   ITEMS = 'items',
+  PARKING_SUBSCRIPTIONS = 'parking_subscriptions',
 }
 
 export enum ParkingSpaceType {
@@ -61,4 +62,11 @@ export enum DayOfWeek {
   WEDNESDAY = 'wednesday',
   THURSDAY = 'thursday',
   FRIDAY = 'friday',
+}
+
+export enum ParkingSubscriptionStatus {
+  PENDING = 'pending',
+  RESERVED = 'reserved',
+  CANCELLED = 'cancelled',
+  EXPIRED = 'expired',
 }
