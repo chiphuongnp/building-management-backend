@@ -1,5 +1,5 @@
 import express from 'express';
-import { login, logout, refreshToken } from '../controllers/auth';
+import { login, logout, refreshToken } from '../services/auth';
 import { validateLogin } from '../validations/login';
 import { authenticate } from '../middlewares/auth';
 

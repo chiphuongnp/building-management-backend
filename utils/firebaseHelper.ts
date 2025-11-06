@@ -92,4 +92,26 @@ const updateDoc = async (collectionName: string, id: string, data: Record<string
     });
 };
 
-export { getAllDocs, getDocById, getDocByField, createDoc, updateDoc, getDocsByFields };
+const createBatchDocs = async (collectionName: string, dataArray: Record<string, any>[]) => {
+  const batch = db.batch();
+  dataArray.forEach((data) => {
+    const { id, ...cleanData } = data;
+    const docRef = id ? db.collection(collectionName).doc(id) : db.collection(collectionName).doc();
+    batch.set(docRef, {
+      ...convertTimestamps(cleanData),
+      created_at: new Date(),
+    });
+  });
+
+  return await batch.commit();
+};
+
+export {
+  getAllDocs,
+  getDocById,
+  getDocByField,
+  createDoc,
+  updateDoc,
+  getDocsByFields,
+  createBatchDocs,
+};

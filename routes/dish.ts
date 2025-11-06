@@ -1,5 +1,5 @@
 import { MAX_IMAGE_COUNT } from './../constants/constant';
-import { createDish, getDishById, getDishes, updateDish } from '../controllers/dish';
+import { createDish, getDishById, getDishes, updateDish } from '../services/dish';
 import { authenticate } from '../middlewares/auth';
 import { requirePermission, requireRole } from '../middlewares/permission';
 import { upload } from './../middlewares/multer';

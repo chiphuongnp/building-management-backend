@@ -21,6 +21,7 @@ export enum DishCategory {
   DESSERT = 'dessert',
   COMBO = 'combo',
   OTHER = 'other',
+  APPETIZER = 'appetizer',
 }
 
 export enum Sites {
@@ -39,6 +40,8 @@ export enum Collection {
   DISHES = 'available_dishes',
   BUILDINGS = 'buildings',
   PARKING_SPACES = 'parking_spaces',
+  MENU_SCHEDULES = 'menu_schedules',
+  ITEMS = 'items',
 }
 
 export enum ParkingSpaceType {
@@ -50,4 +53,12 @@ export enum ParkingSpaceStatus {
   AVAILABLE = 'available',
   MAINTENANCE = 'maintenance',
   RESERVED = 'reserved',
+}
+
+export enum DayOfWeek {
+  MONDAY = 'monday',
+  TUESDAY = 'tuesday',
+  WEDNESDAY = 'wednesday',
+  THURSDAY = 'thursday',
+  FRIDAY = 'friday',
 }
