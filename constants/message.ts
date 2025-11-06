@@ -11,6 +11,23 @@ export enum ErrorMessage {
   CANNOT_GET_DISH_LIST = 'Cannot get restaurant dish list!',
   CANNOT_CREATE_DISH = 'Cannot create restaurant dish!',
   CANNOT_UPDATE_DISH = 'Cannot update restaurant dish!',
+
+  //User error messages
+  USER_NOT_FOUND = 'User not found',
+  USER_ALREADY_EXISTS = 'User already exists',
+  INVALID_CREDENTIALS = 'Invalid username or password',
+  CONFIRM_PASSWORD_UNMATCHED = 'Confirm password does not match',
+  FORBIDDEN_PROFILE = 'You can only view your own profile',
+  USER_INACTIVE = 'User is inactive',
+  EMAIL_IS_REQUIRED = 'Email is required',
+  PASSWORD_IS_REQUIRED = 'Password is required',
+  USER_GET_DETAIL_FAULT = '',
+  USER_GET_DETAIL = 'Get user detail failed',
+  USER_GET_ALL = 'Get all user failed',
+  USER_GET_PROFILE = 'Get user profile failed',
+
+  //Authenticate error messages
+  UNAUTHORIZE_NOT_FOUND = 'Unauthorized: User ID not found',
   // Site messages
   CANNOT_GET_SITE_LIST = 'Can not get list of sites!',
   SITE_NOT_FOUND = 'Site not found!',
@@ -33,6 +50,10 @@ export enum ErrorMessage {
   CANNOT_CREATE_PARKING_SPACE = 'Cannot create parking space!',
   CANNOT_UPDATE_PARKING_SPACE = 'Cannot update parking space!',
   NO_UPDATE_DATA = 'No update data provided!',
+
+  REQUEST_FAILED = 'Request failed',
+
+  ACCOUNT_NOT_FOUND	 = 'Account not found'
 }
 
 export enum Message {
@@ -41,6 +62,15 @@ export enum Message {
   RESTAURANT_UPDATED = 'Restaurant updated successfully.',
   DISH_CREATED = 'New dish has been added successfully.',
   DISH_UPDATED = 'Dish has been updated successfully.',
+
+  //User messages
+  USER_CREATED = 'User created successfully',
+  USER_UPDATED = 'User updated successfully',
+  USER_DELETED = 'User deleted successfully',
+  USER_GET_ALL = 'Get all user successfully',
+  USER_GET_DETAIL = `Get user's detail successfully`,
+  USER_GET_PROFILE = `Get profile successfully`,
+  UNAUTHORIZE_NOT_FOUND = 'UNAUTHORIZE_NOT_FOUND',
   // Site messages
   SITE_CREATED = 'Site created successfully.',
   SITE_UPDATED = 'Site has been updated successfully.',
@@ -50,4 +80,12 @@ export enum Message {
   // Parking space messages
   PARKING_SPACE_CREATED = 'Parking space created successfully.',
   PARKING_SPACE_UPDATED = 'Parking space has been updated successfully.',
+}
+
+export enum StatusCode {
+  USER_GET_ALL = 4001,
+  USER_GET_PROFILE = 4002,
+  USER_NOT_FOUND = 4003,
+  USER_GET_DETAIL = 4004,
+  ACCOUNT_NOT_FOUND	= 4005
 }
