@@ -4,7 +4,7 @@ import {
   getBuildingById,
   createBuilding,
   updateBuilding,
-} from '../controllers/building';
+} from '../services/building';
 import {
   validateCreateBuilding,
   validateUpdateBuilding,

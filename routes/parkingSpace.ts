@@ -7,7 +7,7 @@ import {
   getBuildingById,
   createParkingSpace,
   updateParkingSpace,
-} from '../controllers/parkingSpace';
+} from '../services/parkingSpace';
 import {
   validateCreateParkingSpace,
   validateUpdateParkingSpace,

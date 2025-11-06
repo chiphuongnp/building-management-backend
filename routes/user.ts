@@ -1,7 +1,7 @@
 import express from 'express';
 import { validateUser } from '../validations/user';
-import { register } from '../controllers/auth';
-import { getAllUser, getProfile, getUserDetail } from '../controllers/user';
+import { register } from '../services/auth';
+import { getAllUser, getProfile, getUserDetail } from '../services/user';
 import { authenticate } from '../middlewares/auth';
 import { requirePermission, requireRole } from '../middlewares/permission';
 
@@ -9,9 +9,21 @@ const usersRouter = express.Router();
 
 usersRouter.post('/', validateUser, register);
 
-usersRouter.get('/', authenticate, requireRole('manager'), requirePermission('get_all_user'), getAllUser);
+usersRouter.get(
+  '/',
+  authenticate,
+  requireRole('manager'),
+  requirePermission('get_all_user'),
+  getAllUser,
+);
 
-usersRouter.get('/:userId/detail', authenticate, requireRole('manager'), requirePermission('get_user_detail'), getUserDetail);
+usersRouter.get(
+  '/:userId/detail',
+  authenticate,
+  requireRole('manager'),
+  requirePermission('get_user_detail'),
+  getUserDetail,
+);
 
 usersRouter.get('/profile', authenticate, requireRole('manager', 'user'), getProfile);
 

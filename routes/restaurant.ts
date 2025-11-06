@@ -9,7 +9,7 @@ import {
   getRestaurant,
   getRestaurants,
   updateRestaurant,
-} from '../controllers/restaurant';
+} from '../services/restaurant';
 import { authenticate } from '../middlewares/auth';
 import { requirePermission, requireRole } from '../middlewares/permission';
 import { UserRole } from '../constants/enum';

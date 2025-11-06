@@ -8,6 +8,7 @@ import buildingRouter from './routes/building';
 import authRouter from './routes/auth';
 import dishRouter from './routes/dish';
 import parkingSpaceRouter from './routes/parkingSpace';
+import menuRouter from './routes/menu';
 
 dotenv.config();
 const app: Application = express();
@@ -18,6 +19,7 @@ app.use(`/${Sites.TOKYO}/${Collection.AUTH}`, authRouter);
 app.use(`/${Sites.TOKYO}/${Collection.USERS}`, usersRoute);
 app.use(`/${Sites.TOKYO}/${Collection.RESTAURANTS}`, restaurantRouter);
 app.use(`/${Sites.TOKYO}/${Collection.RESTAURANTS}/:restaurantId/${Collection.DISHES}`, dishRouter);
+app.use(`/${Sites.TOKYO}/${Collection.RESTAURANTS}/:restaurantId/${Collection.MENU_SCHEDULES}`, menuRouter);
 app.use(`/${Sites.TOKYO}/${Collection.BUILDINGS}`, buildingRouter);
 app.use(`/${Sites.TOKYO}/${Collection.PARKING_SPACES}`, parkingSpaceRouter);
 

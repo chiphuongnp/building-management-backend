@@ -1,5 +1,5 @@
 import express from 'express';
-import { createSite, updateSite, getSites, getSiteById } from '../controllers/site';
+import { createSite, updateSite, getSites, getSiteById } from '../services/site';
 import { validateCreateSite, validateIdParam, validateUpdateSite } from '../validations/site';
 import { authenticate } from '../middlewares/auth';
 import { requireRole, requirePermission } from '../middlewares/permission';
