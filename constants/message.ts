@@ -64,6 +64,12 @@ export enum ErrorMessage {
   MENU_ITEM_NAME_EXISTS = 'Menu item(s) with the same name already exists.',
   CANNOT_CREATE_MENU_SCHEDULE = 'Cannot create menu schedule(s)!',
   CANNOT_UPDATE_MENU_SCHEDULE = 'Cannot update menu schedule!',
+  PARKING_SPACE_ALREADY_RESERVED = 'This parking space is already reserved!',
+
+  // Parking subscription messages
+  CANNOT_GET_PARKING_SUBSCRIPTION_LIST = 'Can not get list of parking subscription!',
+  PARKING_SUBSCRIPTION_NOT_FOUND = 'Parking subscription not found!',
+  CANNOT_CREATE_PARKING_SUBSCRIPTION = 'Cannot create parking subscription!',
 }
 
 export enum Message {
@@ -97,6 +103,10 @@ export enum Message {
   // Menu Schedule messages
   MENU_SCHEDULE_CREATED = 'Menu schedule(s) created successfully.',
   MENU_SCHEDULE_UPDATED = 'Menu schedule has been updated successfully.',
+
+  // Parking subscription messages
+  PARKING_SUBSCRIPTION_CREATED = 'Parking subscription created successfully.',
+  PARKING_SUBSCRIPTION_UPDATED = 'Parking subscription has been updated successfully.',
 }
 
 export enum StatusCode {
