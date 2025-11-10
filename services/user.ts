@@ -1,15 +1,19 @@
 import { Request, Response } from 'express';
 import { firebaseHelper } from '../utils/index';
-import { Sites } from '../constants/enum';
+import { Collection, Sites } from '../constants/enum';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { getDocById } from '../utils/firebaseHelper';
 import { AuthRequest } from '../interfaces/jwt';
 import { responseError, responseSuccess } from '../utils/error';
 import logger from '../utils/logger';
+import { deleteImages } from '../utils/deleteFile';
+import { User } from '../interfaces/user';
+
+const userCollection = `${Sites.TOKYO}/${Collection.USERS}`;
 
 export const getAllUser = async (req: Request, res: Response) => {
   try {
-    const users = await firebaseHelper.getAllDocs(`${Sites.TOKYO}/users`);
+    const users = await firebaseHelper.getAllDocs(userCollection);
     return responseSuccess(res, Message.USER_GET_ALL, users);
   } catch (error) {
     logger.warn(ErrorMessage.USER_GET_ALL + error);
@@ -20,7 +24,7 @@ export const getAllUser = async (req: Request, res: Response) => {
 export const getUserDetail = async (req: Request, res: Response) => {
   const { userId } = req.params;
   try {
-    const userDetail = await getDocById(`${Sites.TOKYO}/users`, userId);
+    const userDetail = await getDocById(userCollection, userId);
     if (!userDetail) {
       return responseError(res, StatusCode.USER_NOT_FOUND, ErrorMessage.USER_NOT_FOUND);
     }
@@ -39,7 +43,7 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
   }
 
   try {
-    const profile = await getDocById(`${Sites.TOKYO}/users`, uid);
+    const profile = await getDocById(userCollection, uid);
     if (!profile) {
       return responseError(res, StatusCode.USER_NOT_FOUND, ErrorMessage.USER_NOT_FOUND);
     }
@@ -48,5 +52,33 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     logger.warn(ErrorMessage.USER_GET_PROFILE + error);
     return responseError(res, StatusCode.USER_GET_PROFILE, ErrorMessage.USER_GET_PROFILE);
+  }
+};
+
+export const updateUser = async (req: AuthRequest, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const user: User = await firebaseHelper.getDocById(userCollection, userId);
+    if (!user) {
+      return responseError(res, StatusCode.USER_NOT_FOUND, ErrorMessage.USER_NOT_FOUND);
+    }
+
+    const files = req?.files as Express.Multer.File[];
+    const imageUrls = files?.map((file) => file.path.replace(/\\/g, '/'));
+    if (imageUrls.length && user.image_urls?.length) {
+      await deleteImages(user.image_urls);
+    }
+
+    const updatedUser = {
+      ...req.body,
+      image_urls: imageUrls.length ? imageUrls : user.image_urls,
+      updated_by: req.user?.uid,
+    };
+    await firebaseHelper.updateDoc(userCollection, userId, updatedUser);
+
+    return responseSuccess(res, Message.USER_UPDATED, userId);
+  } catch (error) {
+    logger.warn(ErrorMessage.USER_UPDATED + error);
+    return responseError(res, StatusCode.USER_UPDATE, ErrorMessage.REQUEST_FAILED);
   }
 };

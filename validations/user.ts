@@ -38,3 +38,21 @@ export const validateUser = (req: Request, res: Response, next: NextFunction) =>
   }
   next();
 };
+
+export const updateUserSchema = Joi.object({
+  username: Joi.string().min(3).max(30).optional(),
+  fullName: Joi.string().min(3).max(50).optional(),
+  phone: Joi.string().min(8).max(15).optional(),
+  roles: Joi.string()
+    .valid(...Object.values(UserRole))
+    .optional(),
+  permissions: Joi.array().items(Joi.string()).allow(null).optional(),
+});
+
+export const validateUpdateUser = (req: Request, res: Response, next: NextFunction) => {
+  const { error } = updateUserSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ success: false, message: error.details[0].message });
+  }
+  next();
+};

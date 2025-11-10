@@ -8,7 +8,7 @@ export interface User {
   password?: string;
   fullName: string;
   phone: string;
-  avatar_url?: string | null;
+  image_urls?: string[] | null;
   ranks?: UserRank | null;
   points?: number | null;
   roles: UserRole;
