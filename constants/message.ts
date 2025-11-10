@@ -26,6 +26,7 @@ export enum ErrorMessage {
   USER_GET_DETAIL = 'Get user detail failed',
   USER_GET_ALL = 'Get all user failed',
   USER_GET_PROFILE = 'Get user profile failed',
+  USER_UPDATED = 'Update user failed',
 
   //Authenticate error messages
   UNAUTHORIZE_NOT_FOUND = 'Unauthorized: User ID not found',
