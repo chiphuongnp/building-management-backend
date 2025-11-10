@@ -27,7 +27,7 @@ export const userSchema = Joi.object({
   points: Joi.number().min(0).allow(null).optional(),
   roles: Joi.string()
     .valid(...Object.values(UserRole))
-    .required(),
+    .optional(),
   permissions: Joi.array().items(Joi.string()).allow(null).optional(),
 });
 
