@@ -55,6 +55,9 @@ const updateParkingSpaceSchema = Joi.object<ParkingSpace>({
     .messages({
       'any.only': 'Type must be either motorbike or car',
     }),
+});
+
+const updateParkingSpaceStatusSchema = Joi.object<ParkingSpace>({
   status: Joi.string()
     .valid(...Object.values(ParkingSpaceStatus))
     .optional()
@@ -87,6 +90,19 @@ export const validateUpdateParkingSpace = (req: Request, res: Response, next: Ne
   }
 
   const { error } = updateParkingSpaceSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ success: false, message: error.details[0].message });
+  }
+  next();
+};
+
+export const validateStatusParkingSpace = (req: Request, res: Response, next: NextFunction) => {
+  const { error: paramError } = idParamSchema.validate(req.params);
+  if (paramError) {
+    return res.status(400).json({ success: false, message: paramError.details[0].message });
+  }
+
+  const { error } = updateParkingSpaceStatusSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ success: false, message: error.details[0].message });
   }

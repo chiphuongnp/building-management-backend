@@ -6,10 +6,14 @@ import {
   getSubscriptions,
   getSubscriptionById,
   createParkingSubscription,
+  updateParkingSubscription,
+  updateParkingSubscriptionStatus,
 } from '../services/parkingSubscription';
 import {
   validateIdParamSubscription,
   validateCreateSubscription,
+  validateUpdateSubscription,
+  validateStatusSubscription,
 } from '../validations/parkingSubscription';
 
 const parkingSubscriptionRouter = express.Router({ mergeParams: true });
@@ -32,9 +36,27 @@ parkingSubscriptionRouter.get(
 parkingSubscriptionRouter.post(
   '/create',
   authenticate,
-  requireRole(UserRole.MANAGER, UserRole.MANAGER),
+  requireRole(UserRole.MANAGER, UserRole.USER),
   validateCreateSubscription,
   createParkingSubscription,
+);
+
+parkingSubscriptionRouter.patch(
+  '/update/:id',
+  authenticate,
+  requireRole(UserRole.MANAGER, UserRole.USER),
+  validateIdParamSubscription,
+  validateUpdateSubscription,
+  updateParkingSubscription,
+);
+
+parkingSubscriptionRouter.patch(
+  '/update-status/:id',
+  authenticate,
+  requireRole(UserRole.MANAGER, UserRole.USER),
+  validateIdParamSubscription,
+  validateStatusSubscription,
+  updateParkingSubscriptionStatus,
 );
 
 export default parkingSubscriptionRouter;

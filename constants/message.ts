@@ -54,6 +54,7 @@ export enum ErrorMessage {
   PARKING_SPACE_CODE_ALREADY_EXISTS = 'Parking space code already exists!',
   CANNOT_CREATE_PARKING_SPACE = 'Cannot create parking space!',
   CANNOT_UPDATE_PARKING_SPACE = 'Cannot update parking space!',
+  CANNOT_UPDATE_PARKING_SPACE_STATUS = 'Cannot update parking space status!',
 
   // General messages
   NO_UPDATE_DATA = 'No update data provided!',
@@ -80,6 +81,8 @@ export enum ErrorMessage {
   CANNOT_DELETE_PERMISSION = 'Cannot delete permission',
   CANNOT_GET_PERMISSION_LIST = 'Cannot get list of permissions',
   PERMISSION_GET_DETAIL = 'Cannot get permission detail',
+  CANNOT_UPDATE_PARKING_SUBSCRIPTION = 'Cannot update parking subscription!',
+  CANNOT_UPDATE_PARKING_SUBSCRIPTION_STATUS = 'Cannot update parking subscription status!',
 }
 
 export enum Message {
@@ -109,6 +112,7 @@ export enum Message {
   // Parking space messages
   PARKING_SPACE_CREATED = 'Parking space created successfully.',
   PARKING_SPACE_UPDATED = 'Parking space has been updated successfully.',
+  PARKING_SPACE_STATUS_UPDATED = 'Parking space status has been updated successfully.',
 
   // Menu Schedule messages
   MENU_SCHEDULE_CREATED = 'Menu schedule(s) created successfully.',
@@ -124,6 +128,7 @@ export enum Message {
   PERMISSION_DELETED = 'Permission deleted successfully',
   PERMISSION_GET_ALL = 'Get all permissions successfully',
   PERMISSION_GET_DETAIL = 'Get permission detail successfully',
+  PARKING_SUBSCRIPTION_STATUS_UPDATED = 'Parking subscription status has been updated successfully.',
 }
 
 export enum StatusCode {

@@ -147,10 +147,30 @@ const updateParkingSpace = async (req: AuthRequest, res: Response) => {
   }
 };
 
+const updateParkingSpaceStatus = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const docRef = await firebaseHelper.updateDoc(parkingSpaceCollection, id, {
+      status: req.body.status,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: Message.PARKING_SPACE_STATUS_UPDATED,
+      data: docRef,
+    });
+  } catch (error) {
+    return res
+      .status(400)
+      .json({ success: false, message: ErrorMessage.CANNOT_UPDATE_PARKING_SPACE_STATUS });
+  }
+};
+
 export {
   getParkingSpaces,
   getParkingSpaceAvailable,
   getBuildingById,
+  updateParkingSpaceStatus,
   createParkingSpace,
   updateParkingSpace,
 };

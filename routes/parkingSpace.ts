@@ -12,6 +12,7 @@ import {
   validateCreateParkingSpace,
   validateUpdateParkingSpace,
   validateIdParam,
+  validateStatusParkingSpace,
 } from '../validations/parkingSpace';
 import { UserRole } from '../constants/enum';
 
@@ -55,6 +56,15 @@ parkingSpaceRouter.patch(
   requirePermission('update_parking_space'),
   validateIdParam,
   validateUpdateParkingSpace,
+  updateParkingSpace,
+);
+
+parkingSpaceRouter.patch(
+  '/update-status/:id',
+  authenticate,
+  requireRole(UserRole.USER, UserRole.MANAGER),
+  validateIdParam,
+  validateStatusParkingSpace,
   updateParkingSpace,
 );
 
