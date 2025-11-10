@@ -59,6 +59,16 @@ const createSubscriptionSchema = Joi.object({
     'date.min': 'Start date cannot be in the past',
   });
 
+export const updateSubscriptionInfoSchema = Joi.object({
+  month_duration: subscriptionFieldsSchema.month_duration.required(),
+  amount: subscriptionFieldsSchema.amount.optional(),
+  payment_id: subscriptionFieldsSchema.payment_id.optional(),
+});
+
+export const updateSubscriptionStatusSchema = Joi.object({
+  status: subscriptionFieldsSchema.status,
+});
+
 const idParamSubscriptionSchema = Joi.object({
   id: Joi.string().required().messages({
     'string.length': 'ID must be 20 characters',
@@ -74,6 +84,27 @@ const idParamSubscriptionSchema = Joi.object({
 
 export const validateCreateSubscription = (req: Request, res: Response, next: NextFunction) => {
   const { error } = createSubscriptionSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ success: false, message: error.details[0].message });
+  }
+  next();
+};
+
+export const validateUpdateSubscription = (req: Request, res: Response, next: NextFunction) => {
+  const { error: paramError } = idParamSubscriptionSchema.validate(req.params);
+  if (paramError) {
+    return res.status(400).json({ success: false, message: paramError.details[0].message });
+  }
+
+  const { error } = updateSubscriptionInfoSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ success: false, message: error.details[0].message });
+  }
+  next();
+};
+
+export const validateStatusSubscription = (req: Request, res: Response, next: NextFunction) => {
+  const { error } = updateSubscriptionStatusSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ success: false, message: error.details[0].message });
   }
