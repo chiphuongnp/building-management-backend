@@ -43,6 +43,7 @@ export enum Collection {
   MENU_SCHEDULES = 'menu_schedules',
   ITEMS = 'items',
   PARKING_SUBSCRIPTIONS = 'parking_subscriptions',
+  PERMISSIONS = 'permissions',
 }
 
 export enum ParkingSpaceType {

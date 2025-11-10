@@ -70,6 +70,15 @@ export enum ErrorMessage {
   CANNOT_GET_PARKING_SUBSCRIPTION_LIST = 'Can not get list of parking subscription!',
   PARKING_SUBSCRIPTION_NOT_FOUND = 'Parking subscription not found!',
   CANNOT_CREATE_PARKING_SUBSCRIPTION = 'Cannot create parking subscription!',
+
+  //Permission messages
+  PERMISSION_NOT_FOUND = 'Permission not found',
+  PERMISSION_ALREADY_EXISTS = 'Permission already exists',
+  CANNOT_CREATE_PERMISSION = 'Cannot create permission',
+  CANNOT_UPDATE_PERMISSION = 'Cannot update permission',
+  CANNOT_DELETE_PERMISSION = 'Cannot delete permission',
+  CANNOT_GET_PERMISSION_LIST = 'Cannot get list of permissions',
+  PERMISSION_GET_DETAIL = 'Cannot get permission detail',
 }
 
 export enum Message {
@@ -107,6 +116,13 @@ export enum Message {
   // Parking subscription messages
   PARKING_SUBSCRIPTION_CREATED = 'Parking subscription created successfully.',
   PARKING_SUBSCRIPTION_UPDATED = 'Parking subscription has been updated successfully.',
+
+  //Permission messages
+  PERMISSION_CREATED = 'Permission created successfully',
+  PERMISSION_UPDATED = 'Permission updated successfully',
+  PERMISSION_DELETED = 'Permission deleted successfully',
+  PERMISSION_GET_ALL = 'Get all permissions successfully',
+  PERMISSION_GET_DETAIL = 'Get permission detail successfully',
 }
 
 export enum StatusCode {
@@ -116,10 +132,20 @@ export enum StatusCode {
   USER_NOT_FOUND = 4003,
   USER_GET_DETAIL = 4004,
   ACCOUNT_NOT_FOUND = 4005,
+  USER_UPDATE = 4006,
 
   // Menu Schedule status codes
   CANNOT_CREATE_MENU_SCHEDULE = 4061,
   CANNOT_UPDATE_MENU_SCHEDULE = 4062,
   MENU_SCHEDULE_DAY_EXISTS = 4063,
   MENU_ITEM_NAME_EXISTS = 4064,
+
+  //Permission
+  PERMISSION_GET_ALL = 5001,
+  PERMISSION_NOT_FOUND = 5002,
+  PERMISSION_CREATE = 5003,
+  PERMISSION_UPDATE = 5004,
+  PERMISSION_DELETE = 5005,
+  PERMISSION_GET_DETAIL = 5006,
+  PERMISSION_ALREADY_EXISTS = 5007,
 }
