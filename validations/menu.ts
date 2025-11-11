@@ -3,6 +3,34 @@ import { Request, Response, NextFunction } from 'express';
 import { DishCategory, DayOfWeek } from '../constants/enum';
 import { Item, MenuSchedule } from '../interfaces/menu';
 
+const idParamSchema = Joi.object({
+  restaurantId: Joi.string()
+    .length(20)
+    .regex(/^[A-Za-z0-9]+$/)
+    .required()
+    .messages({
+      'string.empty': 'Restaurant ID cannot be empty',
+      'any.required': 'Restaurant ID is required',
+      'string.length': 'Restaurant ID must be exactly 20 characters',
+      'string.pattern.base': 'Restaurant ID must contain only letters and numbers',
+    }),
+  id: Joi.string()
+    .valid(...Object.values(DayOfWeek))
+    .optional()
+    .messages({
+      'any.only': `ID must be one of: ${Object.values(DayOfWeek).join(', ')}`,
+      'any.required': 'The "id" field (day of week) is required',
+    }),
+  itemId: Joi.string()
+    .length(20)
+    .regex(/^[A-Za-z0-9]+$/)
+    .optional()
+    .messages({
+      'string.length': 'Menu Item ID must be exactly 20 characters',
+      'string.pattern.base': 'Menu Item ID must contain only letters and numbers',
+    }),
+});
+
 const itemSchema = Joi.object<Item>({
   name: Joi.string().min(2).max(100).required().messages({
     'string.empty': 'Dish name is required',
@@ -22,6 +50,14 @@ const itemSchema = Joi.object<Item>({
       'any.only': `Category must be one of: ${Object.values(DishCategory).join(', ')}`,
       'any.required': 'Category is required',
     }),
+  image_urls: Joi.array()
+    .items(Joi.string().required())
+    .unique()
+    .messages({
+      'array.unique': 'Image URLs must be unique (case-insensitive) for each dish',
+      'array.base': 'image_urls must be an array',
+    })
+    .optional(),
 });
 
 const createMenuScheduleSchema = Joi.object<MenuSchedule>({
@@ -37,6 +73,19 @@ const createMenuScheduleSchema = Joi.object<MenuSchedule>({
     .unique((a, b) => a.name.trim().toLowerCase() === b.name.trim().toLowerCase())
     .min(1)
     .required()
+    .custom((items, helpers) => {
+      const allUrls = items.flatMap((item: Item) => item.image_urls || []);
+      const duplicates = allUrls.filter(
+        (url: string, index: number) => allUrls.indexOf(url) !== index,
+      );
+      if (duplicates.length) {
+        return helpers.error('any.custom', {
+          message: `Duplicate image URLs across items: ${duplicates.join(', ')}`,
+        });
+      }
+
+      return items;
+    }, 'Validate unique image_urls across all items')
     .messages({
       'array.unique': 'Dish names must be unique (case-insensitive)',
       'array.base': 'Items must be an array',
@@ -51,9 +100,39 @@ const createMenuScheduleBatchSchema = Joi.array().items(createMenuScheduleSchema
 });
 
 export const validateCreateMenuSchedule = (req: Request, res: Response, next: NextFunction) => {
-  const { error } = createMenuScheduleBatchSchema.validate(req.body);
+  try {
+    const { error } = createMenuScheduleBatchSchema.validate(req.body.schedules);
+    if (error) {
+      return res.status(400).json({ status: false, message: error.details[0].message });
+    }
+    next();
+  } catch (err) {
+    return res.status(400).json({ status: false, message: 'Invalid JSON for schedules' });
+  }
+};
+
+export const validateAddMenuItem = (req: Request, res: Response, next: NextFunction) => {
+  const { error } = itemSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ status: false, message: error.details[0].message });
+  }
+  next();
+};
+
+export const validateUpdateMenuItem = (req: Request, res: Response, next: NextFunction) => {
+  const { error } = itemSchema
+    .fork(Object.keys(itemSchema.describe().keys), (schema) => schema.optional())
+    .validate(req.body);
+  if (error) {
+    return res.status(400).json({ status: false, message: error.details[0].message });
+  }
+  next();
+};
+
+export const validateMenuIdParams = (req: Request, res: Response, next: NextFunction) => {
+  const { error } = idParamSchema.validate(req.params);
+  if (error) {
+    return res.status(400).json({ success: false, message: error.details[0].message });
   }
   next();
 };

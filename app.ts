@@ -19,19 +19,13 @@ app.use(express.json());
 app.use(`/${Collection.SITES}`, siteRouter);
 app.use(`/${Sites.TOKYO}/${Collection.AUTH}`, authRouter);
 app.use(`/${Sites.TOKYO}/${Collection.USERS}`, usersRoute);
+app.use(`/${Sites.TOKYO}/${Collection.PERMISSIONS}`, permissionRouter);
+app.use(`/${Sites.TOKYO}/${Collection.BUILDINGS}`, buildingRouter);
 app.use(`/${Sites.TOKYO}/${Collection.RESTAURANTS}`, restaurantRouter);
 app.use(`/${Sites.TOKYO}/${Collection.RESTAURANTS}/:restaurantId/${Collection.DISHES}`, dishRouter);
-app.use(
-  `/${Sites.TOKYO}/${Collection.RESTAURANTS}/:restaurantId/${Collection.MENU_SCHEDULES}`,
-  menuRouter,
-);
-app.use(`/${Sites.TOKYO}/${Collection.BUILDINGS}`, buildingRouter);
+app.use(`/${Sites.TOKYO}/${Collection.RESTAURANTS}/:restaurantId/${Collection.MENU_SCHEDULES}`, menuRouter);
 app.use(`/${Sites.TOKYO}/${Collection.PARKING_SPACES}`, parkingSpaceRouter);
-app.use(
-  `/${Sites.TOKYO}/${Collection.PARKING_SPACES}/:parkingSpaceId/${Collection.PARKING_SUBSCRIPTIONS}`,
-  parkingSubscriptionRouter,
-);
-app.use(`/${Sites.TOKYO}/${Collection.PERMISSIONS}`, permissionRouter);
+app.use(`/${Sites.TOKYO}/${Collection.PARKING_SPACES}/:parkingSpaceId/${Collection.PARKING_SUBSCRIPTIONS}`, parkingSubscriptionRouter);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

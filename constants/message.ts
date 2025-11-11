@@ -55,18 +55,26 @@ export enum ErrorMessage {
   CANNOT_CREATE_PARKING_SPACE = 'Cannot create parking space!',
   CANNOT_UPDATE_PARKING_SPACE = 'Cannot update parking space!',
   CANNOT_UPDATE_PARKING_SPACE_STATUS = 'Cannot update parking space status!',
+  PARKING_SPACE_ALREADY_RESERVED = 'This parking space is already reserved!',
 
   // General messages
   NO_UPDATE_DATA = 'No update data provided!',
   REQUEST_FAILED = 'Request failed',
   ACCOUNT_NOT_FOUND = 'Account not found',
+  IMAGE_UPLOAD_FAILED = 'Image upload failed',
+  CANNOT_UPLOAD_IMAGES = 'Error processing uploaded images:',
 
   // Menu Schedule messages
-  MENU_SCHEDULE_DAY_EXISTS = 'Menu schedule for the specified day already exists',
-  MENU_ITEM_NAME_EXISTS = 'Menu item(s) with the same name already exists.',
+  MENU_SCHEDULE_DAY_EXISTS = 'Menu schedule for the specified day already exists!',
+  MENU_ITEM_NAME_EXISTS = 'Menu item(s) with the same name already exists!',
   CANNOT_CREATE_MENU_SCHEDULE = 'Cannot create menu schedule(s)!',
   CANNOT_UPDATE_MENU_SCHEDULE = 'Cannot update menu schedule!',
-  PARKING_SPACE_ALREADY_RESERVED = 'This parking space is already reserved!',
+  GET_MENU_SCHEDULES = 'Cannot get menu schedule(s)!',
+  MENU_SCHEDULE_NOT_FOUND = 'Menu schedule not found!',
+  MENU_SCHEDULE_EMPTY = 'Menu schedule list is empty!',
+  CANNOT_CREATE_MENU_ITEM = 'Cannot add item to menu schedule!',
+  CANNOT_UPDATE_MENU_ITEM = 'Cannot update item in menu schedule!',
+  MENU_ITEM_NOT_FOUND = 'Menu item not found in this menu schedule!',
 
   // Parking subscription messages
   CANNOT_GET_PARKING_SUBSCRIPTION_LIST = 'Can not get list of parking subscription!',
@@ -116,7 +124,10 @@ export enum Message {
 
   // Menu Schedule messages
   MENU_SCHEDULE_CREATED = 'Menu schedule(s) created successfully.',
-  MENU_SCHEDULE_UPDATED = 'Menu schedule has been updated successfully.',
+  MENU_SCHEDULE_UPDATED = 'Menu schedule(s) has been updated successfully.',
+  GET_MENU_SCHEDULES = 'Get menu schedule(s) successfully.',
+  MENU_ITEM_CREATED = 'New item(s) has been added to menu schedule.',
+  MENU_ITEM_UPDATED = 'Item(s) has been updated in menu schedule.',
 
   // Parking subscription messages
   PARKING_SUBSCRIPTION_CREATED = 'Parking subscription created successfully.',
@@ -145,6 +156,14 @@ export enum StatusCode {
   CANNOT_UPDATE_MENU_SCHEDULE = 4062,
   MENU_SCHEDULE_DAY_EXISTS = 4063,
   MENU_ITEM_NAME_EXISTS = 4064,
+  GET_MENU_SCHEDULES = 4065,
+  MENU_SCHEDULE_NOT_FOUND = 4066,
+  MENU_SCHEDULE_EMPTY = 4067,
+  CANNOT_CREATE_MENU_ITEM = 4068,
+  CANNOT_UPDATE_MENU_ITEM = 4069,
+  MENU_ITEM_NOT_FOUND = 4070,
+  IMAGE_UPLOAD_FAILED = 4071,
+  CANNOT_UPLOAD_IMAGES = 4072,
 
   //Permission
   PERMISSION_GET_ALL = 5001,
