@@ -2,10 +2,14 @@
   "name": "building-management-backend",
   "version": "1.0.0",
   "description": "Building Management Backend — the core backend service of the Building Management Ecosystem (BME), built on Firebase and Node.js.",
-  "main": "dist/app.js",
+  "main": "dist/emulator.js",
+  "engines": {
+    "node": "22"
+  },
   "scripts": {
     "dev": "nodemon --exec tsx app.ts",
-    "build": "tsc",
+    "build": "tsc --project tsconfig.json",
+    "emulator": "firebase emulators:start --only functions,firestore",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
@@ -29,6 +33,7 @@
     "express": "^5.1.0",
     "express-rate-limit": "^8.1.0",
     "firebase-admin": "^13.5.0",
+    "firebase-functions": "^6.6.0",
     "joi": "^18.0.1",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",

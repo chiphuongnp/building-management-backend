@@ -1,8 +1,11 @@
 import admin from 'firebase-admin';
 import serviceAccount from '../configs/firebaseConfig.json';
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
-});
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
+  });
+}
+const db = admin.firestore();
 
-export const db = admin.firestore();
+export { db, admin };
