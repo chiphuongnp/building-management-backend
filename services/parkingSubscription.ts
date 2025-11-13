@@ -8,9 +8,11 @@ import {
 } from '../constants/enum';
 import { ParkingSubscription } from '../interfaces/parkingSubscription';
 import { AuthRequest } from '../interfaces/jwt';
-import { ErrorMessage, Message } from '../constants/message';
+import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { Timestamp } from 'firebase-admin/firestore';
 import { getTomorrow } from '../utils/date';
+import logger from '../utils/logger';
+import { responseError, responseSuccess } from '../utils/error';
 
 const parkingCollection = `${Sites.TOKYO}/${Collection.PARKING_SPACES}`;
 const subscriptionCollection = (parkingSpaceId: string) => {
@@ -23,14 +25,15 @@ const getSubscriptions = async (req: Request, res: Response) => {
       subscriptionCollection(parkingSpaceId),
     );
 
-    return res.status(200).json({
-      success: true,
-      data: parkingSubscriptions,
-    });
+    return responseSuccess(res, Message.GET_PARKING_SUBSCRIPTION, parkingSubscriptions);
   } catch (error) {
-    return res
-      .status(400)
-      .json({ success: false, message: ErrorMessage.CANNOT_GET_PARKING_SUBSCRIPTION_LIST });
+    logger.warn(ErrorMessage.CANNOT_GET_PARKING_SUBSCRIPTION_LIST + error);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_GET_PARKING_SUBSCRIPTION_LIST,
+      ErrorMessage.CANNOT_GET_PARKING_SUBSCRIPTION_LIST,
+    );
   }
 };
 
@@ -42,10 +45,11 @@ const getSubscriptionById = async (req: Request, res: Response) => {
       parkingSubscriptionId,
     );
     if (!parkingSubscription) {
-      return res.status(404).json({
-        success: false,
-        message: ErrorMessage.PARKING_SUBSCRIPTION_NOT_FOUND,
-      });
+      return responseError(
+        res,
+        StatusCode.PARKING_SUBSCRIPTION_NOT_FOUND,
+        ErrorMessage.PARKING_SUBSCRIPTION_NOT_FOUND,
+      );
     }
 
     return res.json({
@@ -53,10 +57,13 @@ const getSubscriptionById = async (req: Request, res: Response) => {
       data: parkingSubscription,
     });
   } catch (error) {
-    return res.status(400).json({
-      success: false,
-      message: ErrorMessage.PARKING_SUBSCRIPTION_NOT_FOUND,
-    });
+    logger.warn(ErrorMessage.PARKING_SUBSCRIPTION_NOT_FOUND + error);
+
+    return responseError(
+      res,
+      StatusCode.PARKING_SUBSCRIPTION_NOT_FOUND,
+      ErrorMessage.PARKING_SUBSCRIPTION_NOT_FOUND,
+    );
   }
 };
 
@@ -76,10 +83,11 @@ const createParkingSubscription = async (req: AuthRequest, res: Response) => {
       (item) => item.status == ParkingSubscriptionStatus.RESERVED,
     );
     if (validConflicts.length) {
-      return res.status(409).json({
-        success: false,
-        message: ErrorMessage.PARKING_SPACE_ALREADY_RESERVED,
-      });
+      return responseError(
+        res,
+        StatusCode.PARKING_SPACE_ALREADY_RESERVED,
+        ErrorMessage.PARKING_SPACE_ALREADY_RESERVED,
+      );
     }
 
     const docRef = await firebaseHelper.createDoc(subscriptionCollection(parkingSpaceId), {
@@ -89,15 +97,15 @@ const createParkingSubscription = async (req: AuthRequest, res: Response) => {
       ...data,
     });
 
-    return res.status(200).json({
-      success: true,
-      message: Message.PARKING_SUBSCRIPTION_CREATED,
-      id: docRef.id,
-    });
+    return responseSuccess(res, Message.PARKING_SUBSCRIPTION_CREATED, { id: docRef.id });
   } catch (error) {
-    return res
-      .status(400)
-      .json({ success: false, message: ErrorMessage.CANNOT_CREATE_PARKING_SUBSCRIPTION });
+    logger.warn(ErrorMessage.CANNOT_CREATE_PARKING_SUBSCRIPTION + error);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_CREATE_PARKING_SUBSCRIPTION,
+      ErrorMessage.CANNOT_CREATE_PARKING_SUBSCRIPTION,
+    );
   }
 };
 
@@ -109,34 +117,32 @@ const updateParkingSubscription = async (req: AuthRequest, res: Response) => {
       parkingSubcriptionId,
     );
     if (!parkingSubscription) {
-      return res.status(404).json({
-        success: false,
-        message: ErrorMessage.PARKING_SUBSCRIPTION_NOT_FOUND,
-      });
+      return responseError(
+        res,
+        StatusCode.PARKING_SUBSCRIPTION_NOT_FOUND,
+        ErrorMessage.PARKING_SUBSCRIPTION_NOT_FOUND,
+      );
     }
 
     const { month_duration, ...data } = req.body;
     const startTime = parkingSubscription.start_time;
     const endTime = new Date(startTime);
     endTime.setMonth(endTime.getMonth() + month_duration);
-    const docRef = await firebaseHelper.updateDoc(
-      subscriptionCollection(parkingSpaceId),
-      parkingSubcriptionId,
-      {
-        end_time: Timestamp.fromDate(endTime),
-        ...data,
-      },
-    );
 
-    return res.status(200).json({
-      success: true,
-      message: Message.PARKING_SUBSCRIPTION_UPDATED,
-      data: docRef,
+    await firebaseHelper.updateDoc(subscriptionCollection(parkingSpaceId), parkingSubcriptionId, {
+      end_time: Timestamp.fromDate(endTime),
+      ...data,
     });
+
+    return responseSuccess(res, Message.PARKING_SUBSCRIPTION_UPDATED);
   } catch (error) {
-    return res
-      .status(400)
-      .json({ success: false, message: ErrorMessage.CANNOT_UPDATE_PARKING_SUBSCRIPTION });
+    logger.warn(ErrorMessage.CANNOT_UPDATE_PARKING_SUBSCRIPTION + error);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_UPDATE_PARKING_SUBSCRIPTION,
+      ErrorMessage.CANNOT_UPDATE_PARKING_SUBSCRIPTION,
+    );
   }
 };
 
@@ -149,19 +155,16 @@ const updateParkingSubscriptionStatus = async (req: AuthRequest, res: Response) 
       parkingSubcriptionId,
     );
     if (!parkingSubscription) {
-      return res.status(404).json({
-        success: false,
-        message: ErrorMessage.PARKING_SUBSCRIPTION_NOT_FOUND,
-      });
+      return responseError(
+        res,
+        StatusCode.PARKING_SUBSCRIPTION_NOT_FOUND,
+        ErrorMessage.PARKING_SUBSCRIPTION_NOT_FOUND,
+      );
     }
 
-    const docRef = await firebaseHelper.updateDoc(
-      subscriptionCollection(parkingSpaceId),
-      parkingSubcriptionId,
-      {
-        status,
-      },
-    );
+    await firebaseHelper.updateDoc(subscriptionCollection(parkingSpaceId), parkingSubcriptionId, {
+      status,
+    });
 
     let newParkingSpaceStatus;
     switch (status) {
@@ -181,15 +184,17 @@ const updateParkingSubscriptionStatus = async (req: AuthRequest, res: Response) 
       });
     }
 
-    return res.status(200).json({
-      success: true,
-      message: Message.PARKING_SUBSCRIPTION_STATUS_UPDATED,
-      data: docRef,
+    return responseSuccess(res, Message.PARKING_SUBSCRIPTION_STATUS_UPDATED, {
+      id: parkingSubcriptionId,
     });
   } catch (error) {
-    return res
-      .status(400)
-      .json({ success: false, message: ErrorMessage.CANNOT_UPDATE_PARKING_SUBSCRIPTION_STATUS });
+    logger.warn(ErrorMessage.CANNOT_UPDATE_PARKING_SUBSCRIPTION_STATUS + error);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_UPDATE_PARKING_SUBSCRIPTION_STATUS,
+      ErrorMessage.CANNOT_UPDATE_PARKING_SUBSCRIPTION_STATUS,
+    );
   }
 };
 

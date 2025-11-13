@@ -3,21 +3,24 @@ import { firebaseHelper } from '../utils/index';
 import { Collection, ParkingSpaceStatus, Sites } from '../constants/enum';
 import { ParkingSpace } from '../interfaces/parkingSpace';
 import { AuthRequest } from '../interfaces/jwt';
-import { ErrorMessage, Message } from '../constants/message';
+import { ErrorMessage, Message, StatusCode } from '../constants/message';
+import logger from '../utils/logger';
+import { responseError, responseSuccess } from '../utils/error';
 
 const parkingSpaceCollection = `${Sites.TOKYO}/${Collection.PARKING_SPACES}`;
 const getParkingSpaces = async (req: Request, res: Response) => {
   try {
     const parkingSpaces: ParkingSpace[] = await firebaseHelper.getAllDocs(parkingSpaceCollection);
 
-    return res.status(200).json({
-      success: true,
-      data: parkingSpaces,
-    });
+    return responseSuccess(res, Message.GET_PARKING_SPACE, parkingSpaces);
   } catch (error) {
-    return res
-      .status(400)
-      .json({ success: false, message: ErrorMessage.CANNOT_GET_PARKING_SPACE_LIST });
+    logger.warn(ErrorMessage.CANNOT_GET_PARKING_SPACE_LIST + error);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_GET_PARKING_SPACE_LIST,
+      ErrorMessage.CANNOT_GET_PARKING_SPACE_LIST,
+    );
   }
 };
 
@@ -26,21 +29,22 @@ const getBuildingById = async (req: Request, res: Response) => {
     const { id } = req.params;
     const parkingSpace: ParkingSpace = await firebaseHelper.getDocById(parkingSpaceCollection, id);
     if (!parkingSpace) {
-      return res.status(404).json({
-        success: false,
-        message: ErrorMessage.PARKING_SPACE_NOT_FOUND,
-      });
+      return responseError(
+        res,
+        StatusCode.PARKING_SPACE_NOT_FOUND,
+        ErrorMessage.PARKING_SPACE_NOT_FOUND,
+      );
     }
 
-    return res.json({
-      success: true,
-      data: parkingSpace,
-    });
+    return responseSuccess(res, Message.GET_PARKING_SPACE, parkingSpace);
   } catch (error) {
-    return res.status(400).json({
-      success: false,
-      message: ErrorMessage.PARKING_SPACE_NOT_FOUND,
-    });
+    logger.warn(ErrorMessage.PARKING_SPACE_NOT_FOUND + error);
+
+    return responseError(
+      res,
+      StatusCode.PARKING_SPACE_NOT_FOUND,
+      ErrorMessage.PARKING_SPACE_NOT_FOUND,
+    );
   }
 };
 
@@ -52,14 +56,15 @@ const getParkingSpaceAvailable = async (req: Request, res: Response) => {
       ParkingSpaceStatus.AVAILABLE,
     );
 
-    return res.status(200).json({
-      success: true,
-      data: parkingSpaces,
-    });
+    return responseSuccess(res, Message.GET_AVAILABLE_PARKING_SPACE, parkingSpaces);
   } catch (error) {
-    return res
-      .status(400)
-      .json({ success: false, message: ErrorMessage.CANNOT_GET_AVAILABLE_PARKING_SPACE });
+    logger.warn(ErrorMessage.CANNOT_GET_AVAILABLE_PARKING_SPACE + error);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_GET_AVAILABLE_PARKING_SPACE,
+      ErrorMessage.CANNOT_GET_AVAILABLE_PARKING_SPACE,
+    );
   }
 };
 
@@ -71,10 +76,7 @@ const createParkingSpace = async (req: AuthRequest, res: Response) => {
       building_id,
     );
     if (!building) {
-      return res.status(404).json({
-        success: false,
-        message: ErrorMessage.BUILDING_NOT_FOUND,
-      });
+      return responseError(res, StatusCode.BUILDING_NOT_FOUND, ErrorMessage.BUILDING_NOT_FOUND);
     }
 
     const codeExists = await firebaseHelper.getDocsByFields(parkingSpaceCollection, [
@@ -82,25 +84,26 @@ const createParkingSpace = async (req: AuthRequest, res: Response) => {
       { field: 'building_id', operator: '==', value: building_id },
     ]);
     if (codeExists.length) {
-      return res.status(409).json({
-        success: false,
-        message: ErrorMessage.PARKING_SPACE_CODE_ALREADY_EXISTS,
-      });
+      return responseError(
+        res,
+        StatusCode.PARKING_SPACE_CODE_ALREADY_EXISTS,
+        ErrorMessage.PARKING_SPACE_CODE_ALREADY_EXISTS,
+      );
     }
 
-    const docRef = await firebaseHelper.createDoc(`${Sites.TOKYO}/${Collection.PARKING_SPACES}`, {
+    const docRef = await firebaseHelper.createDoc(parkingSpaceCollection, {
       ...req.body,
       created_by: req.user?.uid,
     });
-    return res.status(200).json({
-      success: true,
-      message: Message.PARKING_SPACE_CREATED,
-      id: docRef.id,
-    });
+    return responseSuccess(res, Message.PARKING_SPACE_CREATED, { id: docRef.id });
   } catch (error) {
-    return res
-      .status(400)
-      .json({ success: false, message: ErrorMessage.CANNOT_CREATE_PARKING_SPACE });
+    logger.warn(ErrorMessage.CANNOT_CREATE_PARKING_SPACE + error);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_CREATE_PARKING_SPACE,
+      ErrorMessage.CANNOT_CREATE_PARKING_SPACE,
+    );
   }
 };
 
@@ -109,10 +112,11 @@ const updateParkingSpace = async (req: AuthRequest, res: Response) => {
     const { id } = req.params;
     const parkingSpace = await firebaseHelper.getDocById(parkingSpaceCollection, id);
     if (!parkingSpace) {
-      return res.status(404).json({
-        success: false,
-        message: ErrorMessage.PARKING_SPACE_NOT_FOUND,
-      });
+      return responseError(
+        res,
+        StatusCode.PARKING_SPACE_NOT_FOUND,
+        ErrorMessage.PARKING_SPACE_NOT_FOUND,
+      );
     }
 
     const { code: parkingCode } = req.body;
@@ -124,45 +128,47 @@ const updateParkingSpace = async (req: AuthRequest, res: Response) => {
       );
       const isDuplicate = codeSnapshot.some((doc) => doc.id !== id);
       if (isDuplicate) {
-        return res.status(409).json({
-          success: false,
-          message: ErrorMessage.PARKING_SPACE_CODE_ALREADY_EXISTS,
-        });
+        return responseError(
+          res,
+          StatusCode.PARKING_SPACE_CODE_ALREADY_EXISTS,
+          ErrorMessage.PARKING_SPACE_CODE_ALREADY_EXISTS,
+        );
       }
     }
 
-    const docRef = await firebaseHelper.updateDoc(parkingSpaceCollection, id, {
+    await firebaseHelper.updateDoc(parkingSpaceCollection, id, {
       ...req.body,
       updated_by: req.user?.uid,
     });
-    return res.status(200).json({
-      success: true,
-      message: Message.PARKING_SPACE_UPDATED,
-      data: docRef,
-    });
+
+    return responseSuccess(res, Message.PARKING_SPACE_UPDATED, { id });
   } catch (error) {
-    return res
-      .status(400)
-      .json({ success: false, message: ErrorMessage.CANNOT_UPDATE_PARKING_SPACE });
+    logger.warn(ErrorMessage.CANNOT_UPDATE_PARKING_SPACE + error);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_UPDATE_PARKING_SPACE,
+      ErrorMessage.CANNOT_UPDATE_PARKING_SPACE,
+    );
   }
 };
 
 const updateParkingSpaceStatus = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const docRef = await firebaseHelper.updateDoc(parkingSpaceCollection, id, {
+    await firebaseHelper.updateDoc(parkingSpaceCollection, id, {
       status: req.body.status,
     });
 
-    return res.status(200).json({
-      success: true,
-      message: Message.PARKING_SPACE_STATUS_UPDATED,
-      data: docRef,
-    });
+    return responseSuccess(res, Message.PARKING_SPACE_STATUS_UPDATED, { id });
   } catch (error) {
-    return res
-      .status(400)
-      .json({ success: false, message: ErrorMessage.CANNOT_UPDATE_PARKING_SPACE_STATUS });
+    logger.warn(ErrorMessage.CANNOT_UPDATE_PARKING_SPACE_STATUS + error);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_UPDATE_PARKING_SPACE_STATUS,
+      ErrorMessage.CANNOT_UPDATE_PARKING_SPACE_STATUS,
+    );
   }
 };
 
