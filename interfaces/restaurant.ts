@@ -23,7 +23,6 @@ export interface Restaurant {
   operating_hours?: OperatingHours;
   contact?: ContactInfo;
   status: ActiveStatus;
-  today_menu: string[];
   created_at: Date | firestore.Timestamp;
   updated_at?: Date | firestore.Timestamp | null;
   created_by?: string;

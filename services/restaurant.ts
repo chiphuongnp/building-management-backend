@@ -2,17 +2,28 @@ import { Restaurant } from './../interfaces/restaurant';
 import { Response, NextFunction } from 'express';
 import { firebaseHelper } from '../utils/index';
 import { ActiveStatus, Collection, Sites } from '../constants/enum';
-import { ErrorMessage, Message } from '../constants/message';
+import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { AuthRequest } from '../interfaces/jwt';
+import { responseError, responseSuccess } from '../utils/error';
+import logger from '../utils/logger';
 
 const restaurantUrl = `${Sites.TOKYO}/${Collection.RESTAURANTS}`;
 const getRestaurants = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const restaurants: Restaurant[] = await firebaseHelper.getAllDocs(restaurantUrl);
+    if (!restaurants.length) {
+      return responseError(res, StatusCode.RESTAURANT_NOT_FOUND, ErrorMessage.RESTAURANT_NOT_FOUND);
+    }
 
-    return res.status(200).json(restaurants);
+    return responseSuccess(res, Message.RESTAURANT_GET_ALL, { restaurants });
   } catch (error) {
-    return res.status(404).json({ error });
+    logger.warn(ErrorMessage.CANNOT_GET_RESTAURANT_LIST + error);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_GET_RESTAURANT_LIST,
+      ErrorMessage.CANNOT_GET_RESTAURANT_LIST,
+    );
   }
 };
 
@@ -20,13 +31,19 @@ const getRestaurant = async (req: AuthRequest, res: Response, next: NextFunction
   try {
     const { id } = req.params;
     const restaurant: Restaurant = await firebaseHelper.getDocById(restaurantUrl, id);
+    if (!restaurant) {
+      return responseError(res, StatusCode.RESTAURANT_NOT_FOUND, ErrorMessage.RESTAURANT_NOT_FOUND);
+    }
 
-    return res.status(200).json(restaurant);
+    return responseSuccess(res, Message.RESTAURANT_GET_DETAIL, { restaurant });
   } catch (error) {
-    return res.status(404).json({
-      message: ErrorMessage.RESTAURANT_NOT_FOUND,
-      error,
-    });
+    logger.warn(ErrorMessage.CANNOT_GET_RESTAURANT_DETAIL + error);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_GET_RESTAURANT_DETAIL,
+      ErrorMessage.CANNOT_GET_RESTAURANT_DETAIL,
+    );
   }
 };
 
@@ -35,48 +52,45 @@ const createRestaurant = async (req: AuthRequest, res: Response, next: NextFunct
     const { name } = req.body;
     const nameExists = await firebaseHelper.getDocByField(restaurantUrl, 'name', name);
     if (nameExists.length) {
-      return res.status(409).json({
-        success: false,
-        message: ErrorMessage.RESTAURANT_NAME_EXISTS,
-      });
+      return responseError(
+        res,
+        StatusCode.RESTAURANT_NAME_EXISTS,
+        ErrorMessage.RESTAURANT_NAME_EXISTS,
+      );
     }
 
     const newRestaurant = {
       ...req.body,
       status: ActiveStatus.ACTIVE,
-      today_menu: [],
       created_by: req.user?.uid,
     };
     const docRef = await firebaseHelper.createDoc(restaurantUrl, newRestaurant);
 
-    return res.status(200).json({
-      message: Message.RESTAURANT_CREATED,
-      id: docRef.id,
-    });
+    return responseSuccess(res, Message.RESTAURANT_CREATED, { id: docRef.id });
   } catch (error) {
-    return res.status(400).json({
-      message: ErrorMessage.CANNOT_CREATE_RESTAURANT,
-      error,
-    });
+    logger.warn(ErrorMessage.CANNOT_CREATE_RESTAURANT + error);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_CREATE_RESTAURANT,
+      ErrorMessage.CANNOT_CREATE_RESTAURANT,
+    );
   }
 };
 
 const updateRestaurant = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    if (!req.body || !Object.keys(req.body).length) {
-      return res.status(400).json({ message: ErrorMessage.NO_UPDATE_DATA });
-    }
-
     const { name } = req.body;
     if (name) {
       const nameSnapshot = await firebaseHelper.getDocByField(`${restaurantUrl}`, 'name', name);
       const isDuplicate = nameSnapshot.some((doc) => doc.id !== id);
       if (isDuplicate) {
-        return res.status(409).json({
-          success: false,
-          message: ErrorMessage.RESTAURANT_NAME_EXISTS,
-        });
+        return responseError(
+          res,
+          StatusCode.RESTAURANT_NAME_EXISTS,
+          ErrorMessage.RESTAURANT_NAME_EXISTS,
+        );
       }
     }
 
@@ -85,17 +99,15 @@ const updateRestaurant = async (req: AuthRequest, res: Response, next: NextFunct
       updated_by: req.user?.uid,
     });
 
-    return res.status(200).json({
-      success: true,
-      message: Message.RESTAURANT_UPDATED,
-      id,
-    });
+    return responseSuccess(res, Message.RESTAURANT_UPDATED, { id });
   } catch (error) {
-    return res.status(404).json({
-      success: false,
-      message: ErrorMessage.CANNOT_UPDATE_RESTAURANT,
-      error,
-    });
+    logger.warn(ErrorMessage.CANNOT_UPDATE_RESTAURANT + error);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_UPDATE_RESTAURANT,
+      ErrorMessage.CANNOT_UPDATE_RESTAURANT,
+    );
   }
 };
 

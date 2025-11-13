@@ -1,15 +1,17 @@
 export enum ErrorMessage {
   // Restaurant messages
-  RESTAURANT_NOT_FOUND = 'Restaurant not found!',
-  RESTAURANT_NAME_EXISTS = 'Restaurant with the same name already exists',
+  RESTAURANT_NOT_FOUND = 'Restaurant(s) not found!',
+  RESTAURANT_NAME_EXISTS = 'Restaurant with the same name already exists!',
   CANNOT_CREATE_RESTAURANT = 'Cannot create restaurant!',
   CANNOT_UPDATE_RESTAURANT = 'Cannot update restaurant!',
+  CANNOT_GET_RESTAURANT_LIST = 'Cannot get list of restaurants!',
+  CANNOT_GET_RESTAURANT_DETAIL = `Cannot get restaurant's detail!`,
 
   // Dish messages
-  DISH_ID_REQUIRED = 'Dish ID is required!',
-  DISH_NOT_FOUND = 'Dish not found!',
+  DISH_NOT_FOUND = 'Dish(es) not found for this restaurant!',
   DISH_NAME_EXISTS = 'Dish with the same name already exists',
   CANNOT_GET_DISH_LIST = 'Cannot get restaurant dish list!',
+  CANNOT_GET_DISH_DETAIL = `Cannot get dish's detail!`,
   CANNOT_CREATE_DISH = 'Cannot create restaurant dish!',
   CANNOT_UPDATE_DISH = 'Cannot update restaurant dish!',
 
@@ -58,11 +60,10 @@ export enum ErrorMessage {
   PARKING_SPACE_ALREADY_RESERVED = 'This parking space is already reserved!',
 
   // General messages
-  NO_UPDATE_DATA = 'No update data provided!',
-  REQUEST_FAILED = 'Request failed',
-  ACCOUNT_NOT_FOUND = 'Account not found',
-  IMAGE_UPLOAD_FAILED = 'Image upload failed',
-  CANNOT_UPLOAD_IMAGES = 'Error processing uploaded images:',
+  REQUEST_FAILED = 'Request failed!',
+  ACCOUNT_NOT_FOUND = 'Account not found!',
+  IMAGE_UPLOAD_FAILED = 'Image upload failed!',
+  CANNOT_UPLOAD_IMAGES = 'Error processing uploaded images!',
 
   // Menu Schedule messages
   MENU_SCHEDULE_DAY_EXISTS = 'Menu schedule for the specified day already exists!',
@@ -97,8 +98,12 @@ export enum Message {
   // Restaurant messages
   RESTAURANT_CREATED = 'Restaurant created successfully.',
   RESTAURANT_UPDATED = 'Restaurant updated successfully.',
+  RESTAURANT_GET_ALL = 'Get all restaurants successfully',
+  RESTAURANT_GET_DETAIL = `Get restaurant's detail successfully`,
   DISH_CREATED = 'New dish has been added successfully.',
   DISH_UPDATED = 'Dish has been updated successfully.',
+  DISH_GET_ALL = 'Get all available dishes successfully',
+  DISH_GET_DETAIL = `Get restaurant's dish successfully`,
 
   //User messages
   USER_CREATED = 'User created successfully',
@@ -164,6 +169,22 @@ export enum StatusCode {
   MENU_ITEM_NOT_FOUND = 4070,
   IMAGE_UPLOAD_FAILED = 4071,
   CANNOT_UPLOAD_IMAGES = 4072,
+
+  // Restaurant messages
+  RESTAURANT_NOT_FOUND = 4101,
+  RESTAURANT_NAME_EXISTS = 4102,
+  CANNOT_CREATE_RESTAURANT = 4103,
+  CANNOT_UPDATE_RESTAURANT = 4104,
+  CANNOT_GET_RESTAURANT_LIST = 4105,
+  CANNOT_GET_RESTAURANT_DETAIL = 4106,
+
+  // Dish messages
+  DISH_NOT_FOUND = 4107,
+  DISH_NAME_EXISTS = 4108,
+  CANNOT_GET_DISH_LIST = 419,
+  CANNOT_GET_DISH_DETAIL = 4110,
+  CANNOT_CREATE_DISH = 4111,
+  CANNOT_UPDATE_DISH = 4112,
 
   //Permission
   PERMISSION_GET_ALL = 5001,
