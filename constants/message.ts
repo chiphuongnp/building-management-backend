@@ -117,15 +117,19 @@ export enum Message {
   // Site messages
   SITE_CREATED = 'Site created successfully.',
   SITE_UPDATED = 'Site has been updated successfully.',
+  GET_SITES = 'Get site(s) successfully.',
 
   // Site messages
   BUILDING_CREATED = 'Building created successfully.',
   BUILDING_UPDATED = 'Building has been updated successfully.',
+  GET_BUILDINGS = 'Get building(s) successfully.',
 
   // Parking space messages
   PARKING_SPACE_CREATED = 'Parking space created successfully.',
   PARKING_SPACE_UPDATED = 'Parking space has been updated successfully.',
   PARKING_SPACE_STATUS_UPDATED = 'Parking space status has been updated successfully.',
+  GET_PARKING_SPACE = 'Get parking space(s) successfully.',
+  GET_AVAILABLE_PARKING_SPACE = 'Get available parking space(s) successfully.',
 
   // Menu Schedule messages
   MENU_SCHEDULE_CREATED = 'Menu schedule(s) created successfully.',
@@ -137,6 +141,7 @@ export enum Message {
   // Parking subscription messages
   PARKING_SUBSCRIPTION_CREATED = 'Parking subscription created successfully.',
   PARKING_SUBSCRIPTION_UPDATED = 'Parking subscription has been updated successfully.',
+  GET_PARKING_SUBSCRIPTION = 'Get parking subscription(s) successfully.',
 
   //Permission messages
   PERMISSION_CREATED = 'Permission created successfully',
@@ -194,4 +199,37 @@ export enum StatusCode {
   PERMISSION_DELETE = 5005,
   PERMISSION_GET_DETAIL = 5006,
   PERMISSION_ALREADY_EXISTS = 5007,
+
+  // Sites status codes
+  CANNOT_GET_SITE_LIST = 4021,
+  SITE_NOT_FOUND = 4022,
+  SITE_ALREADY_EXISTS = 4023,
+  SITE_CODE_ALREADY_EXISTS = 4024,
+  CANNOT_CREATE_SITE = 4025,
+  CANNOT_UPDATE_SITE = 4026,
+
+  // Buildings status codes
+  CANNOT_GET_BUILDING_LIST = 4041,
+  BUILDING_NOT_FOUND = 4042,
+  BUILDING_NAME_ALREADY_EXISTS = 4043,
+  BUILDING_CODE_ALREADY_EXISTS = 4044,
+  CANNOT_CREATE_BUILDING = 4045,
+  CANNOT_UPDATE_BUILDING = 4046,
+
+  // Parking space status codes
+  CANNOT_GET_PARKING_SPACE_LIST = 4081,
+  PARKING_SPACE_NOT_FOUND = 4082,
+  PARKING_SPACE_CODE_ALREADY_EXISTS = 4083,
+  CANNOT_CREATE_PARKING_SPACE = 4084,
+  CANNOT_UPDATE_PARKING_SPACE = 4085,
+  CANNOT_GET_AVAILABLE_PARKING_SPACE = 4086,
+  CANNOT_UPDATE_PARKING_SPACE_STATUS = 4087,
+  PARKING_SPACE_ALREADY_RESERVED = 4088,
+
+  // Parking subscription codes
+  CANNOT_GET_PARKING_SUBSCRIPTION_LIST = 4121,
+  PARKING_SUBSCRIPTION_NOT_FOUND = 4122,
+  CANNOT_CREATE_PARKING_SUBSCRIPTION = 4123,
+  CANNOT_UPDATE_PARKING_SUBSCRIPTION = 4124,
+  CANNOT_UPDATE_PARKING_SUBSCRIPTION_STATUS = 4125,
 }
