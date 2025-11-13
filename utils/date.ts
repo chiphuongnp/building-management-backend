@@ -5,7 +5,10 @@ export const getNormalizedDate = (input?: string | Date) => {
 };
 
 export const getTomorrow = () => {
-  const tomorrow = getNormalizedDate();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  return tomorrow;
+  const now = getNormalizedDate();
+  return now.setDate(now.getDate() + 1);
+};
+
+export const getDayOfWeek = (input: Date): string => {
+  return input.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
 };
