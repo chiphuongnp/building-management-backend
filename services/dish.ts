@@ -1,42 +1,51 @@
 import { Response, NextFunction } from 'express';
 import { ActiveStatus, Collection, Sites } from '../constants/enum';
 import { firebaseHelper } from '../utils';
-import { ErrorMessage, Message } from '../constants/message';
+import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { Dish } from '../interfaces/dish';
 import { deleteImages } from '../utils/deleteFile';
 import { AuthRequest } from '../interfaces/jwt';
+import { responseError, responseSuccess } from '../utils/error';
+import logger from '../utils/logger';
 
 const restaurantUrl = `${Sites.TOKYO}/${Collection.RESTAURANTS}`;
+const getDishPath = (restaurantId: string) => {
+  return `${restaurantUrl}/${restaurantId}/${Collection.DISHES}`;
+};
+
 const getDishes = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { restaurantId } = req.params;
-    const dishes: Dish[] = await firebaseHelper.getAllDocs(
-      `${restaurantUrl}/${restaurantId}/${Collection.DISHES}`,
-    );
+    const dishes: Dish[] = await firebaseHelper.getAllDocs(getDishPath(restaurantId));
     if (!dishes.length) {
-      return res.status(404).json({ message: ErrorMessage.CANNOT_GET_DISH_LIST });
+      return responseError(res, StatusCode.DISH_NOT_FOUND, ErrorMessage.DISH_NOT_FOUND);
     }
 
-    return res.status(200).json(dishes);
+    return responseSuccess(res, Message.DISH_GET_ALL, { dishes });
   } catch (error) {
-    return res.status(400).json({ success: false, message: ErrorMessage.CANNOT_GET_DISH_LIST });
+    logger.warn(ErrorMessage.CANNOT_GET_DISH_LIST + error);
+
+    return responseError(res, StatusCode.CANNOT_GET_DISH_LIST, ErrorMessage.CANNOT_GET_DISH_LIST);
   }
 };
 
 const getDishById = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { restaurantId, id: dishId } = req.params;
-    const dish: Dish = await firebaseHelper.getDocById(
-      `${restaurantUrl}/${restaurantId}/${Collection.DISHES}`,
-      dishId,
-    );
+    const dish: Dish = await firebaseHelper.getDocById(getDishPath(restaurantId), dishId);
     if (!dish) {
-      return res.status(404).json({ message: ErrorMessage.DISH_NOT_FOUND });
+      return responseError(res, StatusCode.DISH_NOT_FOUND, ErrorMessage.DISH_NOT_FOUND);
     }
 
-    return res.status(200).json(dish);
+    return responseSuccess(res, Message.DISH_GET_DETAIL, { dish });
   } catch (error) {
-    return res.status(404).json({ error });
+    logger.warn(ErrorMessage.CANNOT_GET_DISH_DETAIL + error);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_GET_DISH_DETAIL,
+      ErrorMessage.CANNOT_GET_DISH_DETAIL,
+    );
   }
 };
 
@@ -44,16 +53,10 @@ const createDish = async (req: AuthRequest, res: Response, next: NextFunction) =
   try {
     const { restaurantId } = req.params;
     const { name } = req.body;
-    const nameExists = await firebaseHelper.getDocByField(
-      `${restaurantUrl}/${restaurantId}/${Collection.DISHES}`,
-      'name',
-      name,
-    );
+    const dishPath = getDishPath(restaurantId);
+    const nameExists = await firebaseHelper.getDocByField(dishPath, 'name', name);
     if (nameExists.length) {
-      return res.status(409).json({
-        success: false,
-        message: ErrorMessage.DISH_NAME_EXISTS,
-      });
+      return responseError(res, StatusCode.DISH_NAME_EXISTS, ErrorMessage.DISH_NAME_EXISTS);
     }
 
     const files = req?.files as Express.Multer.File[];
@@ -63,51 +66,31 @@ const createDish = async (req: AuthRequest, res: Response, next: NextFunction) =
       status: ActiveStatus.ACTIVE,
       created_by: req.user?.uid,
     };
+    const docRef = await firebaseHelper.createDoc(dishPath, newDish);
 
-    const docRef = await firebaseHelper.createDoc(
-      `${restaurantUrl}/${restaurantId}/${Collection.DISHES}`,
-      newDish,
-    );
-
-    return res.status(200).json({
-      message: Message.DISH_CREATED,
-      id: docRef.id,
-    });
+    return responseSuccess(res, Message.DISH_CREATED, { id: docRef.id });
   } catch (error) {
-    return res.status(400).json({
-      success: false,
-      message: ErrorMessage.CANNOT_CREATE_DISH,
-    });
+    logger.warn(ErrorMessage.CANNOT_CREATE_DISH + error);
+
+    return responseError(res, StatusCode.CANNOT_CREATE_DISH, ErrorMessage.CANNOT_CREATE_DISH);
   }
 };
 
 const updateDish = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { restaurantId, id: dishId } = req.params;
-    const dish: Dish = await firebaseHelper.getDocById(
-      `${restaurantUrl}/${restaurantId}/${Collection.DISHES}`,
-      dishId,
-    );
+    const dishPath = getDishPath(restaurantId);
+    const dish: Dish = await firebaseHelper.getDocById(dishPath, dishId);
     if (!dish) {
-      return res.status(404).json({
-        success: false,
-        message: ErrorMessage.DISH_NOT_FOUND,
-      });
+      return responseError(res, StatusCode.DISH_NOT_FOUND, ErrorMessage.DISH_NOT_FOUND);
     }
 
     const { name } = req.body;
     if (name) {
-      const nameSnapshot = await firebaseHelper.getDocByField(
-        `${restaurantUrl}/${restaurantId}/${Collection.DISHES}`,
-        'name',
-        name,
-      );
+      const nameSnapshot = await firebaseHelper.getDocByField(dishPath, 'name', name);
       const isDuplicate = nameSnapshot.some((doc) => doc.id !== dishId);
       if (isDuplicate) {
-        return res.status(409).json({
-          success: false,
-          message: ErrorMessage.DISH_NAME_EXISTS,
-        });
+        return responseError(res, StatusCode.DISH_NAME_EXISTS, ErrorMessage.DISH_NAME_EXISTS);
       }
     }
 
@@ -122,22 +105,13 @@ const updateDish = async (req: AuthRequest, res: Response, next: NextFunction) =
       image_urls: imageUrls.length ? imageUrls : dish.image_urls,
       updated_by: req.user?.uid,
     };
-    await firebaseHelper.updateDoc(
-      `${restaurantUrl}/${restaurantId}/${Collection.DISHES}`,
-      dishId,
-      updatedDish,
-    );
+    await firebaseHelper.updateDoc(dishPath, dishId, updatedDish);
 
-    return res.status(200).json({
-      success: true,
-      message: Message.DISH_UPDATED,
-      dishId,
-    });
+    return responseSuccess(res, Message.DISH_UPDATED, { id: dishId });
   } catch (error) {
-    return res.status(400).json({
-      success: false,
-      message: ErrorMessage.CANNOT_UPDATE_DISH,
-    });
+    logger.warn(ErrorMessage.CANNOT_UPDATE_DISH + error);
+
+    return responseError(res, StatusCode.CANNOT_UPDATE_DISH, ErrorMessage.CANNOT_UPDATE_DISH);
   }
 };
 

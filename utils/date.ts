@@ -6,7 +6,7 @@ export const getNormalizedDate = (input?: string | Date) => {
 
 export const getTomorrow = () => {
   const now = getNormalizedDate();
-  return now.setDate(now.getDate() + 1);
+  return new Date(now.setDate(now.getDate() + 1));
 };
 
 export const getDayOfWeek = (input: Date): string => {
