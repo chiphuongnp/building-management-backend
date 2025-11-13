@@ -11,6 +11,7 @@ import parkingSpaceRouter from './routes/parkingSpace';
 import menuRouter from './routes/menu';
 import parkingSubscriptionRouter from './routes/parkingSubscription';
 import permissionRouter from './routes/permission';
+import logger from './utils/logger';
 
 dotenv.config();
 const app: Application = express();
@@ -29,5 +30,5 @@ app.use(`/${Sites.TOKYO}/${Collection.PARKING_SPACES}/:parkingSpaceId/${Collecti
 
 const PORT = process.env.APP_PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  logger.info(`Server running on port ${PORT}`);
 });

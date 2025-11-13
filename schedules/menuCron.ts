@@ -1,0 +1,71 @@
+import { Restaurant } from './../interfaces/restaurant';
+import cron from 'node-cron';
+import logger from '../utils/logger';
+import { Collection, CronSchedule, Sites } from '../constants/enum';
+import { firebaseHelper } from '../utils';
+import { createBatchDocs, getAllDocs } from '../utils/firebaseHelper';
+import { Item } from '../interfaces/menu';
+import { TIMEZONE } from '../constants/constant';
+import { getDayOfWeek, getNormalizedDate } from '../utils/date';
+
+const getPaths = (site: Sites, restaurantId?: string, dayId?: string) => {
+  const restaurantUrl = `${site}/${Collection.RESTAURANTS}`;
+  const menuPath = `${restaurantUrl}/${restaurantId}/${Collection.MENU_SCHEDULES}`;
+  const itemPath = `${menuPath}/${dayId}/${Collection.ITEMS}`;
+  const menuItemsPath = `${restaurantUrl}/${restaurantId}/${Collection.MENU_ITEMS}`;
+
+  return { restaurantUrl, menuPath, itemPath, menuItemsPath };
+};
+
+const runMenuItemsSync = async (site: Sites) => {
+  const dayOfWeek = getDayOfWeek(getNormalizedDate());
+  logger.info(`[MenuCron] Syncing menu_items for ${dayOfWeek}!`);
+
+  try {
+    const { restaurantUrl } = getPaths(site);
+    const restaurants: Restaurant[] = await firebaseHelper.getAllDocs(restaurantUrl);
+    if (!restaurants.length) {
+      logger.warn(`[MenuCron] No restaurants found in site ${site}!`);
+
+      return;
+    }
+
+    await Promise.all(
+      restaurants.map(async (restaurant: Restaurant) => {
+        const restaurantId = restaurant.id;
+        const { itemPath, menuItemsPath } = getPaths(site, restaurantId, dayOfWeek);
+        try {
+          const scheduledItems = await getAllDocs(itemPath);
+          if (!scheduledItems.length) {
+            return;
+          }
+
+          const oldItems = await getAllDocs(menuItemsPath);
+          const existingNames = new Set(
+            oldItems.map((item: Item) => item.name.trim().toLowerCase()),
+          );
+
+          const newItems = scheduledItems.filter(
+            (item: Item) => !existingNames.has(item.name.trim().toLowerCase()),
+          );
+          if (newItems.length) {
+            await createBatchDocs(menuItemsPath, newItems);
+            logger.info(
+              `[MenuCron] Success: ${newItems.length} new items for restaurant ID ${site}/${restaurantId}.`,
+            );
+          }
+        } catch (error) {
+          logger.error(`[MenuCron] Failed for restaurant ID ${site}/${restaurantId}: `, error);
+        }
+      }),
+    );
+  } catch (error) {
+    logger.error(`[MenuCron] Critical failure for site ${site}: `, error);
+  }
+};
+
+export const startMenuItemsSync = (site: Sites) => {
+  cron.schedule(CronSchedule.MENU_ITEMS, () => runMenuItemsSync(site), {
+    timezone: TIMEZONE,
+  });
+};
