@@ -92,6 +92,13 @@ export enum ErrorMessage {
   PERMISSION_GET_DETAIL = 'Cannot get permission detail',
   CANNOT_UPDATE_PARKING_SUBSCRIPTION = 'Cannot update parking subscription!',
   CANNOT_UPDATE_PARKING_SUBSCRIPTION_STATUS = 'Cannot update parking subscription status!',
+
+  // Facility messages
+  CANNOT_GET_FACILITY_LIST = 'Can not get list of facility!',
+  CANNOT_GET_AVAILABLE_FACILITY = 'Can not get available facilities list!',
+  FACILITY_NOT_FOUND = 'Facility not found!',
+  FACILITY_NAME_ALREADY_EXISTS = 'Facility name already exists!',
+  CANNOT_CREATE_FACILITY = 'Cannot create facility!',
 }
 
 export enum Message {
@@ -150,6 +157,12 @@ export enum Message {
   PERMISSION_GET_ALL = 'Get all permissions successfully',
   PERMISSION_GET_DETAIL = 'Get permission detail successfully',
   PARKING_SUBSCRIPTION_STATUS_UPDATED = 'Parking subscription status has been updated successfully.',
+
+  // Facility messages
+  FACILITY_CREATED = 'Facility created successfully.',
+  GET_FACILITIES = 'Get facilities successfully.',
+  GET_FACILITY_DETAIL = 'Get facility successfully.',
+  GET_AVAILABLE_FACILITY = 'Get available facilities successfully.',
 }
 
 export enum StatusCode {
@@ -232,4 +245,11 @@ export enum StatusCode {
   CANNOT_CREATE_PARKING_SUBSCRIPTION = 4123,
   CANNOT_UPDATE_PARKING_SUBSCRIPTION = 4124,
   CANNOT_UPDATE_PARKING_SUBSCRIPTION_STATUS = 4125,
+
+  // Facility codes
+  CANNOT_GET_FACILITY_LIST = 4141,
+  FACILITY_NOT_FOUND = 4142,
+  FACILITY_NAME_ALREADY_EXISTS = 4143,
+  CANNOT_CREATE_FACILITY = 4144,
+  CANNOT_GET_AVAILABLE_FACILITY = 4145,
 }

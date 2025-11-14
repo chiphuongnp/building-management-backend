@@ -45,6 +45,7 @@ export enum Collection {
   PARKING_SUBSCRIPTIONS = 'parking_subscriptions',
   PERMISSIONS = 'permissions',
   MENU_ITEMS = 'menu_items',
+  FACILITIES = 'facilities',
 }
 
 export enum ParkingSpaceType {
@@ -76,4 +77,15 @@ export enum ParkingSubscriptionStatus {
 export enum CronSchedule {
   MENU_ITEMS = '0 0 * * *',
   PARKING_EXPIRATION = '0 0 * * *',
+}
+
+export enum FacilityType {
+  FIELD = 'field',
+  ROOM = 'room',
+}
+
+export enum FacilityStatus {
+  AVAILABLE = 'available',
+  MAINTENANCE = 'maintenance',
+  RESERVED = 'reserved',
 }
