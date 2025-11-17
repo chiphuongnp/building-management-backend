@@ -46,6 +46,7 @@ export enum Collection {
   PERMISSIONS = 'permissions',
   MENU_ITEMS = 'menu_items',
   FACILITIES = 'facilities',
+  BUSES = 'buses',
   ORDERS = 'orders',
   ORDER_DETAILS = 'order_details',
 }
@@ -90,6 +91,12 @@ export enum FacilityStatus {
   AVAILABLE = 'available',
   MAINTENANCE = 'maintenance',
   RESERVED = 'reserved',
+}
+
+export enum BusStatus {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  MAINTENANCE = 'maintenance',
 }
 
 export enum PickupMethod {
