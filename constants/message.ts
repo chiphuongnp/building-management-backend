@@ -87,7 +87,6 @@ export enum ErrorMessage {
   PERMISSION_ALREADY_EXISTS = 'Permission already exists',
   CANNOT_CREATE_PERMISSION = 'Cannot create permission',
   CANNOT_UPDATE_PERMISSION = 'Cannot update permission',
-  CANNOT_DELETE_PERMISSION = 'Cannot delete permission',
   CANNOT_GET_PERMISSION_LIST = 'Cannot get list of permissions',
   PERMISSION_GET_DETAIL = 'Cannot get permission detail',
   CANNOT_UPDATE_PARKING_SUBSCRIPTION = 'Cannot update parking subscription!',
@@ -105,6 +104,15 @@ export enum ErrorMessage {
   ORDER_NOT_FOUND = 'Order not found!',
   ORDER_DETAIL_NOT_FOUND = 'Order details not found!',
   CANNOT_GET_ORDER_DETAILS = 'Cannot fetch order',
+
+  // Bus error messages
+  CANNOT_GET_BUS_LIST = 'Cannot get list of buses!',
+  BUS_NOT_FOUND = 'Bus not found!',
+  BUS_NUMBER_ALREADY_EXISTS = 'Bus number already exists!',
+  BUS_CODE_ALREADY_EXISTS = 'Bus code already exists!',
+  CANNOT_CREATE_BUS = 'Cannot create bus!',
+  CANNOT_UPDATE_BUS = 'Cannot update bus!',
+  CANNOT_GET_BUS_DETAIL = 'Cannot get bus detail!',
 }
 
 export enum Message {
@@ -121,7 +129,6 @@ export enum Message {
   //User messages
   USER_CREATED = 'User created successfully',
   USER_UPDATED = 'User updated successfully',
-  USER_DELETED = 'User deleted successfully',
   USER_GET_ALL = 'Get all user successfully',
   USER_GET_DETAIL = `Get user's detail successfully`,
   USER_GET_PROFILE = `Get profile successfully`,
@@ -156,10 +163,14 @@ export enum Message {
   PARKING_SUBSCRIPTION_UPDATED = 'Parking subscription has been updated successfully.',
   GET_PARKING_SUBSCRIPTION = 'Get parking subscription(s) successfully.',
 
+  // Order messages
+  ORDER_CREATED = 'Order has been created successfully.',
+  GET_ORDERS = 'Get list of orders successfully.',
+  GET_ORDER_DETAILS = `Get order details successfully.`,
+
   //Permission messages
   PERMISSION_CREATED = 'Permission created successfully',
   PERMISSION_UPDATED = 'Permission updated successfully',
-  PERMISSION_DELETED = 'Permission deleted successfully',
   PERMISSION_GET_ALL = 'Get all permissions successfully',
   PERMISSION_GET_DETAIL = 'Get permission detail successfully',
   PARKING_SUBSCRIPTION_STATUS_UPDATED = 'Parking subscription status has been updated successfully.',
@@ -170,10 +181,11 @@ export enum Message {
   GET_FACILITY_DETAIL = 'Get facility successfully.',
   GET_AVAILABLE_FACILITY = 'Get available facilities successfully.',
 
-  // Order messages
-  ORDER_CREATED = 'Order has been created successfully.',
-  GET_ORDERS = 'Get list of orders successfully.',
-  GET_ORDER_DETAILS = `Get order details successfully.`,
+  // Bus messages
+  BUS_CREATED = 'Bus created successfully.',
+  BUS_UPDATED = 'Bus updated successfully.',
+  BUS_GET_ALL = 'Get all buses successfully.',
+  BUS_GET_DETAIL = 'Get bus detail successfully.',
 }
 
 export enum StatusCode {
@@ -220,7 +232,6 @@ export enum StatusCode {
   PERMISSION_NOT_FOUND = 5002,
   PERMISSION_CREATE = 5003,
   PERMISSION_UPDATE = 5004,
-  PERMISSION_DELETE = 5005,
   PERMISSION_GET_DETAIL = 5006,
   PERMISSION_ALREADY_EXISTS = 5007,
 
@@ -269,4 +280,13 @@ export enum StatusCode {
   ORDER_NOT_FOUND = 4162,
   ORDER_DETAIL_NOT_FOUND = 4163,
   CANNOT_GET_ORDER_DETAILS = 4164,
+
+  // Bus status codes
+  BUS_GET_ALL = 6001,
+  BUS_GET_DETAIL = 6002,
+  BUS_NOT_FOUND = 6003,
+  BUS_CREATE = 6004,
+  BUS_UPDATE = 6005,
+  BUS_NUMBER_ALREADY_EXISTS = 6007,
+  BUS_CODE_ALREADY_EXISTS = 6008,
 }

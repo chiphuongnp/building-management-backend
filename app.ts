@@ -13,6 +13,7 @@ import parkingSubscriptionRouter from './routes/parkingSubscription';
 import permissionRouter from './routes/permission';
 import logger from './utils/logger';
 import facilityRouter from './routes/facility';
+import busRouter from './routes/bus';
 import orderRouter from './routes/order';
 
 dotenv.config();
@@ -26,11 +27,21 @@ app.use(`/${Sites.TOKYO}/${Collection.PERMISSIONS}`, permissionRouter);
 app.use(`/${Sites.TOKYO}/${Collection.BUILDINGS}`, buildingRouter);
 app.use(`/${Sites.TOKYO}/${Collection.FACILITIES}`, facilityRouter);
 app.use(`/${Sites.TOKYO}/${Collection.RESTAURANTS}`, restaurantRouter);
+app.use(`/${Sites.TOKYO}/${Collection.BUSES}`, busRouter);
 app.use(`/${Sites.TOKYO}/${Collection.RESTAURANTS}/:restaurantId/${Collection.DISHES}`, dishRouter);
-app.use(`/${Sites.TOKYO}/${Collection.RESTAURANTS}/:restaurantId/${Collection.MENU_SCHEDULES}`, menuRouter);
-app.use(`/${Sites.TOKYO}/${Collection.RESTAURANTS}/:restaurantId/${Collection.ORDERS}`, orderRouter);
+app.use(
+  `/${Sites.TOKYO}/${Collection.RESTAURANTS}/:restaurantId/${Collection.MENU_SCHEDULES}`,
+  menuRouter,
+);
+app.use(
+  `/${Sites.TOKYO}/${Collection.RESTAURANTS}/:restaurantId/${Collection.ORDERS}`,
+  orderRouter,
+);
 app.use(`/${Sites.TOKYO}/${Collection.PARKING_SPACES}`, parkingSpaceRouter);
-app.use(`/${Sites.TOKYO}/${Collection.PARKING_SPACES}/:parkingSpaceId/${Collection.PARKING_SUBSCRIPTIONS}`, parkingSubscriptionRouter);
+app.use(
+  `/${Sites.TOKYO}/${Collection.PARKING_SPACES}/:parkingSpaceId/${Collection.PARKING_SUBSCRIPTIONS}`,
+  parkingSubscriptionRouter,
+);
 
 const PORT = process.env.APP_PORT || 5000;
 app.listen(PORT, () => {

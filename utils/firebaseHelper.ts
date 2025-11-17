@@ -26,7 +26,7 @@ const getDocById = async (collectionName: string, id: string) => {
   return { id: docSnap.id, ...data };
 };
 
-const getDocByField = async (collectionName: string, field: string, value: string) => {
+const getDocByField = async (collectionName: string, field: string, value: any) => {
   const snapshot = await db.collection(collectionName).where(field, '==', value).get();
   const data = snapshot.docs
     .map((doc) => ({
