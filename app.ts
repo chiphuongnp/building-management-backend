@@ -13,6 +13,7 @@ import parkingSubscriptionRouter from './routes/parkingSubscription';
 import permissionRouter from './routes/permission';
 import logger from './utils/logger';
 import facilityRouter from './routes/facility';
+import orderRouter from './routes/order';
 
 dotenv.config();
 const app: Application = express();
@@ -27,6 +28,7 @@ app.use(`/${Sites.TOKYO}/${Collection.FACILITIES}`, facilityRouter);
 app.use(`/${Sites.TOKYO}/${Collection.RESTAURANTS}`, restaurantRouter);
 app.use(`/${Sites.TOKYO}/${Collection.RESTAURANTS}/:restaurantId/${Collection.DISHES}`, dishRouter);
 app.use(`/${Sites.TOKYO}/${Collection.RESTAURANTS}/:restaurantId/${Collection.MENU_SCHEDULES}`, menuRouter);
+app.use(`/${Sites.TOKYO}/${Collection.RESTAURANTS}/:restaurantId/${Collection.ORDERS}`, orderRouter);
 app.use(`/${Sites.TOKYO}/${Collection.PARKING_SPACES}`, parkingSpaceRouter);
 app.use(`/${Sites.TOKYO}/${Collection.PARKING_SPACES}/:parkingSpaceId/${Collection.PARKING_SUBSCRIPTIONS}`, parkingSubscriptionRouter);
 
