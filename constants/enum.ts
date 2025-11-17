@@ -46,6 +46,8 @@ export enum Collection {
   PERMISSIONS = 'permissions',
   MENU_ITEMS = 'menu_items',
   FACILITIES = 'facilities',
+  ORDERS = 'orders',
+  ORDER_DETAILS = 'order_details',
 }
 
 export enum ParkingSpaceType {
@@ -88,4 +90,22 @@ export enum FacilityStatus {
   AVAILABLE = 'available',
   MAINTENANCE = 'maintenance',
   RESERVED = 'reserved',
+}
+
+export enum PickupMethod {
+  DINE_IN = 'dine-in',
+  TAKEAWAY = 'takeaway',
+  DELIVERY = 'delivery',
+}
+
+export enum OrderStatus {
+  PENDING = 'pending',
+  PREPARING = 'preparing',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
+}
+
+export enum VATRate {
+  FOOD = 0.1,
+  DEFAULT = 0.05,
 }
