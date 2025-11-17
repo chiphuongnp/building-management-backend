@@ -4,8 +4,15 @@ import {
   getFacilityById,
   getAvailableFacility,
   createFacility,
+  updateFacility,
+  updateFacilityStatus,
 } from '../services/facility';
-import { validateCreateFacility, validateIdParamFacility } from '../validations/facility';
+import {
+  validateCreateFacility,
+  validateFacilityStatus,
+  validateIdParamFacility,
+  validateUpdateFacility,
+} from '../validations/facility';
 import { requireRole, requirePermission } from '../middlewares/permission';
 import { authenticate } from '../middlewares/auth';
 import { UserRole } from '../constants/enum';
@@ -33,9 +40,29 @@ facilityRouter.post(
   '/create',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('create_building'),
+  requirePermission('create_facility'),
   validateCreateFacility,
   createFacility,
+);
+
+facilityRouter.patch(
+  '/update/:id',
+  authenticate,
+  requireRole(UserRole.MANAGER),
+  requirePermission('update_facility'),
+  validateIdParamFacility,
+  validateUpdateFacility,
+  updateFacility,
+);
+
+facilityRouter.patch(
+  '/update-status/:id',
+  authenticate,
+  requireRole(UserRole.MANAGER),
+  requirePermission('update_facility'),
+  validateIdParamFacility,
+  validateFacilityStatus,
+  updateFacilityStatus,
 );
 
 export default facilityRouter;
