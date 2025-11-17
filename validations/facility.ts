@@ -65,6 +65,46 @@ const createFacilitySchema = Joi.object<Facility>({
   }),
 });
 
+const updateFacilitySchema = Joi.object({
+  name: Joi.string().min(3).max(255).messages({
+    'string.min': 'Name must be at least 3 characters',
+    'string.max': 'Name must not exceed 255 characters',
+  }),
+  facility_type: Joi.string()
+    .valid(...Object.values(FacilityType))
+    .messages({
+      'any.only': 'Facility type must be either field, room, or other',
+    }),
+  description: Joi.string().max(1000).allow('').messages({
+    'string.max': 'Description must not exceed 1000 characters',
+  }),
+  capacity: Joi.number().integer().min(1).messages({
+    'number.base': 'Capacity must be a number',
+    'number.integer': 'Capacity must be an integer',
+    'number.min': 'Capacity must be at least 1',
+  }),
+  location: facilityLocationSchema.optional(),
+  base_price: Joi.number().min(0).messages({
+    'number.base': 'Base price must be a number',
+    'number.min': 'Base price cannot be negative',
+  }),
+  service_charge: Joi.number().min(0).messages({
+    'number.base': 'Service charge must be a number',
+    'number.min': 'Service charge cannot be negative',
+  }),
+  updated_by: Joi.string().min(1).optional().messages({
+    'string.empty': 'Updated by cannot be empty',
+  }),
+});
+
+const updateFacilityStatusSchema = Joi.object({
+  status: Joi.string()
+    .valid(...Object.values(FacilityStatus))
+    .messages({
+      'any.only': 'Status must be either available, reserved, or maintenance',
+    }),
+});
+
 const idParamFacilitySchema = Joi.object({
   id: Joi.string().min(1).required().messages({
     'string.empty': 'ID cannot be empty',
@@ -74,6 +114,22 @@ const idParamFacilitySchema = Joi.object({
 
 export const validateCreateFacility = (req: Request, res: Response, next: NextFunction) => {
   const { error } = createFacilitySchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ success: false, message: error.details[0].message });
+  }
+  next();
+};
+
+export const validateUpdateFacility = (req: Request, res: Response, next: NextFunction) => {
+  const { error } = updateFacilitySchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ success: false, message: error.details[0].message });
+  }
+  next();
+};
+
+export const validateFacilityStatus = (req: Request, res: Response, next: NextFunction) => {
+  const { error } = updateFacilityStatusSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ success: false, message: error.details[0].message });
   }

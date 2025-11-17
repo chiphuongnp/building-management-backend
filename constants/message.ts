@@ -98,6 +98,9 @@ export enum ErrorMessage {
   FACILITY_NOT_FOUND = 'Facility not found!',
   FACILITY_NAME_ALREADY_EXISTS = 'Facility name already exists!',
   CANNOT_CREATE_FACILITY = 'Cannot create facility!',
+  FACILITY_LOCATION_ALREADY_EXISTS = 'Facility location already exists!',
+  CANNOT_UPDATE_FACILITY = 'Cannot update facility!',
+  CANNOT_UPDATE_FACILITY_STATUS = 'Cannot update facility status!',
 
   // Order messages
   CANNOT_CREATE_ORDER = 'Cannot create order!',
@@ -180,6 +183,8 @@ export enum Message {
   GET_FACILITIES = 'Get facilities successfully.',
   GET_FACILITY_DETAIL = 'Get facility successfully.',
   GET_AVAILABLE_FACILITY = 'Get available facilities successfully.',
+  FACILITY_UPDATED = 'Facility updated successfully.',
+  FACILITY_STATUS_UPDATED = 'Facility status has been updated successfully.',
 
   // Bus messages
   BUS_CREATED = 'Bus created successfully.',
@@ -274,6 +279,9 @@ export enum StatusCode {
   FACILITY_NAME_ALREADY_EXISTS = 4143,
   CANNOT_CREATE_FACILITY = 4144,
   CANNOT_GET_AVAILABLE_FACILITY = 4145,
+  FACILITY_LOCATION_ALREADY_EXISTS = 4146,
+  CANNOT_UPDATE_FACILITY = 4147,
+  CANNOT_UPDATE_FACILITY_STATUS = 4148,
 
   // Order codes
   CANNOT_CREATE_ORDER = 4161,
