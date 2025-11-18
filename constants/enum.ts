@@ -49,6 +49,7 @@ export enum Collection {
   BUSES = 'buses',
   ORDERS = 'orders',
   ORDER_DETAILS = 'order_details',
+  FACILITY_RESERVATIONS = 'facility_reservations',
 }
 
 export enum ParkingSpaceType {
@@ -115,4 +116,11 @@ export enum OrderStatus {
 export enum VATRate {
   FOOD = 0.1,
   DEFAULT = 0.05,
+}
+
+export enum FacilityReservationStatus {
+  PENDING = 'pending',
+  RESERVED = 'reserved',
+  CANCELLED = 'cancelled',
+  EXPIRED = 'expired',
 }
