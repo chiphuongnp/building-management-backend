@@ -100,7 +100,7 @@ export enum BusStatus {
 }
 
 export enum PickupMethod {
-  DINE_IN = 'dine-in',
+  DINE_IN = 'dine_in',
   TAKEAWAY = 'takeaway',
   DELIVERY = 'delivery',
 }

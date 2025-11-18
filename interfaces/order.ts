@@ -22,6 +22,11 @@ export interface Order {
     floor?: number;
     room?: string;
   };
+  delivery_info?: {
+    contact_name?: string;
+    contact_phone?: string;
+    notes?: string;
+  };
   status: OrderStatus;
   payment_id?: string;
   created_at: Date;
