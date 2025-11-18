@@ -122,6 +122,13 @@ export enum ErrorMessage {
   CANNOT_CREATE_BUS = 'Cannot create bus!',
   CANNOT_UPDATE_BUS = 'Cannot update bus!',
   CANNOT_GET_BUS_DETAIL = 'Cannot get bus detail!',
+
+  // Facility reservation messages
+  CANNOT_GET_FACILITY_RESERVATION_LIST = 'Cannot get list of facility reservations!',
+  CANNOT_GET_USER_FACILITY_RESERVATION = 'Cannot get list of facility reservations for user!',
+  FACILITY_RESERVATION_NOT_FOUND = 'Facility reservations not found!',
+  FACILITY_RESERVATION_ALREADY_EXISTS = 'Facility reservation already exists!',
+  CANNOT_CREATE_FACILITY_RESERVATION = 'Cannot create facility reservation!',
 }
 
 export enum Message {
@@ -201,6 +208,12 @@ export enum Message {
   BUS_UPDATED = 'Bus updated successfully.',
   BUS_GET_ALL = 'Get all buses successfully.',
   BUS_GET_DETAIL = 'Get bus detail successfully.',
+
+  // Facility reservations messages
+  GET_FACILITY_RESERVATIONS = 'Get facility reservations successfully.',
+  GET_FACILITY_RESERVATION_HISTORY = `Get user's facility reservations successfully.`,
+  GET_FACILITY_RESERVATION_DETAIL = 'Get facility reservation successfully.',
+  FACILITY_RESERVATION_CREATED = 'Facility reservation created successfully.',
 }
 
 export enum StatusCode {
@@ -313,4 +326,11 @@ export enum StatusCode {
   BUS_UPDATE = 6005,
   BUS_NUMBER_ALREADY_EXISTS = 6007,
   BUS_CODE_ALREADY_EXISTS = 6008,
+
+  // Facility reservation codes
+  CANNOT_GET_FACILITY_RESERVATION_LIST = 4181,
+  FACILITY_RESERVATION_NOT_FOUND = 4182,
+  FACILITY_RESERVATION_ALREADY_EXISTS = 4183,
+  CANNOT_CREATE_FACILITY_RESERVATION = 4184,
+  CANNOT_GET_FACILITY_RESERVATION_HISTORY = 4185,
 }
