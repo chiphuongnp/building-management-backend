@@ -106,7 +106,13 @@ export enum ErrorMessage {
   CANNOT_CREATE_ORDER = 'Cannot create order!',
   ORDER_NOT_FOUND = 'Order not found!',
   ORDER_DETAIL_NOT_FOUND = 'Order details not found!',
-  CANNOT_GET_ORDER_DETAILS = 'Cannot fetch order',
+  CANNOT_GET_ORDER_DETAILS = 'Cannot fetch order with details!',
+  CANNOT_GET_ORDER_LIST = 'Cannot fetch list of orders!',
+  CANNOT_GET_USER_ORDERS = 'Cannot fetch list of orders for user!',
+  GET_ORDER_FORBIDDEN = 'You are not allowed to view this order!',
+  UPDATE_ORDER_FORBIDDEN = 'You are not allowed to update this order!',
+  CANNOT_UPDATE_ORDER = 'Cannot update order!',
+  CANNOT_GET_USER_ORDER_HISTORY = `Cannot get user's order history!`,
 
   // Bus error messages
   CANNOT_GET_BUS_LIST = 'Cannot get list of buses!',
@@ -168,8 +174,12 @@ export enum Message {
 
   // Order messages
   ORDER_CREATED = 'Order has been created successfully.',
+  ORDER_UPDATED = 'Order has been updated successfully.',
   GET_ORDERS = 'Get list of orders successfully.',
   GET_ORDER_DETAILS = `Get order details successfully.`,
+  GET_ORDER_LIST = 'Get list of orders successfully.',
+  GET_USER_ORDERS = 'Get list of orders per user successfully.',
+  GET_USER_ORDER_HISTORY = `Get user's order history successfully.`,
 
   //Permission messages
   PERMISSION_CREATED = 'Permission created successfully',
@@ -288,6 +298,12 @@ export enum StatusCode {
   ORDER_NOT_FOUND = 4162,
   ORDER_DETAIL_NOT_FOUND = 4163,
   CANNOT_GET_ORDER_DETAILS = 4164,
+  CANNOT_GET_ORDER_LIST = 4165,
+  CANNOT_GET_USER_ORDERS = 4166,
+  GET_ORDER_FORBIDDEN = 4167,
+  UPDATE_ORDER_FORBIDDEN = 4168,
+  CANNOT_UPDATE_ORDER = 4169,
+  CANNOT_GET_USER_ORDER_HISTORY = 4170,
 
   // Bus status codes
   BUS_GET_ALL = 6001,

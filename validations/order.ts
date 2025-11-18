@@ -56,16 +56,65 @@ export const createOrderSchema = Joi.object({
     }),
     otherwise: Joi.optional(),
   }),
+  delivery_info: Joi.object({
+    contact_name: Joi.string().optional().messages({
+      'string.base': 'Contact name must be a string',
+    }),
+    contact_phone: Joi.string().optional().messages({
+      'string.base': 'Contact phone must be a string',
+    }),
+    notes: Joi.string().optional().messages({ 'string.base': 'Notes must be a string' }),
+  })
+    .optional()
+    .messages({ 'object.base': 'Delivery info must be an object' }),
   payment_id: Joi.string().optional(),
   order_details: Joi.array().items(orderDetailSchema).required().messages({
     'array.base': 'Order details must be an array',
   }),
 });
 
+export const updateOrderSchema = Joi.object({
+  pickup_method: Joi.string()
+    .valid(...Object.values(PickupMethod))
+    .optional(),
+  delivery_address: Joi.object({
+    building: Joi.string().optional().messages({ 'string.base': 'Building must be a string' }),
+    floor: Joi.number().optional().messages({ 'number.base': 'Floor must be a number' }),
+    room: Joi.string().optional().messages({ 'string.base': 'Room must be a string' }),
+  })
+    .optional()
+    .when('pickup_method', {
+      is: PickupMethod.DELIVERY,
+      then: Joi.required().messages({
+        'any.required': 'Delivery address is required for delivery orders',
+      }),
+    })
+    .messages({ 'object.base': 'Delivery address must be an object' }),
+  delivery_info: Joi.object({
+    contact_name: Joi.string().optional().messages({
+      'string.base': 'Contact name must be a string',
+    }),
+    contact_phone: Joi.string().optional().messages({
+      'string.base': 'Contact phone must be a string',
+    }),
+    notes: Joi.string().optional().messages({ 'string.base': 'Notes must be a string' }),
+  })
+    .optional()
+    .messages({ 'object.base': 'Delivery info must be an object' }),
+});
+
 export const validateCreateOrder = (req: Request, res: Response, next: NextFunction) => {
   const { error } = createOrderSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ status: false, message: error.details[0].message });
+  }
+  next();
+};
+
+export const validateUpdateOrder = (req: Request, res: Response, next: NextFunction) => {
+  const { error } = updateOrderSchema.validate(req.body, { abortEarly: false });
+  if (error) {
+    return res.status(400).json({ success: false, message: error.details[0].message });
   }
   next();
 };
