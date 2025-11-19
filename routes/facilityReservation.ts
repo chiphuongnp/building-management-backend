@@ -3,6 +3,7 @@ import { requireRole } from '../middlewares/permission';
 import { authenticate } from '../middlewares/auth';
 import { UserRole } from '../constants/enum';
 import {
+  cancelFacilityReservation,
   createFacilityReservation,
   getFacilityReservationById,
   getFacilityReservations,
@@ -43,6 +44,13 @@ facilityReservationRouter.post(
   requireRole(UserRole.MANAGER, UserRole.USER),
   validateCreateFacilityReservation,
   createFacilityReservation,
+);
+
+facilityReservationRouter.patch(
+  '/:id/cancel',
+  authenticate,
+  requireRole(UserRole.MANAGER, UserRole.USER),
+  cancelFacilityReservation,
 );
 
 export default facilityReservationRouter;
