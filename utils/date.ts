@@ -1,3 +1,5 @@
+import { HOUR } from '../constants/constant';
+
 export const getNormalizedDate = (input?: string | Date) => {
   const date = input ? new Date(input) : new Date();
   date.setHours(0, 0, 0, 0);
@@ -11,4 +13,8 @@ export const getTomorrow = () => {
 
 export const getDayOfWeek = (input: Date): string => {
   return input.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+};
+
+export const calculateHoursDifference = (startTime: Date, endTime: Date): number => {
+  return (startTime.getTime() - endTime.getTime()) / HOUR;
 };

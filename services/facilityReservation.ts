@@ -1,5 +1,11 @@
 import { Request, Response } from 'express';
-import { firebaseHelper, getTomorrow, responseError, responseSuccess } from '../utils/index';
+import {
+  firebaseHelper,
+  getTomorrow,
+  responseError,
+  responseSuccess,
+  calculateHoursDifference,
+} from '../utils/index';
 import logger from '../utils/logger';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { AuthRequest } from '../interfaces/jwt';
@@ -7,17 +13,18 @@ import { Collection, FacilityReservationStatus, Sites, VATRate } from '../consta
 import { FacilityReservation } from '../interfaces/facilityReservation';
 import { Timestamp } from 'firebase-admin/firestore';
 import { Facility } from '../interfaces/facility';
+import { CANCEL_TIME_VALID } from '../constants/constant';
 
 const facilityReservationCollection = `${Sites.TOKYO}/${Collection.FACILITY_RESERVATIONS}`;
 const facilityCollection = `${Sites.TOKYO}/${Collection.FACILITIES}`;
 const userCollection = `${Sites.TOKYO}/${Collection.USERS}`;
 const getFacilityReservations = async (req: Request, res: Response) => {
   try {
-    const facilitiyReservations: FacilityReservation[] = await firebaseHelper.getAllDocs(
+    const facilityReservations: FacilityReservation[] = await firebaseHelper.getAllDocs(
       facilityReservationCollection,
     );
 
-    return responseSuccess(res, Message.GET_FACILITY_RESERVATIONS, facilitiyReservations);
+    return responseSuccess(res, Message.GET_FACILITY_RESERVATIONS, facilityReservations);
   } catch (error) {
     logger.warn(ErrorMessage.CANNOT_GET_FACILITY_RESERVATION_LIST + error);
 
@@ -31,13 +38,13 @@ const getFacilityReservations = async (req: Request, res: Response) => {
 
 const getFacilityReservationsByUser = async (req: AuthRequest, res: Response) => {
   try {
-    const facilitiyReservations: FacilityReservation[] = await firebaseHelper.getDocByField(
+    const facilityReservations: FacilityReservation[] = await firebaseHelper.getDocByField(
       facilityReservationCollection,
       'user_id',
       req.user?.uid,
     );
 
-    return responseSuccess(res, Message.GET_FACILITY_RESERVATION_HISTORY, facilitiyReservations);
+    return responseSuccess(res, Message.GET_FACILITY_RESERVATION_HISTORY, facilityReservations);
   } catch (error) {
     logger.warn(ErrorMessage.CANNOT_GET_USER_FACILITY_RESERVATION + error);
 
@@ -52,11 +59,11 @@ const getFacilityReservationsByUser = async (req: AuthRequest, res: Response) =>
 const getFacilityReservationById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const facilitiyReservation: FacilityReservation = await firebaseHelper.getDocById(
+    const facilityReservation: FacilityReservation = await firebaseHelper.getDocById(
       facilityReservationCollection,
       id,
     );
-    if (!facilitiyReservation) {
+    if (!facilityReservation) {
       return responseError(
         res,
         StatusCode.FACILITY_RESERVATION_NOT_FOUND,
@@ -64,7 +71,7 @@ const getFacilityReservationById = async (req: Request, res: Response) => {
       );
     }
 
-    return responseSuccess(res, Message.GET_FACILITY_RESERVATION_DETAIL, facilitiyReservation);
+    return responseSuccess(res, Message.GET_FACILITY_RESERVATION_DETAIL, facilityReservation);
   } catch (error) {
     logger.warn(ErrorMessage.FACILITY_RESERVATION_NOT_FOUND + error);
 
@@ -146,9 +153,62 @@ const createFacilityReservation = async (req: AuthRequest, res: Response) => {
   }
 };
 
+const cancelFacilityReservation = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const facilityReservation: FacilityReservation = await firebaseHelper.getDocById(
+      facilityReservationCollection,
+      id,
+    );
+    if (!facilityReservation) {
+      return responseError(
+        res,
+        StatusCode.FACILITY_RESERVATION_NOT_FOUND,
+        ErrorMessage.FACILITY_RESERVATION_NOT_FOUND,
+      );
+    }
+
+    if (facilityReservation.status === FacilityReservationStatus.CANCELLED) {
+      return responseError(
+        res,
+        StatusCode.FACILITY_RESERVATION_IS_CANCELLED,
+        ErrorMessage.FACILITY_RESERVATION_IS_CANCELLED,
+      );
+    }
+
+    const startTime = facilityReservation.start_time;
+    const now = new Date();
+    const hoursUntilStart = calculateHoursDifference(startTime, now);
+    if (hoursUntilStart < CANCEL_TIME_VALID) {
+      return responseError(
+        res,
+        StatusCode.FACILITY_RESERVATION_LATE_CANCELLATION,
+        ErrorMessage.FACILITY_RESERVATION_LATE_CANCELLATION,
+      );
+    }
+
+    await firebaseHelper.updateDoc(facilityReservationCollection, id, {
+      status: FacilityReservationStatus.CANCELLED,
+    });
+
+    return responseSuccess(res, Message.FACILITY_RESERVATION_CANCELED, {
+      id,
+    });
+  } catch (error) {
+    logger.warn(ErrorMessage.CANNOT_CANCEL_FACILITY_RESERVATION + error);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_CANCEL_FACILITY_RESERVATION,
+      ErrorMessage.CANNOT_CANCEL_FACILITY_RESERVATION,
+    );
+  }
+};
+
 export {
   getFacilityReservations,
   getFacilityReservationById,
   getFacilityReservationsByUser,
   createFacilityReservation,
+  cancelFacilityReservation,
 };

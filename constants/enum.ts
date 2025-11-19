@@ -122,5 +122,4 @@ export enum FacilityReservationStatus {
   PENDING = 'pending',
   RESERVED = 'reserved',
   CANCELLED = 'cancelled',
-  EXPIRED = 'expired',
 }

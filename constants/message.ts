@@ -129,6 +129,9 @@ export enum ErrorMessage {
   FACILITY_RESERVATION_NOT_FOUND = 'Facility reservations not found!',
   FACILITY_RESERVATION_ALREADY_EXISTS = 'Facility reservation already exists!',
   CANNOT_CREATE_FACILITY_RESERVATION = 'Cannot create facility reservation!',
+  CANNOT_CANCEL_FACILITY_RESERVATION = 'Cannot cancel facility reservation!',
+  FACILITY_RESERVATION_IS_CANCELLED = 'Facility reservation is cancelled!',
+  FACILITY_RESERVATION_LATE_CANCELLATION = 'You cannot cancel after facility reservation time!',
 }
 
 export enum Message {
@@ -214,6 +217,7 @@ export enum Message {
   GET_FACILITY_RESERVATION_HISTORY = `Get user's facility reservations successfully.`,
   GET_FACILITY_RESERVATION_DETAIL = 'Get facility reservation successfully.',
   FACILITY_RESERVATION_CREATED = 'Facility reservation created successfully.',
+  FACILITY_RESERVATION_CANCELED = 'Facility reservation canceled successfully.',
 }
 
 export enum StatusCode {
@@ -333,4 +337,7 @@ export enum StatusCode {
   FACILITY_RESERVATION_ALREADY_EXISTS = 4183,
   CANNOT_CREATE_FACILITY_RESERVATION = 4184,
   CANNOT_GET_FACILITY_RESERVATION_HISTORY = 4185,
+  CANNOT_CANCEL_FACILITY_RESERVATION = 4186,
+  FACILITY_RESERVATION_IS_CANCELLED = 4187,
+  FACILITY_RESERVATION_LATE_CANCELLATION = 4188,
 }
