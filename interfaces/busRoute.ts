@@ -1,0 +1,25 @@
+import { ActiveStatus, DayOfWeek } from '../constants/enum';
+
+export interface BusRoute {
+  id: string;
+  route_name: string;
+  route_code: string;
+  description?: string;
+  bus_id?: string[];
+  departure_time: Date;
+  estimated_duration: Date;
+  status: ActiveStatus;
+  operating_dates?: DayOfWeek[];
+  inactive_dates?: string[];
+  stops?: {
+    stop_id: string;
+    stop_name: string;
+    building_id?: string | null;
+    order: number;
+    estimated_arrival: Date;
+    location: string;
+  }[];
+  created_by: string;
+  updated_at?: Date;
+  updated_by?: string;
+}

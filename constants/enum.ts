@@ -49,6 +49,7 @@ export enum Collection {
   BUSES = 'buses',
   ORDERS = 'orders',
   ORDER_DETAILS = 'order_details',
+  BUS_ROUTES = 'bus_routes',
   FACILITY_RESERVATIONS = 'facility_reservations',
   DAILY_SALES = 'daily_sales',
 }
