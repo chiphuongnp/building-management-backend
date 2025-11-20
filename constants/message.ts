@@ -127,6 +127,14 @@ export enum ErrorMessage {
   CANNOT_UPDATE_BUS = 'Cannot update bus!',
   CANNOT_GET_BUS_DETAIL = 'Cannot get bus detail!',
 
+  // Bus Route error messages
+  CANNOT_GET_BUS_ROUTE_LIST = 'Cannot get list of bus routes!',
+  BUS_ROUTE_NOT_FOUND = 'Bus route not found!',
+  BUS_ROUTE_ALREADY_EXISTS = 'Bus route with the same code already exists!',
+  CANNOT_CREATE_BUS_ROUTE = 'Cannot create bus route!',
+  CANNOT_UPDATE_BUS_ROUTE = 'Cannot update bus route!',
+  CANNOT_GET_BUS_ROUTE_DETAIL = 'Cannot get bus route detail!',
+
   // Facility reservation messages
   CANNOT_GET_FACILITY_RESERVATION_LIST = 'Cannot get list of facility reservations!',
   CANNOT_GET_USER_FACILITY_RESERVATION = 'Cannot get list of facility reservations for user!',
@@ -217,6 +225,12 @@ export enum Message {
   BUS_UPDATED = 'Bus updated successfully.',
   BUS_GET_ALL = 'Get all buses successfully.',
   BUS_GET_DETAIL = 'Get bus detail successfully.',
+
+  // Bus Route success messages
+  BUS_ROUTE_CREATED = 'Bus route created successfully.',
+  BUS_ROUTE_UPDATED = 'Bus route updated successfully.',
+  BUS_ROUTE_GET_ALL = 'Get all bus routes successfully.',
+  BUS_ROUTE_GET_DETAIL = 'Get bus route detail successfully.',
 
   // Facility reservations messages
   GET_FACILITY_RESERVATIONS = 'Get facility reservations successfully.',
@@ -340,6 +354,14 @@ export enum StatusCode {
   BUS_UPDATE = 6005,
   BUS_NUMBER_ALREADY_EXISTS = 6007,
   BUS_CODE_ALREADY_EXISTS = 6008,
+
+  // Bus Route status codes
+  BUS_ROUTE_GET_ALL = 7001,
+  BUS_ROUTE_GET_DETAIL = 7002,
+  BUS_ROUTE_NOT_FOUND = 7003,
+  BUS_ROUTE_CREATE = 7004,
+  BUS_ROUTE_UPDATE = 7005,
+  BUS_ROUTE_ALREADY_EXISTS = 7006,
 
   // Facility reservation codes
   CANNOT_GET_FACILITY_RESERVATION_LIST = 4181,
