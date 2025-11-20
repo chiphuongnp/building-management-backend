@@ -4,6 +4,7 @@ import {
   validateCreateOrder,
   validateOrderIdParams,
   validateUpdateOrder,
+  validateUpdateOrderStatus,
 } from '../validations/order';
 import {
   createOrder,
@@ -12,6 +13,7 @@ import {
   getOrders,
   getOrdersByUserId,
   updateOrderInfo,
+  updateStatus,
 } from '../services/order';
 import { requirePermission, requireRole } from '../middlewares/permission';
 import { UserRole } from '../constants/enum';
@@ -41,6 +43,16 @@ orderRouter.patch(
   validateOrderIdParams,
   validateUpdateOrder,
   updateOrderInfo,
+);
+
+orderRouter.patch(
+  '/update-status/:id',
+  authenticate,
+  requireRole(UserRole.MANAGER),
+  requirePermission('update_order_status'),
+  validateOrderIdParams,
+  validateUpdateOrderStatus,
+  updateStatus,
 );
 
 export default orderRouter;

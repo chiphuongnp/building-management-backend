@@ -76,6 +76,9 @@ export enum ErrorMessage {
   CANNOT_CREATE_MENU_ITEM = 'Cannot add item to menu schedule!',
   CANNOT_UPDATE_MENU_ITEM = 'Cannot update item in menu schedule!',
   MENU_ITEM_NOT_FOUND = 'Menu item not found in this menu schedule!',
+  MENU_ITEM_LIST_NOT_FOUND = 'Menu not found for this restaurant!',
+  CANNOT_GET_MENU_ITEM_LIST = 'Cannot get menu for this restaurant!',
+  CANNOT_GET_DAILY_SALES = 'Cannot get daily sales for this restaurant!',
 
   // Parking subscription messages
   CANNOT_GET_PARKING_SUBSCRIPTION_LIST = 'Can not get list of parking subscription!',
@@ -111,8 +114,9 @@ export enum ErrorMessage {
   CANNOT_GET_USER_ORDERS = 'Cannot fetch list of orders for user!',
   GET_ORDER_FORBIDDEN = 'You are not allowed to view this order!',
   UPDATE_ORDER_FORBIDDEN = 'You are not allowed to update this order!',
-  CANNOT_UPDATE_ORDER = 'Cannot update order!',
+  CANNOT_UPDATE_ORDER_INFO = 'Cannot update order info!',
   CANNOT_GET_USER_ORDER_HISTORY = `Cannot get user's order history!`,
+  CANNOT_UPDATE_ORDER_STATUS = 'Cannot update order status!',
 
   // Bus error messages
   CANNOT_GET_BUS_LIST = 'Cannot get list of buses!',
@@ -176,6 +180,8 @@ export enum Message {
   GET_MENU_SCHEDULES = 'Get menu schedule(s) successfully.',
   MENU_ITEM_CREATED = 'New item(s) has been added to menu schedule.',
   MENU_ITEM_UPDATED = 'Item(s) has been updated in menu schedule.',
+  GET_MENU_ITEMS = `Get restaurant's menu successfully`,
+  GET_DAILY_SALES = `Get restaurant's daily sales successfully`,
 
   // Parking subscription messages
   PARKING_SUBSCRIPTION_CREATED = 'Parking subscription created successfully.',
@@ -242,6 +248,9 @@ export enum StatusCode {
   MENU_ITEM_NOT_FOUND = 4070,
   IMAGE_UPLOAD_FAILED = 4071,
   CANNOT_UPLOAD_IMAGES = 4072,
+  MENU_ITEM_LIST_NOT_FOUND = 4073,
+  CANNOT_GET_MENU_ITEM_LIST = 4074,
+  CANNOT_GET_DAILY_SALES = 4075,
 
   // Restaurant messages
   RESTAURANT_NOT_FOUND = 4101,
@@ -319,8 +328,9 @@ export enum StatusCode {
   CANNOT_GET_USER_ORDERS = 4166,
   GET_ORDER_FORBIDDEN = 4167,
   UPDATE_ORDER_FORBIDDEN = 4168,
-  CANNOT_UPDATE_ORDER = 4169,
+  CANNOT_UPDATE_ORDER_INFO = 4169,
   CANNOT_GET_USER_ORDER_HISTORY = 4170,
+  CANNOT_UPDATE_ORDER_STATUS = 4171,
 
   // Bus status codes
   BUS_GET_ALL = 6001,

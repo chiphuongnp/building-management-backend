@@ -166,7 +166,7 @@ const getOrderHistory = async (req: AuthRequest, res: Response, next: NextFuncti
     const { orderPath } = getPaths(restaurantId);
     const orders: Order[] = await firebaseHelper.getDocsByFields(orderPath, [
       { field: 'user_id', operator: '==', value: req.user?.uid },
-      { field: 'status', operator: 'in', value: [OrderStatus.COMPLETED, OrderStatus.CANCELLED] },
+      { field: 'status', operator: 'in', value: OrderStatus.COMPLETED },
     ]);
     if (!orders.length) {
       return responseError(res, StatusCode.ORDER_NOT_FOUND, ErrorMessage.ORDER_NOT_FOUND);
@@ -206,9 +206,37 @@ const updateOrderInfo = async (req: AuthRequest, res: Response, next: NextFuncti
 
     return responseSuccess(res, Message.ORDER_UPDATED, { id: orderId });
   } catch (error) {
-    logger.error(ErrorMessage.CANNOT_UPDATE_ORDER + error);
+    logger.error(ErrorMessage.CANNOT_UPDATE_ORDER_INFO + error);
 
-    return responseError(res, StatusCode.CANNOT_UPDATE_ORDER, ErrorMessage.CANNOT_UPDATE_ORDER);
+    return responseError(
+      res,
+      StatusCode.CANNOT_UPDATE_ORDER_INFO,
+      ErrorMessage.CANNOT_UPDATE_ORDER_INFO,
+    );
+  }
+};
+
+const updateStatus = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { restaurantId, id: orderId } = req.params;
+    const { status } = req.body;
+    const { orderPath } = getPaths(restaurantId);
+    const order: Order = await firebaseHelper.getDocById(orderPath, orderId);
+    if (!order) {
+      return responseError(res, StatusCode.ORDER_NOT_FOUND, ErrorMessage.ORDER_NOT_FOUND);
+    }
+
+    await firebaseHelper.updateDoc(orderPath, orderId, status);
+
+    return responseSuccess(res, Message.ORDER_UPDATED, { id: orderId });
+  } catch (error) {
+    logger.error(ErrorMessage.CANNOT_UPDATE_ORDER_STATUS + error);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_UPDATE_ORDER_STATUS,
+      ErrorMessage.CANNOT_UPDATE_ORDER_STATUS,
+    );
   }
 };
 
@@ -217,6 +245,7 @@ export {
   getOrderDetailsByOrderId,
   getOrders,
   getOrdersByUserId,
-  updateOrderInfo,
   getOrderHistory,
+  updateOrderInfo,
+  updateStatus,
 };

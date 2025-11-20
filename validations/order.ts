@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import { PickupMethod } from '../constants/enum';
+import { OrderStatus, PickupMethod } from '../constants/enum';
 import { Request, Response, NextFunction } from 'express';
 
 const idParamSchema = Joi.object({
@@ -103,6 +103,16 @@ export const updateOrderSchema = Joi.object({
     .messages({ 'object.base': 'Delivery info must be an object' }),
 });
 
+const updateStatusSchema = Joi.object({
+  status: Joi.string()
+    .valid(...Object.values(OrderStatus))
+    .required()
+    .messages({
+      'any.only': `Status must be one of: ${Object.values(OrderStatus).join(', ')}`,
+      'any.required': 'Status is required',
+    }),
+});
+
 export const validateCreateOrder = (req: Request, res: Response, next: NextFunction) => {
   const { error } = createOrderSchema.validate(req.body);
   if (error) {
@@ -113,6 +123,14 @@ export const validateCreateOrder = (req: Request, res: Response, next: NextFunct
 
 export const validateUpdateOrder = (req: Request, res: Response, next: NextFunction) => {
   const { error } = updateOrderSchema.validate(req.body, { abortEarly: false });
+  if (error) {
+    return res.status(400).json({ success: false, message: error.details[0].message });
+  }
+  next();
+};
+
+export const validateUpdateOrderStatus = (req: Request, res: Response, next: NextFunction) => {
+  const { error } = updateStatusSchema.validate(req.body, { abortEarly: false });
   if (error) {
     return res.status(400).json({ success: false, message: error.details[0].message });
   }

@@ -1,12 +1,10 @@
-import { Restaurant } from './../interfaces/restaurant';
 import cron from 'node-cron';
 import logger from '../utils/logger';
+import { firebaseHelper, getDayOfWeek, getNormalizedDate } from '../utils/index';
 import { Collection, CronSchedule, Sites } from '../constants/enum';
-import { firebaseHelper } from '../utils';
-import { createBatchDocs, getAllDocs } from '../utils/firebaseHelper';
-import { Item } from '../interfaces/menu';
 import { TIMEZONE } from '../constants/constant';
-import { getDayOfWeek, getNormalizedDate } from '../utils/date';
+import { Item } from '../interfaces/menu';
+import { Restaurant } from './../interfaces/restaurant';
 
 const getPaths = (site: Sites, restaurantId?: string, dayId?: string) => {
   const restaurantUrl = `${site}/${Collection.RESTAURANTS}`;
@@ -35,12 +33,12 @@ const runMenuItemsSync = async (site: Sites) => {
         const restaurantId = restaurant.id;
         const { itemPath, menuItemsPath } = getPaths(site, restaurantId, dayOfWeek);
         try {
-          const scheduledItems = await getAllDocs(itemPath);
+          const scheduledItems = await firebaseHelper.getAllDocs(itemPath);
           if (!scheduledItems.length) {
             return;
           }
 
-          const oldItems = await getAllDocs(menuItemsPath);
+          const oldItems = await firebaseHelper.getAllDocs(menuItemsPath);
           const existingNames = new Set(
             oldItems.map((item: Item) => item.name.trim().toLowerCase()),
           );
@@ -49,7 +47,7 @@ const runMenuItemsSync = async (site: Sites) => {
             (item: Item) => !existingNames.has(item.name.trim().toLowerCase()),
           );
           if (newItems.length) {
-            await createBatchDocs(menuItemsPath, newItems);
+            await firebaseHelper.createBatchDocs(menuItemsPath, newItems);
             logger.info(
               `[MenuCron] Success: ${newItems.length} new items for restaurant ID ${site}/${restaurantId}.`,
             );
