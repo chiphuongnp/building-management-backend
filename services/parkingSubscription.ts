@@ -111,10 +111,10 @@ const createParkingSubscription = async (req: AuthRequest, res: Response) => {
 
 const updateParkingSubscription = async (req: AuthRequest, res: Response) => {
   try {
-    const { parkingSpaceId, id: parkingSubcriptionId } = req.params;
+    const { parkingSpaceId, id: parkingSubscriptionId } = req.params;
     const parkingSubscription = await firebaseHelper.getDocById(
       subscriptionCollection(parkingSpaceId),
-      parkingSubcriptionId,
+      parkingSubscriptionId,
     );
     if (!parkingSubscription) {
       return responseError(
@@ -129,7 +129,7 @@ const updateParkingSubscription = async (req: AuthRequest, res: Response) => {
     const endTime = new Date(startTime);
     endTime.setMonth(endTime.getMonth() + month_duration);
 
-    await firebaseHelper.updateDoc(subscriptionCollection(parkingSpaceId), parkingSubcriptionId, {
+    await firebaseHelper.updateDoc(subscriptionCollection(parkingSpaceId), parkingSubscriptionId, {
       end_time: Timestamp.fromDate(endTime),
       ...data,
     });
@@ -148,11 +148,11 @@ const updateParkingSubscription = async (req: AuthRequest, res: Response) => {
 
 const updateParkingSubscriptionStatus = async (req: AuthRequest, res: Response) => {
   try {
-    const { parkingSpaceId, id: parkingSubcriptionId } = req.params;
+    const { parkingSpaceId, id: parkingSubscriptionId } = req.params;
     const { status } = req.body;
     const parkingSubscription = await firebaseHelper.getDocById(
       subscriptionCollection(parkingSpaceId),
-      parkingSubcriptionId,
+      parkingSubscriptionId,
     );
     if (!parkingSubscription) {
       return responseError(
@@ -162,7 +162,7 @@ const updateParkingSubscriptionStatus = async (req: AuthRequest, res: Response) 
       );
     }
 
-    await firebaseHelper.updateDoc(subscriptionCollection(parkingSpaceId), parkingSubcriptionId, {
+    await firebaseHelper.updateDoc(subscriptionCollection(parkingSpaceId), parkingSubscriptionId, {
       status,
     });
 
@@ -185,7 +185,7 @@ const updateParkingSubscriptionStatus = async (req: AuthRequest, res: Response) 
     }
 
     return responseSuccess(res, Message.PARKING_SUBSCRIPTION_STATUS_UPDATED, {
-      id: parkingSubcriptionId,
+      id: parkingSubscriptionId,
     });
   } catch (error) {
     logger.warn(ErrorMessage.CANNOT_UPDATE_PARKING_SUBSCRIPTION_STATUS + error);

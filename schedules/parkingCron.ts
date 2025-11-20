@@ -1,16 +1,15 @@
 import cron from 'node-cron';
 import logger from '../utils/logger';
+import { firebaseHelper, getNormalizedDate } from '../utils/index';
 import { Collection, CronSchedule, ParkingSubscriptionStatus, Sites } from '../constants/enum';
-import { firebaseHelper } from '../utils';
-import { getAllDocs, updateDoc } from '../utils/firebaseHelper';
+import { TIMEZONE } from '../constants/constant';
 import { ParkingSpace } from '../interfaces/parkingSpace';
 import { Timestamp } from 'firebase-admin/firestore';
-import { getNormalizedDate } from '../utils/date';
-import { TIMEZONE } from '../constants/constant';
 
 const getPaths = (site: Sites, parkingSpaceId?: string) => {
   const parkingSpaceUrl = `${site}/${Collection.PARKING_SPACES}`;
   const subscriptionPath = `${parkingSpaceUrl}/${parkingSpaceId}/${Collection.PARKING_SUBSCRIPTIONS}`;
+
   return { parkingSpaceUrl, subscriptionPath };
 };
 
@@ -20,7 +19,7 @@ const runParkingExpiration = async (site: Sites) => {
 
   try {
     const { parkingSpaceUrl } = getPaths(site);
-    const spaces: ParkingSpace[] = await getAllDocs(parkingSpaceUrl);
+    const spaces: ParkingSpace[] = await firebaseHelper.getAllDocs(parkingSpaceUrl);
     if (!spaces.length) {
       logger.info(`[ParkingCron] No parking spaces in site ${site}`);
 
@@ -44,10 +43,11 @@ const runParkingExpiration = async (site: Sites) => {
 
           await Promise.all(
             expiredSubscriptions.map((sub) =>
-              updateDoc(subscriptionPath, sub.id, {
-                status: ParkingSubscriptionStatus.EXPIRED,
-                updated_at: now,
-              })
+              firebaseHelper
+                .updateDoc(subscriptionPath, sub.id, {
+                  status: ParkingSubscriptionStatus.EXPIRED,
+                  updated_at: now,
+                })
                 .then(() => {
                   logger.info(
                     `[ParkingCron] Expired subscription ID ${sub.id} in space ID ${spaceId}!`,

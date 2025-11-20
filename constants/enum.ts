@@ -50,6 +50,7 @@ export enum Collection {
   ORDERS = 'orders',
   ORDER_DETAILS = 'order_details',
   FACILITY_RESERVATIONS = 'facility_reservations',
+  DAILY_SALES = 'daily_sales',
 }
 
 export enum ParkingSpaceType {
@@ -81,6 +82,7 @@ export enum ParkingSubscriptionStatus {
 export enum CronSchedule {
   MENU_ITEMS = '0 0 * * *',
   PARKING_EXPIRATION = '0 0 * * *',
+  DAILY_SALES = '0 0 * * *',
 }
 
 export enum FacilityType {
@@ -110,7 +112,6 @@ export enum OrderStatus {
   PENDING = 'pending',
   PREPARING = 'preparing',
   COMPLETED = 'completed',
-  CANCELLED = 'cancelled',
 }
 
 export enum VATRate {

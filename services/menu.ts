@@ -1,12 +1,10 @@
-import { responseError, responseSuccess } from '../utils/error';
 import { Response, NextFunction } from 'express';
 import { Collection, DayOfWeek, Sites } from '../constants/enum';
-import { AuthRequest } from '../interfaces/jwt';
-import { firebaseHelper } from '../utils';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
+import { AuthRequest } from '../interfaces/jwt';
 import { Item, MenuSchedule } from '../interfaces/menu';
+import { deleteImages, firebaseHelper, responseError, responseSuccess } from '../utils/index';
 import logger from '../utils/logger';
-import { deleteImages } from '../utils/deleteFile';
 
 const restaurantUrl = `${Sites.TOKYO}/${Collection.RESTAURANTS}`;
 const getPaths = (restaurantId: string, dayId?: string) => {

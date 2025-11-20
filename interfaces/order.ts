@@ -14,7 +14,7 @@ export interface Order {
   id: string;
   user_id: string;
   base_amount: number;
-  vat_charge?: number;
+  vat_charge: number;
   total_amount: number;
   pickup_method: PickupMethod;
   delivery_address?: {

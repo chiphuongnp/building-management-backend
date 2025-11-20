@@ -1,13 +1,19 @@
 import { Restaurant } from './../interfaces/restaurant';
 import { Response, NextFunction } from 'express';
-import { firebaseHelper } from '../utils/index';
 import { ActiveStatus, Collection, Sites } from '../constants/enum';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { AuthRequest } from '../interfaces/jwt';
-import { responseError, responseSuccess } from '../utils/error';
+import { firebaseHelper, getNormalizedDate, responseError, responseSuccess } from '../utils/index';
 import logger from '../utils/logger';
 
 const restaurantUrl = `${Sites.TOKYO}/${Collection.RESTAURANTS}`;
+const getPaths = (restaurantId: string) => {
+  const menuPath = `${restaurantUrl}/${restaurantId}/${Collection.MENU_ITEMS}`;
+  const dailySalePath = `${restaurantUrl}/${restaurantId}/${Collection.DAILY_SALES}`;
+
+  return { menuPath, dailySalePath };
+};
+
 const getRestaurants = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const restaurants: Restaurant[] = await firebaseHelper.getAllDocs(restaurantUrl);
@@ -111,4 +117,65 @@ const updateRestaurant = async (req: AuthRequest, res: Response, next: NextFunct
   }
 };
 
-export { createRestaurant, getRestaurants, getRestaurant, updateRestaurant };
+const getRestaurantMenu = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const restaurant: Restaurant = await firebaseHelper.getDocById(restaurantUrl, id);
+    if (!restaurant) {
+      return responseError(res, StatusCode.RESTAURANT_NOT_FOUND, ErrorMessage.RESTAURANT_NOT_FOUND);
+    }
+
+    const { menuPath } = getPaths(id);
+    const menuItems = await firebaseHelper.getAllDocs(menuPath);
+    if (!menuItems.length) {
+      return responseError(
+        res,
+        StatusCode.MENU_ITEM_LIST_NOT_FOUND,
+        ErrorMessage.MENU_ITEM_LIST_NOT_FOUND,
+      );
+    }
+
+    return responseSuccess(res, Message.GET_MENU_ITEMS, { menuItems });
+  } catch (error) {
+    logger.warn(ErrorMessage.CANNOT_GET_MENU_ITEM_LIST + error);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_GET_MENU_ITEM_LIST,
+      ErrorMessage.CANNOT_GET_MENU_ITEM_LIST,
+    );
+  }
+};
+
+const getRestaurantDailySale = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const restaurant: Restaurant = await firebaseHelper.getDocById(restaurantUrl, id);
+    if (!restaurant) {
+      return responseError(res, StatusCode.RESTAURANT_NOT_FOUND, ErrorMessage.RESTAURANT_NOT_FOUND);
+    }
+
+    const dailySaleId = getNormalizedDate(req.query.date as string).toISOString();
+    const { dailySalePath } = getPaths(id);
+    const dailySales = await firebaseHelper.getDocById(dailySalePath, dailySaleId);
+
+    return responseSuccess(res, Message.GET_DAILY_SALES, { dailySales });
+  } catch (error) {
+    logger.warn(ErrorMessage.CANNOT_GET_DAILY_SALES + error);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_GET_DAILY_SALES,
+      ErrorMessage.CANNOT_GET_DAILY_SALES,
+    );
+  }
+};
+
+export {
+  createRestaurant,
+  getRestaurants,
+  getRestaurant,
+  updateRestaurant,
+  getRestaurantMenu,
+  getRestaurantDailySale,
+};

@@ -11,6 +11,11 @@ export const getTomorrow = () => {
   return new Date(now.setDate(now.getDate() + 1));
 };
 
+export const getYesterday = () => {
+  const now = getNormalizedDate();
+  return new Date(now.setDate(now.getDate() - 1));
+};
+
 export const getDayOfWeek = (input: Date): string => {
   return input.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
 };
