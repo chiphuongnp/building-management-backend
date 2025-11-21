@@ -109,4 +109,97 @@ const createEventBooking = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export { getEventBookings, getEventBookingById, getAvailableEventBooking, createEventBooking };
+const updateEventBookingInfo = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id: eventBookingId } = req.params;
+    const userId = req.user?.uid;
+    const dataEventBooking = {
+      ...req.body,
+      status: EventBookingStatus.PENDING,
+      updated_by: userId,
+    };
+    const { facility_reservation_id: facilityReservationId, location } = dataEventBooking;
+    const eventBooking: EventBooking = await firebaseHelper.getDocById(
+      eventBookingCollection,
+      eventBookingId,
+    );
+    if (!eventBooking) {
+      return responseError(
+        res,
+        StatusCode.EVENT_BOOKING_NOT_FOUND,
+        ErrorMessage.EVENT_BOOKING_NOT_FOUND,
+      );
+    }
+
+    if (userId !== eventBooking.created_by) {
+      return responseError(
+        res,
+        StatusCode.UPDATE_EVENT_BOOKING_FORBIDDEN,
+        ErrorMessage.UPDATE_EVENT_BOOKING_FORBIDDEN,
+      );
+    }
+
+    if (facilityReservationId) {
+      const facilityReservation = await firebaseHelper.getDocById(
+        facilityReservationCollection,
+        facilityReservationId,
+      );
+      if (!facilityReservation) {
+        return responseError(
+          res,
+          StatusCode.FACILITY_RESERVATION_NOT_FOUND,
+          ErrorMessage.FACILITY_RESERVATION_NOT_FOUND,
+        );
+      }
+
+      dataEventBooking.location = null;
+    }
+
+    if (location) {
+      dataEventBooking.facility_reservation_id = null;
+    }
+
+    await firebaseHelper.updateDoc(eventBookingCollection, eventBookingId, dataEventBooking);
+
+    return responseSuccess(res, Message.EVENT_BOOKING_UPDATED, {
+      id: eventBookingId,
+    });
+  } catch (error) {
+    logger.warn(ErrorMessage.CANNOT_UPDATE_EVENT_BOOKING + error);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_UPDATE_EVENT_BOOKING,
+      ErrorMessage.CANNOT_UPDATE_EVENT_BOOKING,
+    );
+  }
+};
+
+const updateEventBookingStatus = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    await firebaseHelper.updateDoc(eventBookingCollection, id, {
+      status: req.body.status,
+      approved_by: req.user?.uid,
+    });
+
+    return responseSuccess(res, Message.EVENT_BOOKING_STATUS_UPDATED, { id });
+  } catch (error) {
+    logger.warn(ErrorMessage.CANNOT_UPDATE_EVENT_BOOKING_STATUS + error);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_UPDATE_EVENT_BOOKING_STATUS,
+      ErrorMessage.CANNOT_UPDATE_EVENT_BOOKING_STATUS,
+    );
+  }
+};
+
+export {
+  getEventBookings,
+  getEventBookingById,
+  getAvailableEventBooking,
+  createEventBooking,
+  updateEventBookingInfo,
+  updateEventBookingStatus,
+};
