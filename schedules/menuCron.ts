@@ -3,7 +3,7 @@ import logger from '../utils/logger';
 import { firebaseHelper, getDayOfWeek, getNormalizedDate } from '../utils/index';
 import { Collection, CronSchedule, Sites } from '../constants/enum';
 import { TIMEZONE } from '../constants/constant';
-import { Item } from '../interfaces/menu';
+import { MenuItem } from '../interfaces/menu';
 import { Restaurant } from './../interfaces/restaurant';
 
 const getPaths = (site: Sites, restaurantId?: string, dayId?: string) => {
@@ -33,18 +33,18 @@ const runMenuItemsSync = async (site: Sites) => {
         const restaurantId = restaurant.id;
         const { itemPath, menuItemsPath } = getPaths(site, restaurantId, dayOfWeek);
         try {
-          const scheduledItems = await firebaseHelper.getAllDocs(itemPath);
+          const scheduledItems: MenuItem[] = await firebaseHelper.getAllDocs(itemPath);
           if (!scheduledItems.length) {
             return;
           }
 
-          const oldItems = await firebaseHelper.getAllDocs(menuItemsPath);
+          const oldItems: MenuItem[] = await firebaseHelper.getAllDocs(menuItemsPath);
           const existingNames = new Set(
-            oldItems.map((item: Item) => item.name.trim().toLowerCase()),
+            oldItems.map((item: MenuItem) => item.name.trim().toLowerCase()),
           );
 
-          const newItems = scheduledItems.filter(
-            (item: Item) => !existingNames.has(item.name.trim().toLowerCase()),
+          const newItems: MenuItem[] = scheduledItems.filter(
+            (item: MenuItem) => !existingNames.has(item.name.trim().toLowerCase()),
           );
           if (newItems.length) {
             await firebaseHelper.createBatchDocs(menuItemsPath, newItems);

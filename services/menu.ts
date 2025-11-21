@@ -2,7 +2,7 @@ import { Response, NextFunction } from 'express';
 import { Collection, DayOfWeek, Sites } from '../constants/enum';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { AuthRequest } from '../interfaces/jwt';
-import { Item, MenuSchedule } from '../interfaces/menu';
+import { MenuItem, MenuSchedule } from '../interfaces/menu';
 import { deleteImages, firebaseHelper, responseError, responseSuccess } from '../utils/index';
 import logger from '../utils/logger';
 
@@ -62,7 +62,7 @@ const getMenuScheduleById = async (req: AuthRequest, res: Response, next: NextFu
       );
     }
 
-    const items: Item[] = await firebaseHelper.getAllDocs(itemPath);
+    const items: MenuItem[] = await firebaseHelper.getAllDocs(itemPath);
     if (!items.length) {
       return responseError(res, StatusCode.MENU_SCHEDULE_EMPTY, ErrorMessage.MENU_SCHEDULE_EMPTY);
     }
@@ -97,7 +97,7 @@ const handleCreateMenuSchedule = async (
   const existingItems = await firebaseHelper.getAllDocs(itemPath);
   const existingNames = existingItems.map((i) => i.name.trim().toLowerCase());
   const newItems = items.filter(
-    (item: Item) => !existingNames.includes(item.name.trim().toLowerCase()),
+    (item: MenuItem) => !existingNames.includes(item.name.trim().toLowerCase()),
   );
   if (newItems.length) {
     await firebaseHelper.createBatchDocs(itemPath, newItems);
@@ -149,7 +149,7 @@ const addMenuItem = async (req: AuthRequest, res: Response, next: NextFunction) 
       );
     }
 
-    const item: Item = req.body;
+    const item: MenuItem = req.body;
     const existingItems = await firebaseHelper.getAllDocs(itemPath);
     const existingNames = existingItems.map((i) => i.name.trim().toLowerCase());
     if (existingNames.includes(item.name.trim().toLowerCase())) {
@@ -161,7 +161,7 @@ const addMenuItem = async (req: AuthRequest, res: Response, next: NextFunction) 
     }
 
     const files = req?.files as Express.Multer.File[];
-    const newItem: Item = {
+    const newItem: MenuItem = {
       ...item,
       image_urls: files?.map((file) => file.path.replace(/\\/g, '/')) || [],
       created_by: req.user?.uid,
@@ -197,7 +197,7 @@ const updateMenuItem = async (req: AuthRequest, res: Response, next: NextFunctio
       );
     }
 
-    const item: Item = await firebaseHelper.getDocById(itemPath, itemId);
+    const item: MenuItem = await firebaseHelper.getDocById(itemPath, itemId);
     if (!item) {
       return responseError(res, StatusCode.MENU_ITEM_NOT_FOUND, ErrorMessage.MENU_ITEM_NOT_FOUND);
     }
@@ -223,7 +223,7 @@ const updateMenuItem = async (req: AuthRequest, res: Response, next: NextFunctio
       await deleteImages(item.image_urls);
     }
 
-    const updatedItem: Partial<Item> = {
+    const updatedItem: Partial<MenuItem> = {
       ...req.body,
       image_urls: imageUrls.length ? imageUrls : item.image_urls || [],
       updated_by: req.user?.uid,

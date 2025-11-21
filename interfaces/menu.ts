@@ -6,15 +6,16 @@ export interface MenuSchedule {
   created_by: string;
   updated_at?: Date;
   updated_by?: string;
-  items: Item[];
+  items: MenuItem[];
 }
 
-export interface Item {
+export interface MenuItem {
   id: string;
   name: string;
   description?: string;
   price: number;
   category: DishCategory;
+  quantity: number;
   image_urls?: string[];
   created_at: Date;
   created_by?: string;

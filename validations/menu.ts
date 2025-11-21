@@ -1,7 +1,7 @@
 import Joi from 'joi';
 import { Request, Response, NextFunction } from 'express';
 import { DishCategory, DayOfWeek } from '../constants/enum';
-import { Item, MenuSchedule } from '../interfaces/menu';
+import { MenuItem, MenuSchedule } from '../interfaces/menu';
 
 const idParamSchema = Joi.object({
   restaurantId: Joi.string()
@@ -31,7 +31,7 @@ const idParamSchema = Joi.object({
     }),
 });
 
-const itemSchema = Joi.object<Item>({
+const itemSchema = Joi.object<MenuItem>({
   name: Joi.string().min(2).max(100).required().messages({
     'string.empty': 'Dish name is required',
     'string.max': 'Dish name must not exceed 100 characters',
@@ -50,6 +50,12 @@ const itemSchema = Joi.object<Item>({
       'any.only': `Category must be one of: ${Object.values(DishCategory).join(', ')}`,
       'any.required': 'Category is required',
     }),
+  quantity: Joi.number().integer().min(1).required().messages({
+    'any.required': 'The quantity field is required.',
+    'number.base': 'Quantity must be a number.',
+    'number.integer': 'Quantity must be a whole number (integer).',
+    'number.min': 'Quantity must be 1 or greater.',
+  }),
   image_urls: Joi.array()
     .items(Joi.string().required())
     .unique()
@@ -74,7 +80,7 @@ const createMenuScheduleSchema = Joi.object<MenuSchedule>({
     .min(1)
     .required()
     .custom((items, helpers) => {
-      const allUrls = items.flatMap((item: Item) => item.image_urls || []);
+      const allUrls = items.flatMap((item: MenuItem) => item.image_urls || []);
       const duplicates = allUrls.filter(
         (url: string, index: number) => allUrls.indexOf(url) !== index,
       );
