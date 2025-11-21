@@ -52,6 +52,7 @@ export enum Collection {
   BUS_ROUTES = 'bus_routes',
   FACILITY_RESERVATIONS = 'facility_reservations',
   DAILY_SALES = 'daily_sales',
+  EVENT_BOOKINGS = 'event_bookings',
 }
 
 export enum ParkingSpaceType {
@@ -124,4 +125,10 @@ export enum FacilityReservationStatus {
   PENDING = 'pending',
   RESERVED = 'reserved',
   CANCELLED = 'cancelled',
+}
+
+export enum EventBookingStatus {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
 }

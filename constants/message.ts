@@ -144,6 +144,12 @@ export enum ErrorMessage {
   CANNOT_CANCEL_FACILITY_RESERVATION = 'Cannot cancel facility reservation!',
   FACILITY_RESERVATION_IS_CANCELLED = 'Facility reservation is cancelled!',
   FACILITY_RESERVATION_LATE_CANCELLATION = 'You cannot cancel after facility reservation time!',
+
+  // Event booking messages
+  CANNOT_CREATE_EVENT_BOOKING = 'Cannot create event booking!',
+  CANNOT_GET_EVENT_BOOKING_LIST = 'Cannot get list of event bookings!',
+  EVENT_BOOKING_NOT_FOUND = 'Event booking not found!',
+  CANNOT_GET_AVAILABLE_EVENT_BOOKINGS = 'Can not get list available of parking space!',
 }
 
 export enum Message {
@@ -238,6 +244,12 @@ export enum Message {
   GET_FACILITY_RESERVATION_DETAIL = 'Get facility reservation successfully.',
   FACILITY_RESERVATION_CREATED = 'Facility reservation created successfully.',
   FACILITY_RESERVATION_CANCELED = 'Facility reservation canceled successfully.',
+
+  // Event booking messages
+  EVENT_BOOKING_CREATED = 'Event booking created successfully.',
+  GET_EVENT_BOOKINGS = 'Get event bookings successfully.',
+  GET_EVENT_BOOKING_DETAIL = 'Get event booking successfully.',
+  GET_AVAILABLE_EVENT_BOOKING = 'Get available event booking successfully.',
 }
 
 export enum StatusCode {
@@ -372,4 +384,10 @@ export enum StatusCode {
   CANNOT_CANCEL_FACILITY_RESERVATION = 4186,
   FACILITY_RESERVATION_IS_CANCELLED = 4187,
   FACILITY_RESERVATION_LATE_CANCELLATION = 4188,
+
+  // Event booking codes
+  CANNOT_CREATE_EVENT_BOOKING = 4201,
+  CANNOT_GET_EVENT_BOOKING_LIST = 4202,
+  EVENT_BOOKING_NOT_FOUND = 4203,
+  CANNOT_GET_AVAILABLE_EVENT_BOOKINGS = 4204,
 }
