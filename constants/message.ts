@@ -150,6 +150,9 @@ export enum ErrorMessage {
   CANNOT_GET_EVENT_BOOKING_LIST = 'Cannot get list of event bookings!',
   EVENT_BOOKING_NOT_FOUND = 'Event booking not found!',
   CANNOT_GET_AVAILABLE_EVENT_BOOKINGS = 'Can not get list available of parking space!',
+  CANNOT_UPDATE_EVENT_BOOKING = 'Cannot update event booking!',
+  CANNOT_UPDATE_EVENT_BOOKING_STATUS = 'Cannot update event booking status!',
+  UPDATE_EVENT_BOOKING_FORBIDDEN = 'You are not allowed to update this event booking!',
 }
 
 export enum Message {
@@ -250,6 +253,8 @@ export enum Message {
   GET_EVENT_BOOKINGS = 'Get event bookings successfully.',
   GET_EVENT_BOOKING_DETAIL = 'Get event booking successfully.',
   GET_AVAILABLE_EVENT_BOOKING = 'Get available event booking successfully.',
+  EVENT_BOOKING_UPDATED = 'Event booking updated successfully.',
+  EVENT_BOOKING_STATUS_UPDATED = 'Event booking status has been updated successfully.',
 }
 
 export enum StatusCode {
@@ -390,4 +395,7 @@ export enum StatusCode {
   CANNOT_GET_EVENT_BOOKING_LIST = 4202,
   EVENT_BOOKING_NOT_FOUND = 4203,
   CANNOT_GET_AVAILABLE_EVENT_BOOKINGS = 4204,
+  CANNOT_UPDATE_EVENT_BOOKING = 4205,
+  CANNOT_UPDATE_EVENT_BOOKING_STATUS = 4206,
+  UPDATE_EVENT_BOOKING_FORBIDDEN = 4207,
 }
