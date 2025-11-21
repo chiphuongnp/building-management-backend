@@ -53,6 +53,7 @@ export enum Collection {
   FACILITY_RESERVATIONS = 'facility_reservations',
   DAILY_SALES = 'daily_sales',
   EVENT_BOOKINGS = 'event_bookings',
+  DISH_SALES = 'dish_sales',
 }
 
 export enum ParkingSpaceType {
@@ -85,6 +86,7 @@ export enum CronSchedule {
   MENU_ITEMS = '0 0 * * *',
   PARKING_EXPIRATION = '0 0 * * *',
   DAILY_SALES = '0 0 * * *',
+  DISH_SALES = '0 0 * * *',
 }
 
 export enum FacilityType {

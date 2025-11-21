@@ -6,3 +6,4 @@ export * from './error';
 export * from './logger';
 export * from './deleteFile';
 export * from './date';
+export * from './string';
