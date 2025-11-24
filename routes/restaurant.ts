@@ -8,6 +8,7 @@ import {
   createRestaurant,
   getRestaurant,
   getRestaurantDailySale,
+  getRestaurantDishSales,
   getRestaurantMenu,
   getRestaurants,
   updateRestaurant,
@@ -54,9 +55,18 @@ restaurantRouter.get(
   '/:id/daily-sale',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('view_daily_sales'),
+  requirePermission('view_sales'),
   validateIdParam,
   getRestaurantDailySale,
+);
+
+restaurantRouter.get(
+  '/:id/dish-sale',
+  authenticate,
+  requireRole(UserRole.MANAGER),
+  requirePermission('view_sales'),
+  validateIdParam,
+  getRestaurantDishSales,
 );
 
 restaurantRouter.patch(

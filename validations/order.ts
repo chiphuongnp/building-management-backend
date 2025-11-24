@@ -68,8 +68,10 @@ export const createOrderSchema = Joi.object({
     .optional()
     .messages({ 'object.base': 'Delivery info must be an object' }),
   payment_id: Joi.string().optional(),
-  order_details: Joi.array().items(orderDetailSchema).required().messages({
+  order_details: Joi.array().items(orderDetailSchema).min(1).required().messages({
     'array.base': 'Order details must be an array',
+    'array.min': 'Order must contain at least 1 item',
+    'any.required': 'Order details are required',
   }),
 });
 

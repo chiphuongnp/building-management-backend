@@ -1,8 +1,15 @@
+import { MenuItem } from './../interfaces/menu';
 import { Collection, OrderStatus, PickupMethod, Sites, VATRate } from '../constants/enum';
 import { Order, OrderDetail } from './../interfaces/order';
 import { AuthRequest } from '../interfaces/jwt';
 import { Response, NextFunction } from 'express';
-import { firebaseHelper, getNormalizedDate, responseError, responseSuccess } from '../utils/index';
+import {
+  firebaseHelper,
+  getNormalizedDate,
+  normalizeName,
+  responseError,
+  responseSuccess,
+} from '../utils/index';
 import logger from '../utils/logger';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { Timestamp } from 'firebase-admin/firestore';
@@ -13,31 +20,34 @@ const userUrl = `${Sites.TOKYO}/${Collection.USERS}`;
 const getPaths = (restaurantId: string) => {
   const orderPath = `${restaurantUrl}/${restaurantId}/${Collection.ORDERS}`;
   const detailPath = `${restaurantUrl}/${restaurantId}/${Collection.ORDER_DETAILS}`;
+  const menuPath = `${restaurantUrl}/${restaurantId}/${Collection.MENU_ITEMS}`;
 
-  return { orderPath, detailPath };
+  return { orderPath, detailPath, menuPath };
 };
 
 const createOrder = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { restaurantId } = req.params;
     const { order_details, delivery_info, ...orders } = req.body;
-    const { orderPath, detailPath } = getPaths(restaurantId);
-
+    const { orderPath, detailPath, menuPath } = getPaths(restaurantId);
     const uid = req.user?.uid;
     if (!uid) {
       return responseError(res, StatusCode.ACCOUNT_NOT_FOUND, ErrorMessage.ACCOUNT_NOT_FOUND);
     }
+
     const user: User = await firebaseHelper.getDocById(userUrl, uid);
-
-    let deliveryInfo = delivery_info;
-    if (orders.pickup_method === PickupMethod.DELIVERY) {
-      deliveryInfo = {
-        contact_name: delivery_info?.contact_name || user?.fullName || 'Guest',
-        contact_phone: delivery_info?.contact_phone || user?.phone || '',
-        notes: delivery_info?.notes || '',
-      };
-    }
-
+    const deliveryInfo =
+      orders.pickup_method === PickupMethod.DELIVERY
+        ? {
+            contact_name: delivery_info?.contact_name || user?.fullName || 'Guest',
+            contact_phone: delivery_info?.contact_phone || user?.phone || '',
+            notes: delivery_info?.notes || '',
+          }
+        : delivery_info;
+    const menuItems = await firebaseHelper.getAllDocs(menuPath);
+    const menuMap = Object.fromEntries(
+      menuItems.map((item: MenuItem) => [normalizeName(item.name), item]),
+    );
     const base_amount = order_details.reduce(
       (sum: number, item: OrderDetail) => sum + item.price * item.quantity,
       0,
@@ -53,19 +63,79 @@ const createOrder = async (req: AuthRequest, res: Response, next: NextFunction) 
       total_amount,
       delivery_info: deliveryInfo,
     };
-    const docRef = await firebaseHelper.createDoc(orderPath, newOrder);
 
-    const newOrderDetails: OrderDetail[] = order_details.map((detail: OrderDetail) => ({
-      ...detail,
-      order_id: docRef.id,
-    }));
-    await firebaseHelper.createBatchDocs(detailPath, newOrderDetails);
+    const orderId = await firebaseHelper.runTransaction(async (transaction) => {
+      await Promise.all(
+        order_details.map(async (detail: OrderDetail) => {
+          const { name: detailName, quantity: detailQuantity } = detail;
+          const key = normalizeName(detailName);
+          const menuItem = menuMap[key];
+          if (!menuItem) {
+            logger.warn(`${ErrorMessage.DISH_NOT_FOUND_IN_MENU} | Dish=${detailName}`);
 
-    return responseSuccess(res, Message.ORDER_CREATED, { id: docRef.id });
+            throw new Error(ErrorMessage.DISH_NOT_FOUND_IN_MENU);
+          }
+
+          const snapshot = await firebaseHelper.getTransaction(menuPath, menuItem.id, transaction);
+          if (!snapshot) {
+            logger.warn(`${ErrorMessage.MENU_ITEM_NOT_FOUND} | Dish=${detailName}`);
+
+            throw new Error(ErrorMessage.MENU_ITEM_NOT_FOUND);
+          }
+
+          const stockQuantity = snapshot.quantity;
+          if (stockQuantity < detailQuantity) {
+            logger.warn(
+              `${ErrorMessage.DISH_QUANTITY_EXCEEDS_STOCK} | dish=${detailName} | quantity=${detailQuantity} | stock=${stockQuantity}`,
+            );
+
+            throw new Error(ErrorMessage.DISH_QUANTITY_EXCEEDS_STOCK);
+          }
+
+          await firebaseHelper.updateTransaction(
+            menuPath,
+            snapshot.id,
+            { quantity: stockQuantity - detailQuantity },
+            transaction,
+          );
+        }),
+      );
+
+      const order = await firebaseHelper.setTransaction(orderPath, newOrder, transaction);
+      await Promise.all(
+        order_details.map((detail: OrderDetail) =>
+          firebaseHelper.setTransaction(detailPath, { ...detail, order_id: order.id }, transaction),
+        ),
+      );
+
+      return order.id;
+    });
+
+    return responseSuccess(res, Message.ORDER_CREATED, { id: orderId });
   } catch (error) {
-    logger.warn(ErrorMessage.CANNOT_CREATE_DISH + error);
+    logger.warn(`${ErrorMessage.CANNOT_CREATE_DISH} | ${error}`);
 
-    return responseError(res, StatusCode.CANNOT_CREATE_ORDER, ErrorMessage.CANNOT_CREATE_ORDER);
+    switch (error.message) {
+      case ErrorMessage.MENU_ITEM_NOT_FOUND:
+        return responseError(res, StatusCode.MENU_ITEM_NOT_FOUND, ErrorMessage.MENU_ITEM_NOT_FOUND);
+
+      case ErrorMessage.DISH_QUANTITY_EXCEEDS_STOCK:
+        return responseError(
+          res,
+          StatusCode.DISH_QUANTITY_EXCEEDS_STOCK,
+          ErrorMessage.DISH_QUANTITY_EXCEEDS_STOCK,
+        );
+
+      case ErrorMessage.DISH_NOT_FOUND_IN_MENU:
+        return responseError(
+          res,
+          StatusCode.DISH_NOT_FOUND_IN_MENU,
+          ErrorMessage.DISH_NOT_FOUND_IN_MENU,
+        );
+
+      default:
+        return responseError(res, StatusCode.CANNOT_CREATE_ORDER, ErrorMessage.CANNOT_CREATE_ORDER);
+    }
   }
 };
 
@@ -132,6 +202,7 @@ const getOrders = async (req: AuthRequest, res: Response, next: NextFunction) =>
     return responseSuccess(res, Message.GET_ORDER_LIST, orders);
   } catch (error) {
     logger.error(ErrorMessage.CANNOT_GET_ORDER_LIST + error);
+
     return responseError(res, StatusCode.CANNOT_GET_ORDER_LIST, ErrorMessage.CANNOT_GET_ORDER_LIST);
   }
 };

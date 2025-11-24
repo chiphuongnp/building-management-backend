@@ -79,6 +79,9 @@ export enum ErrorMessage {
   MENU_ITEM_LIST_NOT_FOUND = 'Menu not found for this restaurant!',
   CANNOT_GET_MENU_ITEM_LIST = 'Cannot get menu for this restaurant!',
   CANNOT_GET_DAILY_SALES = 'Cannot get daily sales for this restaurant!',
+  CANNOT_GET_DISH_SALES = 'Cannot get dish sales for this restaurant!',
+  DAILY_SALES_NOT_FOUND = 'Daily sales not found for this restaurant!',
+  DISH_SALES_NOT_FOUND = 'Dish sales not found for this restaurant!',
 
   // Parking subscription messages
   CANNOT_GET_PARKING_SUBSCRIPTION_LIST = 'Can not get list of parking subscription!',
@@ -117,6 +120,8 @@ export enum ErrorMessage {
   CANNOT_UPDATE_ORDER_INFO = 'Cannot update order info!',
   CANNOT_GET_USER_ORDER_HISTORY = `Cannot get user's order history!`,
   CANNOT_UPDATE_ORDER_STATUS = 'Cannot update order status!',
+  DISH_NOT_FOUND_IN_MENU = `Dish not found in menu items!`,
+  DISH_QUANTITY_EXCEEDS_STOCK = 'Quantity for dish exceeds available stock!',
 
   // Bus error messages
   CANNOT_GET_BUS_LIST = 'Cannot get list of buses!',
@@ -199,6 +204,8 @@ export enum Message {
   MENU_ITEM_UPDATED = 'Item(s) has been updated in menu schedule.',
   GET_MENU_ITEMS = `Get restaurant's menu successfully`,
   GET_DAILY_SALES = `Get restaurant's daily sales successfully`,
+  GET_DISH_SALES = `Get restaurant's dish sales successfully`,
+  NO_SALES_DATA = 'No sales data available for this date',
 
   // Parking subscription messages
   PARKING_SUBSCRIPTION_CREATED = 'Parking subscription created successfully.',
@@ -282,6 +289,9 @@ export enum StatusCode {
   MENU_ITEM_LIST_NOT_FOUND = 4073,
   CANNOT_GET_MENU_ITEM_LIST = 4074,
   CANNOT_GET_DAILY_SALES = 4075,
+  CANNOT_GET_DISH_SALES = 4076,
+  DAILY_SALES_NOT_FOUND = 4077,
+  DISH_SALES_NOT_FOUND = 4078,
 
   // Restaurant messages
   RESTAURANT_NOT_FOUND = 4101,
@@ -362,6 +372,8 @@ export enum StatusCode {
   CANNOT_UPDATE_ORDER_INFO = 4169,
   CANNOT_GET_USER_ORDER_HISTORY = 4170,
   CANNOT_UPDATE_ORDER_STATUS = 4171,
+  DISH_NOT_FOUND_IN_MENU = 4172,
+  DISH_QUANTITY_EXCEEDS_STOCK = 4173,
 
   // Bus status codes
   BUS_GET_ALL = 6001,
