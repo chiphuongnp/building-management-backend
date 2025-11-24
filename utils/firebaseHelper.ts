@@ -106,6 +106,53 @@ const createBatchDocs = async (collectionName: string, dataArray: Record<string,
   return await batch.commit();
 };
 
+const runTransaction = async <T>(
+  transactionFn: (transaction: FirebaseFirestore.Transaction) => Promise<T>,
+): Promise<T> => {
+  return db.runTransaction(transactionFn);
+};
+
+const getTransaction = async (
+  collectionPath: string,
+  id: string,
+  transaction: FirebaseFirestore.Transaction,
+) => {
+  const ref = db.collection(collectionPath).doc(id);
+  const snapshot = await transaction.get(ref);
+  if (!snapshot.exists) return null;
+
+  const data = convertTimestamps(snapshot.data());
+  if (data.deleted_at) return null;
+
+  return { id: snapshot.id, ...data };
+};
+
+const setTransaction = (
+  collectionPath: string,
+  data: Record<string, any>,
+  transaction: FirebaseFirestore.Transaction,
+) => {
+  const { id, ...cleanData } = data;
+  const ref = id ? db.collection(collectionPath).doc(id) : db.collection(collectionPath).doc();
+  const docData = { ...convertTimestamps(cleanData), created_at: new Date() };
+
+  transaction.set(ref, docData);
+  return { id: ref.id, ...docData };
+};
+
+const updateTransaction = async (
+  collectionName: string,
+  id: string,
+  data: Record<string, any>,
+  transaction: FirebaseFirestore.Transaction,
+): Promise<void> => {
+  const ref = db.collection(collectionName).doc(id);
+  transaction.update(ref, {
+    ...convertTimestamps(data),
+    updated_at: new Date(),
+  });
+};
+
 export {
   getAllDocs,
   getDocById,
@@ -114,4 +161,8 @@ export {
   updateDoc,
   getDocsByFields,
   createBatchDocs,
+  runTransaction,
+  getTransaction,
+  setTransaction,
+  updateTransaction,
 };
