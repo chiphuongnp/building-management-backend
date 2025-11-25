@@ -213,7 +213,11 @@ const getOrdersByUserId = async (req: AuthRequest, res: Response, next: NextFunc
     const { orderPath } = getPaths(restaurantId);
     const orders: Order[] = await firebaseHelper.getDocsByFields(orderPath, [
       { field: 'user_id', operator: '==', value: req.user?.uid },
-      { field: 'status', operator: 'in', value: [OrderStatus.PENDING, OrderStatus.PREPARING] },
+      {
+        field: 'status',
+        operator: 'in',
+        value: [OrderStatus.PENDING, OrderStatus.PREPARING, OrderStatus.DELIVERING],
+      },
     ]);
     if (!orders.length) {
       return responseError(res, StatusCode.ORDER_NOT_FOUND, ErrorMessage.ORDER_NOT_FOUND);
@@ -237,7 +241,7 @@ const getOrderHistory = async (req: AuthRequest, res: Response, next: NextFuncti
     const { orderPath } = getPaths(restaurantId);
     const orders: Order[] = await firebaseHelper.getDocsByFields(orderPath, [
       { field: 'user_id', operator: '==', value: req.user?.uid },
-      { field: 'status', operator: 'in', value: OrderStatus.COMPLETED },
+      { field: 'status', operator: '==', value: OrderStatus.COMPLETED },
     ]);
     if (!orders.length) {
       return responseError(res, StatusCode.ORDER_NOT_FOUND, ErrorMessage.ORDER_NOT_FOUND);
@@ -273,7 +277,7 @@ const updateOrderInfo = async (req: AuthRequest, res: Response, next: NextFuncti
       );
     }
 
-    await firebaseHelper.updateDoc(orderPath, orderId, req.body);
+    await firebaseHelper.updateDoc(orderPath, orderId, { ...req.body, updated_by: req.user?.uid });
 
     return responseSuccess(res, Message.ORDER_UPDATED, { id: orderId });
   } catch (error) {
@@ -287,7 +291,7 @@ const updateOrderInfo = async (req: AuthRequest, res: Response, next: NextFuncti
   }
 };
 
-const updateStatus = async (req: AuthRequest, res: Response, next: NextFunction) => {
+const updateOrderStatus = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { restaurantId, id: orderId } = req.params;
     const { status } = req.body;
@@ -297,9 +301,12 @@ const updateStatus = async (req: AuthRequest, res: Response, next: NextFunction)
       return responseError(res, StatusCode.ORDER_NOT_FOUND, ErrorMessage.ORDER_NOT_FOUND);
     }
 
-    await firebaseHelper.updateDoc(orderPath, orderId, status);
+    await firebaseHelper.updateDoc(orderPath, orderId, {
+      status,
+      updated_by: req.user?.uid,
+    });
 
-    return responseSuccess(res, Message.ORDER_UPDATED, { id: orderId });
+    return responseSuccess(res, Message.ORDER_STATUS_UPDATED, { id: orderId });
   } catch (error) {
     logger.error(ErrorMessage.CANNOT_UPDATE_ORDER_STATUS + error);
 
@@ -318,5 +325,5 @@ export {
   getOrdersByUserId,
   getOrderHistory,
   updateOrderInfo,
-  updateStatus,
+  updateOrderStatus,
 };

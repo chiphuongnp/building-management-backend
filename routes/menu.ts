@@ -1,7 +1,7 @@
 import express from 'express';
 import { authenticate } from '../middlewares/auth';
 import { requirePermission, requireRole } from '../middlewares/permission';
-import { UserRole } from '../constants/enum';
+import { Permission, UserRole } from '../constants/enum';
 import {
   validateAddMenuItem,
   validateCreateMenuSchedule,
@@ -24,7 +24,7 @@ menuRouter.get(
   '/',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('view_menu'),
+  requirePermission(Permission.VIEW_MENU),
   validateMenuIdParams,
   getMenuSchedules,
 );
@@ -33,7 +33,7 @@ menuRouter.get(
   '/:id',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('view_menu'),
+  requirePermission(Permission.VIEW_MENU),
   validateMenuIdParams,
   getMenuScheduleById,
 );
@@ -42,7 +42,7 @@ menuRouter.post(
   '/create',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('create_menu'),
+  requirePermission(Permission.CREATE_MENU),
   uploadHandler('menu-images', MAX_MENU_IMAGE_COUNT, 'schedules'),
   validateMenuIdParams,
   validateCreateMenuSchedule,
@@ -53,7 +53,7 @@ menuRouter.post(
   '/:id/items',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('create_menu'),
+  requirePermission(Permission.UPDATE_MENU),
   upload.array('menu-images', MAX_IMAGE_COUNT),
   validateMenuIdParams,
   validateAddMenuItem,
@@ -64,7 +64,7 @@ menuRouter.patch(
   '/:id/items/:itemId',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('create_menu'),
+  requirePermission(Permission.UPDATE_MENU),
   upload.array('menu-images', MAX_IMAGE_COUNT),
   validateMenuIdParams,
   validateUpdateMenuItem,

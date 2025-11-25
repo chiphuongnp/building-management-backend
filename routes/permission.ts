@@ -1,6 +1,6 @@
 import express from 'express';
 import { requirePermission, requireRole } from '../middlewares/permission';
-import { UserRole } from '../constants/enum';
+import { Permission, UserRole } from '../constants/enum';
 import {
   createPermission,
   getPermissionById,
@@ -16,7 +16,7 @@ permissionRouter.get(
   '/',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('get_all_permission'),
+  requirePermission(Permission.GET_ALL_PERMISSIONS),
   getPermissions,
 );
 
@@ -24,7 +24,7 @@ permissionRouter.get(
   '/:id',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('get_permission'),
+  requirePermission(Permission.GET_PERMISSION),
   getPermissionById,
 );
 
@@ -32,7 +32,7 @@ permissionRouter.post(
   '/',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('create_permission'),
+  requirePermission(Permission.CREATE_PERMISSION),
   validatePermission,
   createPermission,
 );
@@ -41,7 +41,7 @@ permissionRouter.patch(
   '/:id',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('update_permission'),
+  requirePermission(Permission.UPDATE_PERMISSION),
   validatePermission,
   updatePermission,
 );

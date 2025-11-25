@@ -220,6 +220,7 @@ export enum Message {
   GET_ORDER_LIST = 'Get list of orders successfully.',
   GET_USER_ORDERS = 'Get list of orders per user successfully.',
   GET_USER_ORDER_HISTORY = `Get user's order history successfully.`,
+  ORDER_STATUS_UPDATED = 'Order status has been updated successfully.',
 
   //Permission messages
   PERMISSION_CREATED = 'Permission created successfully',

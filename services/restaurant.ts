@@ -1,16 +1,18 @@
+import { Response, NextFunction } from 'express';
+import { AuthRequest } from './../interfaces/jwt';
 import { MenuItem } from './../interfaces/menu';
 import { DailySale } from './../interfaces/dailySale';
 import { DishSale } from './../interfaces/dishSale';
 import { Restaurant } from './../interfaces/restaurant';
-import { Response, NextFunction } from 'express';
 import { ActiveStatus, Collection, Sites } from '../constants/enum';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
-import { AuthRequest } from '../interfaces/jwt';
 import { TIMEZONE } from '../constants/constant';
 import { firebaseHelper, getNormalizedDate, responseError, responseSuccess } from '../utils/index';
 import logger from '../utils/logger';
+import { WhereFilterOp } from 'firebase-admin/firestore';
 
 const restaurantUrl = `${Sites.TOKYO}/${Collection.RESTAURANTS}`;
+const buildingUrl = `${Sites.TOKYO}/${Collection.BUILDINGS}`;
 const getPaths = (restaurantId: string) => {
   const menuPath = `${restaurantUrl}/${restaurantId}/${Collection.MENU_ITEMS}`;
   const dailySalePath = `${restaurantUrl}/${restaurantId}/${Collection.DAILY_SALES}`;
@@ -21,7 +23,23 @@ const getPaths = (restaurantId: string) => {
 
 const getRestaurants = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const restaurants: Restaurant[] = await firebaseHelper.getAllDocs(restaurantUrl);
+    const { status, building_id } = req.query;
+    const filters: { field: string; operator: WhereFilterOp; value: any }[] = [];
+    if (building_id) {
+      filters.push({ field: 'building_id', operator: '==', value: building_id });
+    }
+
+    if (status) {
+      filters.push({ field: 'status', operator: '==', value: status });
+    }
+
+    let restaurants: Restaurant[];
+    if (filters.length) {
+      restaurants = await firebaseHelper.getDocsByFields(restaurantUrl, filters);
+    } else {
+      restaurants = await firebaseHelper.getAllDocs(restaurantUrl);
+    }
+
     if (!restaurants.length) {
       return responseError(res, StatusCode.RESTAURANT_NOT_FOUND, ErrorMessage.RESTAURANT_NOT_FOUND);
     }
@@ -60,7 +78,12 @@ const getRestaurant = async (req: AuthRequest, res: Response, next: NextFunction
 
 const createRestaurant = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { name } = req.body;
+    const { building_id, name } = req.body;
+    const building = await firebaseHelper.getDocById(buildingUrl, building_id);
+    if (!building) {
+      return responseError(res, StatusCode.BUILDING_NOT_FOUND, ErrorMessage.BUILDING_NOT_FOUND);
+    }
+
     const nameExists: Restaurant[] = await firebaseHelper.getDocByField(
       restaurantUrl,
       'name',
@@ -96,7 +119,19 @@ const createRestaurant = async (req: AuthRequest, res: Response, next: NextFunct
 const updateRestaurant = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const { name } = req.body;
+    const { building_id, name } = req.body;
+    const restaurant: Restaurant = await firebaseHelper.getDocById(restaurantUrl, id);
+    if (!restaurant) {
+      return responseError(res, StatusCode.RESTAURANT_NOT_FOUND, ErrorMessage.RESTAURANT_NOT_FOUND);
+    }
+
+    if (building_id) {
+      const building = await firebaseHelper.getDocById(buildingUrl, building_id);
+      if (!building) {
+        return responseError(res, StatusCode.BUILDING_NOT_FOUND, ErrorMessage.BUILDING_NOT_FOUND);
+      }
+    }
+
     if (name) {
       const nameSnapshot: Restaurant[] = await firebaseHelper.getDocByField(
         `${restaurantUrl}`,
@@ -251,6 +286,29 @@ const getRestaurantDishSales = async (req: AuthRequest, res: Response, next: Nex
   }
 };
 
+const updateRestaurantStatus = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const restaurant: Restaurant = await firebaseHelper.getDocById(restaurantUrl, id);
+    if (!restaurant) {
+      return responseError(res, StatusCode.RESTAURANT_NOT_FOUND, ErrorMessage.RESTAURANT_NOT_FOUND);
+    }
+
+    await firebaseHelper.updateDoc(restaurantUrl, id, { status, updated_by: req.user?.uid });
+
+    return responseSuccess(res, Message.ORDER_UPDATED, { id });
+  } catch (error) {
+    logger.error(ErrorMessage.CANNOT_UPDATE_ORDER_STATUS + error);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_UPDATE_ORDER_STATUS,
+      ErrorMessage.CANNOT_UPDATE_ORDER_STATUS,
+    );
+  }
+};
+
 export {
   createRestaurant,
   getRestaurants,
@@ -259,4 +317,5 @@ export {
   getRestaurantMenu,
   getRestaurantDailySale,
   getRestaurantDishSales,
+  updateRestaurantStatus,
 };

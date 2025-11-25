@@ -1,7 +1,7 @@
 import express from 'express';
 import { authenticate } from '../middlewares/auth';
 import { requirePermission, requireRole } from '../middlewares/permission';
-import { UserRole } from '../constants/enum';
+import { Permission, UserRole } from '../constants/enum';
 import { validateBusRoute } from '../validations/busRoute';
 import {
   createBusRoute,
@@ -18,7 +18,7 @@ busRouteRouter.post(
   '/',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('create_bus_route'),
+  requirePermission(Permission.CREATE_BUS_ROUTE),
   validateBusRoute,
   createBusRoute,
 );
@@ -27,7 +27,7 @@ busRouteRouter.get(
   '/',
   authenticate,
   requireRole(UserRole.MANAGER, UserRole.USER),
-  requirePermission('get_all_bus_routes'),
+  requirePermission(Permission.GET_ALL_BUS_ROUTES),
   getAllBusRoutes,
 );
 
@@ -35,7 +35,7 @@ busRouteRouter.get(
   '/:id',
   authenticate,
   requireRole(UserRole.MANAGER, UserRole.USER),
-  requirePermission('get_bus_route_detail'),
+  requirePermission(Permission.GET_BUS_ROUTE_DETAIL),
   getBusRouteDetail,
 );
 
@@ -43,7 +43,7 @@ busRouteRouter.patch(
   '/:id',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('update_bus_route'),
+  requirePermission(Permission.UPDATE_BUS_ROUTE),
   validateBusRoute,
   updateBusRoute,
 );
@@ -52,7 +52,7 @@ busRouteRouter.patch(
   '/:id/active',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('update_bus_route_status'),
+  requirePermission(Permission.UPDATE_BUS_ROUTE_STATUS),
   activeBusRoute,
 );
 
@@ -60,7 +60,7 @@ busRouteRouter.patch(
   '/:id/inactive',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('update_bus_route_status'),
+  requirePermission(Permission.UPDATE_BUS_ROUTE_STATUS),
   inactiveBusRoute,
 );
 

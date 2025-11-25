@@ -4,7 +4,7 @@ import { authenticate } from '../middlewares/auth';
 import { requirePermission, requireRole } from '../middlewares/permission';
 import { upload } from './../middlewares/multer';
 import express from 'express';
-import { UserRole } from '../constants/enum';
+import { Permission, UserRole } from '../constants/enum';
 import { validateCreateDish, validateIdParams, validateUpdateDish } from '../validations/dish';
 
 const dishRouter = express.Router({ mergeParams: true });
@@ -23,7 +23,7 @@ dishRouter.post(
   '/create',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('create_dish'),
+  requirePermission(Permission.CREATE_DISH),
   upload.array('dish-images', MAX_IMAGE_COUNT),
   validateIdParams,
   validateCreateDish,
@@ -34,7 +34,7 @@ dishRouter.patch(
   '/update/:id',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('update_dish'),
+  requirePermission(Permission.UPDATE_DISH),
   upload.array('dish-images', MAX_IMAGE_COUNT),
   validateIdParams,
   validateUpdateDish,
