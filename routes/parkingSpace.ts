@@ -14,7 +14,7 @@ import {
   validateIdParam,
   validateStatusParkingSpace,
 } from '../validations/parkingSpace';
-import { UserRole } from '../constants/enum';
+import { Permission, UserRole } from '../constants/enum';
 
 const parkingSpaceRouter = express.Router({ mergeParams: true });
 
@@ -44,7 +44,7 @@ parkingSpaceRouter.post(
   '/create',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('create_parking_space'),
+  requirePermission(Permission.CREATE_PARKING_SPACE),
   validateCreateParkingSpace,
   createParkingSpace,
 );
@@ -53,7 +53,7 @@ parkingSpaceRouter.patch(
   '/update/:id',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('update_parking_space'),
+  requirePermission(Permission.UPDATE_PARKING_SPACE),
   validateIdParam,
   validateUpdateParkingSpace,
   updateParkingSpace,

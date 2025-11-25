@@ -13,10 +13,10 @@ import {
   getOrders,
   getOrdersByUserId,
   updateOrderInfo,
-  updateStatus,
+  updateOrderStatus,
 } from '../services/order';
 import { requirePermission, requireRole } from '../middlewares/permission';
-import { UserRole } from '../constants/enum';
+import { Permission, UserRole } from '../constants/enum';
 
 const orderRouter = express.Router({ mergeParams: true });
 
@@ -26,7 +26,7 @@ orderRouter.get(
   '/',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('view_order_list'),
+  requirePermission(Permission.VIEW_ORDER_LIST),
   validateOrderIdParams,
   getOrders,
 );
@@ -49,10 +49,10 @@ orderRouter.patch(
   '/update-status/:id',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('update_order_status'),
+  requirePermission(Permission.UPDATE_ORDER_STATUS),
   validateOrderIdParams,
   validateUpdateOrderStatus,
-  updateStatus,
+  updateOrderStatus,
 );
 
 export default orderRouter;

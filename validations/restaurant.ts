@@ -87,6 +87,16 @@ const idParamSchema = Joi.object({
     }),
 });
 
+const updateRestaurantStatusSchema = Joi.object({
+  status: Joi.string()
+    .valid(...Object.values(ActiveStatus))
+    .required()
+    .messages({
+      'any.required': 'Status is required',
+      'any.only': `Status must be one of ${Object.values(ActiveStatus).join(', ')}`,
+    }),
+});
+
 export const validateCreateRestaurant = (req: Request, res: Response, next: NextFunction) => {
   const { error } = createRestaurantSchema.validate(req.body);
   if (error) {
@@ -103,10 +113,18 @@ export const validateUpdateRestaurant = (req: Request, res: Response, next: Next
   next();
 };
 
-export const validateIdParam = (req: Request, res: Response, next: NextFunction) => {
+export const validateRestaurantIdParam = (req: Request, res: Response, next: NextFunction) => {
   const { error } = idParamSchema.validate(req.params);
   if (error) {
     return res.status(400).json({ success: false, message: error.details[0].message });
+  }
+  next();
+};
+
+export const validateUpdateStatusRestaurant = (req: Request, res: Response, next: NextFunction) => {
+  const { error } = updateRestaurantStatusSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ status: false, message: error.details[0].message });
   }
   next();
 };

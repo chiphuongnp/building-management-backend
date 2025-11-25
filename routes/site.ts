@@ -3,7 +3,7 @@ import { createSite, updateSite, getSites, getSiteById } from '../services/site'
 import { validateCreateSite, validateIdParam, validateUpdateSite } from '../validations/site';
 import { authenticate } from '../middlewares/auth';
 import { requireRole, requirePermission } from '../middlewares/permission';
-import { UserRole } from '../constants/enum';
+import { Permission, UserRole } from '../constants/enum';
 
 const siteRouter = express.Router();
 
@@ -21,7 +21,7 @@ siteRouter.post(
   '/create',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('create_site'),
+  requirePermission(Permission.CREATE_SITE),
   validateCreateSite,
   createSite,
 );
@@ -30,7 +30,7 @@ siteRouter.patch(
   '/update/:id',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('update_site'),
+  requirePermission(Permission.UPDATE_SITE),
   validateIdParam,
   validateUpdateSite,
   updateSite,

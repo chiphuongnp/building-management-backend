@@ -1,7 +1,7 @@
 import express from 'express';
 import {
   validateCreateRestaurant,
-  validateIdParam,
+  validateRestaurantIdParam,
   validateUpdateRestaurant,
 } from '../validations/restaurant';
 import {
@@ -12,10 +12,11 @@ import {
   getRestaurantMenu,
   getRestaurants,
   updateRestaurant,
+  updateRestaurantStatus,
 } from '../services/restaurant';
 import { authenticate } from '../middlewares/auth';
 import { requirePermission, requireRole } from '../middlewares/permission';
-import { UserRole } from '../constants/enum';
+import { Permission, UserRole } from '../constants/enum';
 
 const restaurantRouter = express.Router();
 
@@ -23,7 +24,7 @@ restaurantRouter.post(
   '/create',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('create_restaurant'),
+  requirePermission(Permission.CREATE_RESTAURANT),
   validateCreateRestaurant,
   createRestaurant,
 );
@@ -39,7 +40,7 @@ restaurantRouter.get(
   '/:id',
   authenticate,
   requireRole(UserRole.MANAGER, UserRole.USER),
-  validateIdParam,
+  validateRestaurantIdParam,
   getRestaurant,
 );
 
@@ -47,7 +48,7 @@ restaurantRouter.get(
   '/:id/menu',
   authenticate,
   requireRole(UserRole.MANAGER, UserRole.USER),
-  validateIdParam,
+  validateRestaurantIdParam,
   getRestaurantMenu,
 );
 
@@ -55,8 +56,8 @@ restaurantRouter.get(
   '/:id/daily-sale',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('view_sales'),
-  validateIdParam,
+  requirePermission(Permission.VIEW_SALES),
+  validateRestaurantIdParam,
   getRestaurantDailySale,
 );
 
@@ -64,8 +65,8 @@ restaurantRouter.get(
   '/:id/dish-sale',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('view_sales'),
-  validateIdParam,
+  requirePermission(Permission.VIEW_SALES),
+  validateRestaurantIdParam,
   getRestaurantDishSales,
 );
 
@@ -73,10 +74,19 @@ restaurantRouter.patch(
   '/update/:id',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('update_restaurant'),
-  validateIdParam,
+  requirePermission(Permission.UPDATE_RESTAURANT),
+  validateRestaurantIdParam,
   validateUpdateRestaurant,
   updateRestaurant,
+);
+
+restaurantRouter.patch(
+  '/update-status/:id',
+  authenticate,
+  requireRole(UserRole.MANAGER),
+  requirePermission(Permission.UPDATE_RESTAURANT),
+  validateRestaurantIdParam,
+  updateRestaurantStatus,
 );
 
 export default restaurantRouter;

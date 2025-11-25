@@ -4,7 +4,7 @@ import { register } from '../services/auth';
 import { getAllUser, getProfile, getUserDetail, updateUser } from '../services/user';
 import { authenticate } from '../middlewares/auth';
 import { requirePermission, requireRole } from '../middlewares/permission';
-import { UserRole } from '../constants/enum';
+import { Permission, UserRole } from '../constants/enum';
 import { upload } from '../middlewares/multer';
 import { MAX_IMAGE_COUNT } from '../constants/constant';
 
@@ -16,7 +16,7 @@ usersRouter.get(
   '/',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('get_all_user'),
+  requirePermission(Permission.GET_ALL_USERS),
   getAllUser,
 );
 
@@ -24,7 +24,7 @@ usersRouter.get(
   '/:userId/detail',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('get_user_detail'),
+  requirePermission(Permission.GET_USER_DETAIL),
   getUserDetail,
 );
 
@@ -34,7 +34,7 @@ usersRouter.patch(
   '/:userId',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission('update_user'),
+  requirePermission(Permission.UPDATE_USER),
   upload.array('user-images', MAX_IMAGE_COUNT),
   validateUpdateUser,
   updateUser,

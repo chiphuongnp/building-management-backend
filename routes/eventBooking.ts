@@ -1,7 +1,7 @@
 import express from 'express';
 import { requirePermission, requireRole } from '../middlewares/permission';
 import { authenticate } from '../middlewares/auth';
-import { UserRole } from '../constants/enum';
+import { Permission, UserRole } from '../constants/enum';
 import {
   validateCreateEventBooking,
   validateIdParamEventBooking,
@@ -57,7 +57,7 @@ eventBookingRouter.patch(
   authenticate,
   requireRole(UserRole.MANAGER),
   validateUpdateStatusEventBooking,
-  requirePermission('update_event_booking_status'),
+  requirePermission(Permission.UPDATE_EVENT_BOOKING_STATUS),
   updateEventBookingStatus,
 );
 
