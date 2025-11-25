@@ -158,6 +158,14 @@ export enum ErrorMessage {
   CANNOT_UPDATE_EVENT_BOOKING = 'Cannot update event booking!',
   CANNOT_UPDATE_EVENT_BOOKING_STATUS = 'Cannot update event booking status!',
   UPDATE_EVENT_BOOKING_FORBIDDEN = 'You are not allowed to update this event booking!',
+
+  // Event registrations messages
+  CANNOT_GET_USER_EVENT_REGISTRATIONS = `Cannot get user's event registrations!`,
+  CANNOT_GET_EVENT_REGISTRATIONS_BY_EVENT = `Cannot list of participants by event!`,
+  CANNOT_CREATE_EVENT_REGISTRATION = 'Cannot create event registration!',
+  UPDATE_EVENT_REGISTRATION_FORBIDDEN = 'You are not allowed to update this event registration!',
+  CANNOT_CANCEL_EVENT_REGISTRATION = 'Cannot cancel event registration!',
+  CANNOT_GET_USER_EVENT_REGISTRATION_HISTORY = `Cannot get user's event registration history!`,
 }
 
 export enum Message {
@@ -263,6 +271,14 @@ export enum Message {
   GET_AVAILABLE_EVENT_BOOKING = 'Get available event booking successfully.',
   EVENT_BOOKING_UPDATED = 'Event booking updated successfully.',
   EVENT_BOOKING_STATUS_UPDATED = 'Event booking status has been updated successfully.',
+
+  // Event registration messages
+  GET_USER_EVENT_REGISTRATIONS = `Get user's list of events successfully.`,
+  GET_EVENT_REGISTRATIONS_BY_EVENT = 'Get list of participants by event successfully.',
+  EVENT_REGISTRATION_CREATED = 'Event registration created successfully.',
+  EVENT_REGISTRATION_CANCELED = 'Event registration canceled successfully.',
+  GET_USER_EVENT_REGISTRATION_HISTORY = `Get user's events history successfully.`,
+  NO_REGISTERED_EVENT = `User hasn't registered any event!`,
 }
 
 export enum StatusCode {
@@ -411,4 +427,12 @@ export enum StatusCode {
   CANNOT_UPDATE_EVENT_BOOKING = 4205,
   CANNOT_UPDATE_EVENT_BOOKING_STATUS = 4206,
   UPDATE_EVENT_BOOKING_FORBIDDEN = 4207,
+
+  // Event registration codes
+  CANNOT_GET_USER_EVENT_REGISTRATIONS = 4221,
+  CANNOT_GET_EVENT_REGISTRATIONS_BY_EVENT = 4222,
+  CANNOT_CREATE_EVENT_REGISTRATION = 4223,
+  CANNOT_CANCEL_EVENT_REGISTRATION = 4224,
+  UPDATE_EVENT_REGISTRATION_FORBIDDEN = 4225,
+  CANNOT_GET_USER_EVENT_REGISTRATION_HISTORY = 4226,
 }
