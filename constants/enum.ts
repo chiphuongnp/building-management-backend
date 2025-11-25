@@ -54,6 +54,7 @@ export enum Collection {
   DAILY_SALES = 'daily_sales',
   EVENT_BOOKINGS = 'event_bookings',
   DISH_SALES = 'dish_sales',
+  EVENT_REGISTRATIONS = 'event_registrations',
 }
 
 export enum ParkingSpaceType {
@@ -172,4 +173,11 @@ export enum Permission {
   GET_BUS_ROUTE_DETAIL = 'get_bus_route_detail',
   UPDATE_BUS_ROUTE = 'update_bus_route',
   UPDATE_BUS_ROUTE_STATUS = 'update_bus_route_status',
+  GET_EVENT_PARTICIPANTS = 'get_event_participants',
+}
+
+export enum EventRegistrationsStatus {
+  REGISTERED = 'registered',
+  CANCELLED = 'cancelled',
+  CLOSED = 'closed',
 }
