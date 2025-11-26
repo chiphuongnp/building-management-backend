@@ -88,6 +88,7 @@ export enum CronSchedule {
   PARKING_EXPIRATION = '0 0 * * *',
   DAILY_SALES = '0 0 * * *',
   DISH_SALES = '0 0 * * *',
+  EVENT_EXPIRATION = '0 0 * * *',
 }
 
 export enum FacilityType {
@@ -135,6 +136,7 @@ export enum EventBookingStatus {
   PENDING = 'pending',
   APPROVED = 'approved',
   REJECTED = 'rejected',
+  EXPIRED = 'expired',
 }
 
 export enum Permission {
