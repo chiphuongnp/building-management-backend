@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { firebaseHelper, responseError, responseSuccess } from '../utils/index';
+import { firebaseHelper, responseError, responseSuccess, formatToTimestamp } from '../utils/index';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import logger from '../utils/logger';
 import { Collection, EventBookingStatus, Sites } from '../constants/enum';
@@ -76,7 +76,13 @@ const getAvailableEventBooking = async (req: Request, res: Response) => {
 
 const createEventBooking = async (req: AuthRequest, res: Response) => {
   try {
-    const { facility_reservation_id: facilityReservationId } = req.body;
+    const {
+      facility_reservation_id: facilityReservationId,
+      start_time: startTime,
+      end_time: endTime,
+      deadline,
+      ...data
+    } = req.body;
     if (facilityReservationId) {
       const facilityReservation = await firebaseHelper.getDocById(
         facilityReservationCollection,
@@ -91,15 +97,20 @@ const createEventBooking = async (req: AuthRequest, res: Response) => {
       }
     }
 
-    const docRef = await firebaseHelper.createDoc(eventBookingCollection, {
-      ...req.body,
+    const eventBookingData = {
+      ...data,
       current_participants: DEFAULT_PARTICIPANTS,
       status: EventBookingStatus.PENDING,
+      facility_reservation_id: facilityReservationId ?? null,
+      start_time: formatToTimestamp(startTime),
+      end_time: formatToTimestamp(endTime),
+      deadline: formatToTimestamp(deadline),
       created_by: req.user?.uid,
-    });
+    };
+    const docRef = await firebaseHelper.createDoc(eventBookingCollection, eventBookingData);
     return responseSuccess(res, Message.EVENT_BOOKING_CREATED, { id: docRef.id });
   } catch (error) {
-    logger.warn(ErrorMessage.CANNOT_CREATE_FACILITY + error);
+    logger.warn(ErrorMessage.CANNOT_CREATE_EVENT_BOOKING + error);
 
     return responseError(
       res,
@@ -113,12 +124,14 @@ const updateEventBookingInfo = async (req: AuthRequest, res: Response) => {
   try {
     const { id: eventBookingId } = req.params;
     const userId = req.user?.uid;
-    const dataEventBooking = {
-      ...req.body,
-      status: EventBookingStatus.PENDING,
-      updated_by: userId,
-    };
-    const { facility_reservation_id: facilityReservationId, location } = dataEventBooking;
+    const {
+      facility_reservation_id: facilityReservationId,
+      location,
+      start_time: startTime,
+      end_time: endTime,
+      deadline,
+      ...data
+    } = req.body;
     const eventBooking: EventBooking = await firebaseHelper.getDocById(
       eventBookingCollection,
       eventBookingId,
@@ -151,13 +164,20 @@ const updateEventBookingInfo = async (req: AuthRequest, res: Response) => {
           ErrorMessage.FACILITY_RESERVATION_NOT_FOUND,
         );
       }
-
-      dataEventBooking.location = null;
     }
 
-    if (location) {
-      dataEventBooking.facility_reservation_id = null;
-    }
+    const dataEventBooking = {
+      ...data,
+      ...(location && { location: facilityReservationId ? null : location }),
+      ...(facilityReservationId && { facility_reservation_id: facilityReservationId ?? null }),
+      ...(startTime && {
+        start_time: formatToTimestamp(startTime),
+        deadline: formatToTimestamp(deadline),
+      }),
+      ...(endTime && { end_time: formatToTimestamp(endTime) }),
+      status: EventBookingStatus.PENDING,
+      updated_by: userId,
+    };
 
     await firebaseHelper.updateDoc(eventBookingCollection, eventBookingId, dataEventBooking);
 
