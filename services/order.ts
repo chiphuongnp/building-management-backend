@@ -9,6 +9,7 @@ import {
   normalizeName,
   responseError,
   responseSuccess,
+  calculatePayment,
 } from '../utils/index';
 import logger from '../utils/logger';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
@@ -28,7 +29,7 @@ const getPaths = (restaurantId: string) => {
 const createOrder = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { restaurantId } = req.params;
-    const { order_details, delivery_info, ...orders } = req.body;
+    const { order_details, delivery_info, points_used, ...orders } = req.body;
     const { orderPath, detailPath, menuPath } = getPaths(restaurantId);
     const uid = req.user?.uid;
     if (!uid) {
@@ -36,6 +37,10 @@ const createOrder = async (req: AuthRequest, res: Response, next: NextFunction) 
     }
 
     const user: User = await firebaseHelper.getDocById(userUrl, uid);
+    if (points_used > (user.points ?? 0)) {
+      return responseError(res, StatusCode.INVALID_POINTS, ErrorMessage.INVALID_POINTS);
+    }
+
     const deliveryInfo =
       orders.pickup_method === PickupMethod.DELIVERY
         ? {
@@ -54,13 +59,21 @@ const createOrder = async (req: AuthRequest, res: Response, next: NextFunction) 
     );
     const vat_charge = base_amount * VATRate.FOOD;
     const total_amount = base_amount + vat_charge;
+    const { finalAmount, discount, pointsEarned, finalPointsUsed } = calculatePayment(
+      total_amount,
+      user.ranks,
+      points_used,
+    );
     const newOrder: Order = {
       ...orders,
       status: OrderStatus.PENDING,
       user_id: req.user?.uid,
       base_amount,
       vat_charge,
-      total_amount,
+      discount,
+      points_used: finalPointsUsed,
+      total_amount: finalAmount,
+      points_earned: pointsEarned,
       delivery_info: deliveryInfo,
     };
 
@@ -106,6 +119,14 @@ const createOrder = async (req: AuthRequest, res: Response, next: NextFunction) 
         order_details.map((detail: OrderDetail) =>
           firebaseHelper.setTransaction(detailPath, { ...detail, order_id: order.id }, transaction),
         ),
+      );
+
+      const updatedPoints = (user.points ?? 0) - finalPointsUsed + pointsEarned;
+      await firebaseHelper.updateTransaction(
+        userUrl,
+        user.uid,
+        { points: updatedPoints },
+        transaction,
       );
 
       return order.id;

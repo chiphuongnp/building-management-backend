@@ -4,9 +4,10 @@ export enum UserRole {
 }
 
 export enum UserRank {
-  GOLD = 'gold',
-  SILVER = 'silver',
   BRONZE = 'bronze',
+  SILVER = 'silver',
+  GOLD = 'gold',
+  PLATINUM = 'platinum',
 }
 
 export enum ActiveStatus {
@@ -55,6 +56,7 @@ export enum Collection {
   EVENT_BOOKINGS = 'event_bookings',
   DISH_SALES = 'dish_sales',
   EVENT_REGISTRATIONS = 'event_registrations',
+  PAYMENTS = 'payments',
 }
 
 export enum ParkingSpaceType {
@@ -182,4 +184,35 @@ export enum EventRegistrationsStatus {
   REGISTERED = 'registered',
   CANCELLED = 'cancelled',
   CLOSED = 'closed',
+}
+
+export enum PaymentMethod {
+  CASH = 'cash',
+  WALLET = 'wallet',
+}
+
+export enum PaymentServiceProvider {
+  MOMO = 'momo',
+  VNPAY = 'vnpay',
+}
+
+export enum PaymentStatus {
+  PENDING = 'pending',
+  SUCCESS = 'success',
+  FAILED = 'failed',
+  REFUNDED = 'refunded',
+}
+
+export enum PaymentReferenceType {
+  ORDER = 'order',
+  BUS_SUBSCRIPTION = 'bus_subscription',
+  PARKING_SUBSCRIPTION = 'parking_subscription',
+  FACILITY_RESERVATION = 'facility_reservation',
+}
+
+export enum RankDiscount {
+  BRONZE = 0,
+  SILVER = 2,
+  GOLD = 5,
+  PLATINUM = 10,
 }

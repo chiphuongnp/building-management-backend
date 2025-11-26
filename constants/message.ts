@@ -166,6 +166,10 @@ export enum ErrorMessage {
   UPDATE_EVENT_REGISTRATION_FORBIDDEN = 'You are not allowed to update this event registration!',
   CANNOT_CANCEL_EVENT_REGISTRATION = 'Cannot cancel event registration!',
   CANNOT_GET_USER_EVENT_REGISTRATION_HISTORY = `Cannot get user's event registration history!`,
+
+  // Payment errors
+  CANNOT_CREATE_PAYMENT = 'Cannot create payment',
+  INVALID_POINTS = `Points used exceed user's available points`,
 }
 
 export enum Message {
@@ -279,6 +283,9 @@ export enum Message {
   EVENT_REGISTRATION_CANCELED = 'Event registration canceled successfully.',
   GET_USER_EVENT_REGISTRATION_HISTORY = `Get user's events history successfully.`,
   NO_REGISTERED_EVENT = `User hasn't registered any event!`,
+
+  // Payment messages
+  PAYMENT_CREATED = 'Payment has been created successfully',
 }
 
 export enum StatusCode {
@@ -435,4 +442,8 @@ export enum StatusCode {
   CANNOT_CANCEL_EVENT_REGISTRATION = 4224,
   UPDATE_EVENT_REGISTRATION_FORBIDDEN = 4225,
   CANNOT_GET_USER_EVENT_REGISTRATION_HISTORY = 4226,
+
+  // Payment codes
+  CANNOT_CREATE_PAYMENT = 4241,
+  INVALID_POINTS = 4242,
 }
