@@ -19,6 +19,8 @@ import busRouteRouter from './routes/busRoute';
 import facilityReservationRouter from './routes/facilityReservation';
 import eventBookingRouter from './routes/eventBooking';
 import eventRegistrationRouter from './routes/eventRegistration';
+import paymentRouter from './routes/payment';
+import { startMenuItemsSync } from './schedules/menuCron';
 
 dotenv.config();
 const app: Application = express();
@@ -36,6 +38,7 @@ app.use(`/${Sites.TOKYO}/${Collection.BUSES}`, busRouter);
 app.use(`/${Sites.TOKYO}/${Collection.EVENT_BOOKINGS}`, eventBookingRouter);
 app.use(`/${Sites.TOKYO}/${Collection.BUS_ROUTES}`, busRouteRouter);
 app.use(`/${Sites.TOKYO}/${Collection.EVENT_REGISTRATIONS}`, eventRegistrationRouter);
+app.use(`/${Sites.TOKYO}/${Collection.PAYMENTS}`, paymentRouter);
 app.use(`/${Sites.TOKYO}/${Collection.RESTAURANTS}/:restaurantId/${Collection.DISHES}`, dishRouter);
 app.use(
   `/${Sites.TOKYO}/${Collection.RESTAURANTS}/:restaurantId/${Collection.MENU_SCHEDULES}`,

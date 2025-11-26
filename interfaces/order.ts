@@ -5,7 +5,7 @@ export interface OrderDetail {
   name: string;
   price: number;
   quantity: number;
-  notes: string;
+  notes?: string;
   created_at: Date;
   updated_at?: Date;
 }
@@ -15,7 +15,10 @@ export interface Order {
   user_id: string;
   base_amount: number;
   vat_charge: number;
+  discount: number;
+  points_used: number;
   total_amount: number;
+  points_earned: number;
   pickup_method: PickupMethod;
   delivery_address?: {
     building?: string;

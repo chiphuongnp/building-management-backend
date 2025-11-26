@@ -9,7 +9,7 @@ export interface User {
   fullName: string;
   phone: string;
   image_urls?: string[] | null;
-  ranks?: UserRank | null;
+  ranks?: UserRank;
   points?: number | null;
   roles: UserRole;
   permissions?: string[] | null;
