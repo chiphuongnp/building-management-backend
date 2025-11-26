@@ -17,3 +17,5 @@ export const convertTimestamps = (obj: any): any => {
 
   return obj;
 };
+
+export const formatToTimestamp = (date: string) => Timestamp.fromDate(new Date(date));

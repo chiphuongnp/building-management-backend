@@ -84,7 +84,9 @@ const updateEventBookingSchema = Joi.object({
     'date.base': 'Deadline is invalid',
     'date.less': 'Deadline must be before start time',
   }),
-}).nand('location', 'facility_reservation_id');
+})
+  .nand('location', 'facility_reservation_id')
+  .with('start_time', ['deadline', 'end_time']);
 
 const EventBookingStatusSchema = Joi.object({
   status: Joi.string()
