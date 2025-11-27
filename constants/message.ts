@@ -170,6 +170,21 @@ export enum ErrorMessage {
   // Payment errors
   CANNOT_CREATE_PAYMENT = 'Cannot create payment',
   INVALID_POINTS = `Points used exceed user's available points`,
+
+  // Bus Booking error messages
+  BUS_SUBSCRIPTION_NOT_FOUND = 'Bus subscription not found!',
+  BUS_SUBSCRIPTION_ALREADY_EXISTS = 'You already have a subscription for this route!',
+  CANNOT_CREATE_BUS_SUBSCRIPTION = 'Cannot create bus subscription!',
+  CANNOT_CANCEL_BUS_SUBSCRIPTION = 'Cannot cancel bus subscription!',
+  CANNOT_GET_BUS_SUBSCRIPTION_LIST = 'Cannot get list of bus subscriptions!',
+  CANNOT_GET_USER_BUS_SUBSCRIPTIONS = 'Cannot get user bus subscription history!',
+  BUS_SUBSCRIPTION_IS_CANCELLED = 'Bus subscription has already been cancelled!',
+  BUS_SUBSCRIPTION_LATE_CANCELLATION = 'Cannot cancel subscription after departure time!',
+  BUS_ROUTE_FULL = 'This bus route is fully booked!',
+  BUS_ROUTE_NOT_AVAILABLE = 'Selected bus route is no longer available!',
+  INVALID_SUBSCRIPTION_SEATS = 'Invalid number of seats requested!',
+  SEAT_ALREADY_BOOKED = 'One or more selected seats are already taken!',
+  CANNOT_GET_BUS_SUBSCRIPTION_DETAIL = 'Cannot get bus subscription detail!',
 }
 
 export enum Message {
@@ -286,6 +301,14 @@ export enum Message {
 
   // Payment messages
   PAYMENT_CREATED = 'Payment has been created successfully',
+
+  // Bus Booking success messages
+  BUS_SUBSCRIPTION_CREATED = 'Bus subscription created successfully.',
+  BUS_SUBSCRIPTION_CANCELLED = 'Bus subscription cancelled successfully.',
+  GET_BUS_SUBSCRIPTIONS = 'Get bus subscriptions successfully.',
+  GET_USER_BUS_SUBSCRIPTIONS = 'Get user bus subscriptions successfully.',
+  GET_BUS_SUBSCRIPTION_DETAIL = 'Get bus subscription detail successfully.',
+  BUS_SUBSCRIPTION_GET_ALL = 'Get all bus subscription successfully.',
 }
 
 export enum StatusCode {
@@ -446,4 +469,11 @@ export enum StatusCode {
   // Payment codes
   CANNOT_CREATE_PAYMENT = 4241,
   INVALID_POINTS = 4242,
+
+  // Bus subscription codes
+  BUS_SUBSCRIPTION_NOT_FOUND = 4301,
+  BUS_SUBSCRIPTION_GET_ALL_ERROR = 4302,
+  SEAT_ALREADY_BOOKED = 4303,
+  CANNOT_CREATE_BUS_SUBSCRIPTION = 4304,
+  BUS_SUBSCRIPTION_GET_DETAIL_ERROR = 4305,
 }

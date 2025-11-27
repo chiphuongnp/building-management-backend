@@ -57,6 +57,7 @@ export enum Collection {
   DISH_SALES = 'dish_sales',
   EVENT_REGISTRATIONS = 'event_registrations',
   PAYMENTS = 'payments',
+  BUS_SUBSCRIPTIONS = 'bus_subscriptions',
 }
 
 export enum ParkingSpaceType {
@@ -178,6 +179,9 @@ export enum Permission {
   UPDATE_BUS_ROUTE = 'update_bus_route',
   UPDATE_BUS_ROUTE_STATUS = 'update_bus_route_status',
   GET_EVENT_PARTICIPANTS = 'get_event_participants',
+  GET_BOOKING_BUS_DETAIL = 'get_booking_bus_detail',
+  GET_ALL_BOOKING_BUS = 'get_all_booking_bus',
+  CREATE_BOOKING_BUS = 'create_booking_bus',
 }
 
 export enum EventRegistrationsStatus {
@@ -215,4 +219,30 @@ export enum RankDiscount {
   SILVER = 2,
   GOLD = 5,
   PLATINUM = 10,
+}
+
+export enum BusSubscriptionType {
+  SINGLE = 'single',
+  MONTHLY = 'monthly',
+}
+
+export enum BusSubscriptionStatus {
+  PENDING = 'pending',
+  CONFIRMED = 'confirmed',
+  CANCELLED = 'cancelled',
+  COMPLETED = 'completed',
+}
+
+export enum BusSubscriptionChangeRequestType {
+  CANCEL_SEAT = 'cancel_seat',
+  CHANGE_ROUTE = 'change_route',
+  CHANGE_STOP = 'change_stop',
+  CHANGE_DATE = 'change_date',
+}
+
+export enum BusSubscriptionChangeRequestStatus {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+  CANCELLED = 'cancelled',
 }
