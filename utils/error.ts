@@ -26,7 +26,7 @@ export const responseError = <T>(
 ): Response => {
   const response: ApiResponse<T> = {
     status: statusCode,
-    success: true,
+    success: false,
     message,
     data,
   };
