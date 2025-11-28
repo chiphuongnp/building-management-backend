@@ -1,8 +1,12 @@
 import crypto from 'crypto';
-import { momoConfig } from '../configs/momo';
+import { HmacAlgorithm } from '../constants/enum';
 
 export const normalizeName = (name: string) => name.trim().toLowerCase().replace(/\s+/g, ' ');
 
-export const generateSignature = (rawSignature: string) => {
-  return crypto.createHmac('sha256', momoConfig.secretKey!).update(rawSignature).digest('hex');
+export const generateSignature = (
+  rawSignature: string,
+  secret: string,
+  algorithm = HmacAlgorithm.SHA512,
+) => {
+  return crypto.createHmac(algorithm, secret).update(rawSignature).digest('hex');
 };
