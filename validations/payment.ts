@@ -41,9 +41,10 @@ export const createPaymentUrlSchema = Joi.object({
       'string.pattern.base': 'Payment ID must contain only letters and numbers',
     }),
 
-  amount: Joi.number().positive().required().messages({
+  amount: Joi.number().min(1000).max(50000000).required().messages({
     'number.base': 'Amount must be a number',
-    'number.positive': 'Amount must be greater than 0',
+    'number.min': 'Amount must be greater than 1.000',
+    'number.max': 'Amount must be less than 50.000.000',
     'any.required': 'Amount is required',
   }),
 });

@@ -1,34 +1,10 @@
 import axios from 'axios';
 import { Request, Response } from 'express';
 import { momoConfig } from '../configs/momo';
-import {
-  firebaseHelper,
-  generateSignature,
-  responseError,
-  responseSuccess,
-  logger,
-} from '../utils/index';
+import { generateSignature, responseError, responseSuccess, logger } from '../utils/index';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
-import {
-  Collection,
-  HmacAlgorithm,
-  PaymentServiceProvider,
-  PaymentStatus,
-  Sites,
-} from '../constants/enum';
-
-const paymentCollection = `${Sites.TOKYO}/${Collection.PAYMENTS}`;
-
-const updatePaymentStatus = async (paymentId: string, orderId: string, isSuccess: boolean) => {
-  if (!paymentId) return;
-
-  await firebaseHelper.updateDoc(paymentCollection, paymentId, {
-    status: isSuccess ? PaymentStatus.SUCCESS : PaymentStatus.FAILED,
-    service_id: orderId,
-    service_type: PaymentServiceProvider.MOMO,
-    transaction_time: new Date(),
-  });
-};
+import { HmacAlgorithm, PaymentServiceProvider } from '../constants/enum';
+import { updatePaymentStatus } from './payment';
 
 const createMomoPayment = async (req: Request, res: Response) => {
   try {
@@ -130,12 +106,12 @@ const handleMomoCallback = async (req: Request, res: Response) => {
     let paymentId = decoded.payment_id;
 
     if (!Number(resultCode)) {
-      await updatePaymentStatus(paymentId, String(orderId), true);
+      await updatePaymentStatus(paymentId, String(orderId), PaymentServiceProvider.MOMO, true);
 
       return responseSuccess(res, Message.PAYMENT_SUCCESSFUL);
     }
 
-    await updatePaymentStatus(paymentId, String(orderId), false);
+    await updatePaymentStatus(paymentId, String(orderId), PaymentServiceProvider.MOMO, false);
 
     return responseSuccess(res, Message.PAYMENT_FAILED);
   } catch (error) {
@@ -190,12 +166,12 @@ const handleMomoIpn = async (req: Request, res: Response) => {
     let paymentId = decoded.payment_id;
 
     if (!Number(resultCode)) {
-      await updatePaymentStatus(paymentId, String(orderId), true);
+      await updatePaymentStatus(paymentId, String(orderId), PaymentServiceProvider.MOMO, true);
 
       return responseSuccess(res, Message.PAYMENT_SUCCESSFUL);
     }
 
-    await updatePaymentStatus(paymentId, String(orderId), false);
+    await updatePaymentStatus(paymentId, String(orderId), PaymentServiceProvider.MOMO, false);
 
     return responseSuccess(res, Message.PAYMENT_FAILED);
   } catch (error) {
