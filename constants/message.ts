@@ -185,6 +185,12 @@ export enum ErrorMessage {
   INVALID_SUBSCRIPTION_SEATS = 'Invalid number of seats requested!',
   SEAT_ALREADY_BOOKED = 'One or more selected seats are already taken!',
   CANNOT_GET_BUS_SUBSCRIPTION_DETAIL = 'Cannot get bus subscription detail!',
+
+  // Momo errors
+  CANNOT_CREATE_MOMO_PAYMENT = 'Cannot create momo payment',
+  INVALID_SIGNATURE = 'Invalid signature!',
+  MOMO_CALLBACK_FAILED = 'Momo callback failed!',
+  MOMO_IPN_CALLBACK_FAILED = 'Momo ipn callback failed!',
 }
 
 export enum Message {
@@ -309,6 +315,11 @@ export enum Message {
   GET_USER_BUS_SUBSCRIPTIONS = 'Get user bus subscriptions successfully.',
   GET_BUS_SUBSCRIPTION_DETAIL = 'Get bus subscription detail successfully.',
   BUS_SUBSCRIPTION_GET_ALL = 'Get all bus subscription successfully.',
+
+  // Momo messages
+  MOMO_CREATED = 'Momo payment has been created successfully.',
+  PAYMENT_SUCCESSFUL = 'Payment has been received successfully.',
+  PAYMENT_FAILED = 'Payment failed.',
 }
 
 export enum StatusCode {
@@ -469,6 +480,10 @@ export enum StatusCode {
   // Payment codes
   CANNOT_CREATE_PAYMENT = 4241,
   INVALID_POINTS = 4242,
+  CANNOT_CREATE_MOMO_PAYMENT = 4245,
+  INVALID_SIGNATURE = 4246,
+  MOMO_CALLBACK_FAILED = 4247,
+  MOMO_IPN_CALLBACK_FAILED = 4248,
 
   // Bus subscription codes
   BUS_SUBSCRIPTION_NOT_FOUND = 4301,
