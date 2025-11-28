@@ -1,6 +1,11 @@
 import cron from 'node-cron';
-import logger from '../utils/logger';
-import { firebaseHelper, getNormalizedDate, getYesterday, normalizeName } from '../utils/index';
+import {
+  firebaseHelper,
+  getNormalizedDate,
+  getYesterday,
+  normalizeName,
+  logger,
+} from '../utils/index';
 import { Collection, CronSchedule, Sites } from '../constants/enum';
 import { TIMEZONE } from '../constants/constant';
 import { Restaurant } from './../interfaces/restaurant';

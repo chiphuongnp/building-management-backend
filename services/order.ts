@@ -10,8 +10,8 @@ import {
   responseError,
   responseSuccess,
   calculatePayment,
+  logger,
 } from '../utils/index';
-import logger from '../utils/logger';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { Timestamp } from 'firebase-admin/firestore';
 import { User } from '../interfaces/user';

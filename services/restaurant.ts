@@ -7,8 +7,13 @@ import { Restaurant } from './../interfaces/restaurant';
 import { ActiveStatus, Collection, Sites } from '../constants/enum';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { TIMEZONE } from '../constants/constant';
-import { firebaseHelper, getNormalizedDate, responseError, responseSuccess } from '../utils/index';
-import logger from '../utils/logger';
+import {
+  firebaseHelper,
+  getNormalizedDate,
+  responseError,
+  responseSuccess,
+  logger,
+} from '../utils/index';
 import { WhereFilterOp } from 'firebase-admin/firestore';
 
 const restaurantUrl = `${Sites.TOKYO}/${Collection.RESTAURANTS}`;

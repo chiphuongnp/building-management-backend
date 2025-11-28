@@ -1,12 +1,14 @@
 import { Request, Response } from 'express';
-import { firebaseHelper } from '../utils/index';
+import {
+  firebaseHelper,
+  logger,
+  deleteImages,
+  responseError,
+  responseSuccess,
+} from '../utils/index';
 import { Collection, Sites } from '../constants/enum';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
-import { getDocById } from '../utils/firebaseHelper';
 import { AuthRequest } from '../interfaces/jwt';
-import { responseError, responseSuccess } from '../utils/error';
-import logger from '../utils/logger';
-import { deleteImages } from '../utils/deleteFile';
 import { User } from '../interfaces/user';
 
 const userCollection = `${Sites.TOKYO}/${Collection.USERS}`;
@@ -24,7 +26,7 @@ export const getAllUser = async (req: Request, res: Response) => {
 export const getUserDetail = async (req: Request, res: Response) => {
   const { userId } = req.params;
   try {
-    const userDetail = await getDocById(userCollection, userId);
+    const userDetail = await firebaseHelper.getDocById(userCollection, userId);
     if (!userDetail) {
       return responseError(res, StatusCode.USER_NOT_FOUND, ErrorMessage.USER_NOT_FOUND);
     }
@@ -43,7 +45,7 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
   }
 
   try {
-    const profile = await getDocById(userCollection, uid);
+    const profile = await firebaseHelper.getDocById(userCollection, uid);
     if (!profile) {
       return responseError(res, StatusCode.USER_NOT_FOUND, ErrorMessage.USER_NOT_FOUND);
     }

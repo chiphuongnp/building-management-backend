@@ -1,12 +1,15 @@
 import { Response, NextFunction } from 'express';
 import { ActiveStatus, Collection, Sites } from '../constants/enum';
-import { firebaseHelper } from '../utils';
+import {
+  firebaseHelper,
+  logger,
+  responseError,
+  responseSuccess,
+  deleteImages,
+} from '../utils/index';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { Dish } from '../interfaces/dish';
-import { deleteImages } from '../utils/deleteFile';
 import { AuthRequest } from '../interfaces/jwt';
-import { responseError, responseSuccess } from '../utils/error';
-import logger from '../utils/logger';
 
 const restaurantUrl = `${Sites.TOKYO}/${Collection.RESTAURANTS}`;
 const getDishPath = (restaurantId: string) => {

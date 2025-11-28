@@ -3,8 +3,13 @@ import { Collection, DayOfWeek, Sites } from '../constants/enum';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { AuthRequest } from '../interfaces/jwt';
 import { MenuItem, MenuSchedule } from '../interfaces/menu';
-import { deleteImages, firebaseHelper, responseError, responseSuccess } from '../utils/index';
-import logger from '../utils/logger';
+import {
+  deleteImages,
+  firebaseHelper,
+  responseError,
+  responseSuccess,
+  logger,
+} from '../utils/index';
 
 const restaurantUrl = `${Sites.TOKYO}/${Collection.RESTAURANTS}`;
 const getPaths = (restaurantId: string, dayId?: string) => {

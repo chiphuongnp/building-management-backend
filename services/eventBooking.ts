@@ -1,7 +1,12 @@
 import { Request, Response } from 'express';
-import { firebaseHelper, responseError, responseSuccess, formatToTimestamp } from '../utils/index';
+import {
+  firebaseHelper,
+  responseError,
+  responseSuccess,
+  formatToTimestamp,
+  logger,
+} from '../utils/index';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
-import logger from '../utils/logger';
 import { Collection, EventBookingStatus, Sites } from '../constants/enum';
 import { AuthRequest } from '../interfaces/jwt';
 import { EventBooking } from '../interfaces/eventBooking';

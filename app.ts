@@ -11,7 +11,6 @@ import parkingSpaceRouter from './routes/parkingSpace';
 import menuRouter from './routes/menu';
 import parkingSubscriptionRouter from './routes/parkingSubscription';
 import permissionRouter from './routes/permission';
-import logger from './utils/logger';
 import facilityRouter from './routes/facility';
 import busRouter from './routes/bus';
 import orderRouter from './routes/order';
@@ -23,6 +22,7 @@ import paymentRouter from './routes/payment';
 import busSubscriptionRouter from './routes/busSubscription';
 import momoRouter from './routes/momoPayment';
 import vnpayRouter from './routes/vnpayPayment';
+import { logger } from './utils/index';
 
 dotenv.config();
 const app: Application = express();

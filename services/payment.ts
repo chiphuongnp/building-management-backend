@@ -10,8 +10,7 @@ import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { AuthRequest } from '../interfaces/jwt';
 import { Payment } from '../interfaces/payment';
 import { User } from '../interfaces/user';
-import { firebaseHelper, responseError, responseSuccess } from '../utils/index';
-import logger from '../utils/logger';
+import { firebaseHelper, responseError, responseSuccess, logger } from '../utils/index';
 
 const userCollection = `${Sites.TOKYO}/${Collection.USERS}`;
 const paymentCollection = `${Sites.TOKYO}/${Collection.PAYMENTS}`;

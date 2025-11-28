@@ -1,8 +1,7 @@
 import { Response } from 'express';
-import { firebaseHelper, responseError, responseSuccess } from '../utils/index';
+import { firebaseHelper, responseError, responseSuccess, logger } from '../utils/index';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { AuthRequest } from '../interfaces/jwt';
-import logger from '../utils/logger';
 import { BusSubscriptionStatus, Collection, Sites } from '../constants/enum';
 import { BusSubscription } from '../interfaces/busSubscription';
 import { Bus } from '../interfaces/bus';
