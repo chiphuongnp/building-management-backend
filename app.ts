@@ -20,9 +20,9 @@ import facilityReservationRouter from './routes/facilityReservation';
 import eventBookingRouter from './routes/eventBooking';
 import eventRegistrationRouter from './routes/eventRegistration';
 import paymentRouter from './routes/payment';
-import { startMenuItemsSync } from './schedules/menuCron';
 import busSubscriptionRouter from './routes/busSubscription';
 import momoRouter from './routes/momoPayment';
+import vnpayRouter from './routes/vnpayPayment';
 
 dotenv.config();
 const app: Application = express();
@@ -57,6 +57,7 @@ app.use(
   parkingSubscriptionRouter,
 );
 app.use('/momo', momoRouter);
+app.use('/vnpay', vnpayRouter);
 
 const PORT = process.env.APP_PORT || 5000;
 app.listen(PORT, () => {

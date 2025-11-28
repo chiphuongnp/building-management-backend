@@ -246,3 +246,14 @@ export enum BusSubscriptionChangeRequestStatus {
   REJECTED = 'rejected',
   CANCELLED = 'cancelled',
 }
+
+export enum HmacAlgorithm {
+  SHA256 = 'sha256',
+  SHA512 = 'sha512',
+}
+
+export enum VnpayRspCode {
+  SUCCESS = '00',
+  INVALID_SIGNATURE = '97',
+  SYSTEM_ERROR = '99',
+}

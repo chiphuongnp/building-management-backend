@@ -1,5 +1,11 @@
 import { Response } from 'express';
-import { Collection, PaymentStatus, Sites } from '../constants/enum';
+import {
+  Collection,
+  PaymentServiceProvider,
+  PaymentStatus,
+  Sites,
+  UserRole,
+} from '../constants/enum';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { AuthRequest } from '../interfaces/jwt';
 import { Payment } from '../interfaces/payment';
@@ -7,14 +13,15 @@ import { User } from '../interfaces/user';
 import { firebaseHelper, responseError, responseSuccess } from '../utils/index';
 import logger from '../utils/logger';
 
-const userUrl = `${Sites.TOKYO}/${Collection.USERS}`;
-const paymentUrl = `${Sites.TOKYO}/${Collection.PAYMENTS}`;
+const userCollection = `${Sites.TOKYO}/${Collection.USERS}`;
+const paymentCollection = `${Sites.TOKYO}/${Collection.PAYMENTS}`;
 export const createPayment = async (req: AuthRequest, res: Response) => {
   try {
     const paymentId = await firebaseHelper.runTransaction(async (transaction) => {
       const user: User =
-        req.user?.uid && (await firebaseHelper.getTransaction(userUrl, req.user.uid, transaction));
-      if (!user) return responseError(res, StatusCode.USER_NOT_FOUND, ErrorMessage.USER_NOT_FOUND);
+        req.user?.uid &&
+        (await firebaseHelper.getTransaction(userCollection, req.user.uid, transaction));
+      if (!user) throw new Error(ErrorMessage.USER_NOT_FOUND);
 
       const paymentData: Payment = {
         ...req.body,
@@ -22,11 +29,7 @@ export const createPayment = async (req: AuthRequest, res: Response) => {
         status: PaymentStatus.PENDING,
         transaction_time: new Date(),
       };
-      const payment: Payment = await firebaseHelper.setTransaction(
-        paymentUrl,
-        paymentData,
-        transaction,
-      );
+      const payment = firebaseHelper.setTransaction(paymentCollection, paymentData, transaction);
 
       return payment.id;
     });
@@ -35,6 +38,52 @@ export const createPayment = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     logger.warn(`${ErrorMessage.CANNOT_CREATE_PAYMENT} | ${error}`);
 
-    return responseError(res, StatusCode.CANNOT_CREATE_PAYMENT, ErrorMessage.CANNOT_CREATE_PAYMENT);
+    switch (error.message) {
+      case ErrorMessage.USER_NOT_FOUND:
+        return responseError(res, StatusCode.USER_NOT_FOUND, ErrorMessage.USER_NOT_FOUND);
+
+      default:
+        return responseError(
+          res,
+          StatusCode.CANNOT_CREATE_PAYMENT,
+          ErrorMessage.CANNOT_CREATE_PAYMENT,
+        );
+    }
   }
+};
+
+export const getPayment = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const payment: Payment = await firebaseHelper.getDocById(paymentCollection, id);
+    if (!payment) {
+      return responseError(res, StatusCode.PAYMENT_NOT_FOUND, ErrorMessage.PAYMENT_NOT_FOUND);
+    }
+
+    if (req.user?.roles !== UserRole.MANAGER && payment.user_id !== req.user?.uid) {
+      return responseError(res, StatusCode.PAYMENT_FORBIDDEN, ErrorMessage.PAYMENT_FORBIDDEN);
+    }
+
+    return responseSuccess(res, Message.GET_PAYMENT, { payment });
+  } catch (error) {
+    logger.warn(`${ErrorMessage.CANNOT_GET_PAYMENT} | ${error}`);
+
+    return responseError(res, StatusCode.CANNOT_GET_PAYMENT, ErrorMessage.CANNOT_GET_PAYMENT);
+  }
+};
+
+export const updatePaymentStatus = async (
+  paymentId: string,
+  orderId: string,
+  provider: PaymentServiceProvider,
+  isSuccess: boolean,
+) => {
+  if (!paymentId) return;
+
+  await firebaseHelper.updateDoc(paymentCollection, paymentId, {
+    status: isSuccess ? PaymentStatus.SUCCESS : PaymentStatus.FAILED,
+    service_id: orderId,
+    service_type: provider,
+    transaction_time: new Date(),
+  });
 };

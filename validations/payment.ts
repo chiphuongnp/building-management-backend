@@ -1,19 +1,8 @@
 import Joi from 'joi';
 import { Request, Response, NextFunction } from 'express';
-import { PaymentMethod, PaymentReferenceType, PaymentServiceProvider } from './../constants/enum';
+import { PaymentMethod, PaymentReferenceType } from './../constants/enum';
 
 export const createPaymentSchema = Joi.object({
-  service_id: Joi.string().required().min(1).messages({
-    'string.empty': 'Service ID is required',
-    'string.min': 'Service ID must be at least 1 character',
-  }),
-  service_type: Joi.string()
-    .valid(...Object.values(PaymentServiceProvider))
-    .required()
-    .messages({
-      'any.only': `Service type must be one of ${Object.values(PaymentServiceProvider).join(', ')}`,
-      'any.required': 'Service type is required',
-    }),
   reference_id: Joi.string()
     .length(20)
     .regex(/^[A-Za-z0-9]+$/)
@@ -40,8 +29,35 @@ export const createPaymentSchema = Joi.object({
     }),
 });
 
+export const createPaymentUrlSchema = Joi.object({
+  payment_id: Joi.string()
+    .length(20)
+    .regex(/^[A-Za-z0-9]+$/)
+    .required()
+    .messages({
+      'string.empty': 'Payment ID is required',
+      'any.required': 'Payment ID is required',
+      'string.length': 'Payment ID must be exactly 20 characters',
+      'string.pattern.base': 'Payment ID must contain only letters and numbers',
+    }),
+
+  amount: Joi.number().positive().required().messages({
+    'number.base': 'Amount must be a number',
+    'number.positive': 'Amount must be greater than 0',
+    'any.required': 'Amount is required',
+  }),
+});
+
 export const validateCreatePayment = (req: Request, res: Response, next: NextFunction) => {
   const { error } = createPaymentSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ success: false, message: error.details[0].message });
+  }
+  next();
+};
+
+export const validateCreatePaymentUrl = (req: Request, res: Response, next: NextFunction) => {
+  const { error } = createPaymentUrlSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ success: false, message: error.details[0].message });
   }

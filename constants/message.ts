@@ -168,8 +168,15 @@ export enum ErrorMessage {
   CANNOT_GET_USER_EVENT_REGISTRATION_HISTORY = `Cannot get user's event registration history!`,
 
   // Payment errors
-  CANNOT_CREATE_PAYMENT = 'Cannot create payment',
-  INVALID_POINTS = `Points used exceed user's available points`,
+  CANNOT_GET_PAYMENT = 'Cannot get payment!',
+  CANNOT_CREATE_PAYMENT = 'Cannot create payment!',
+  INVALID_POINTS = `Points used exceed user's available points!`,
+  PAYMENT_NOT_FOUND = 'Payment not found!',
+  PAYMENT_FORBIDDEN = 'You are not allowed to handle this payment!',
+  INVALID_SIGNATURE = 'Invalid signature!',
+  CANNOT_CREATE_VNPAY_PAYMENT_URL = 'Cannot create vnpay payment url!',
+  CANNOT_CALL_BACK_VNPAY_PAYMENT = 'Cannot callback vnpay payment!',
+  CANNOT_CALL_BACK_VNPAY_IPN = 'Cannot callback vnpay ipn!',
 
   // Bus Booking error messages
   BUS_SUBSCRIPTION_NOT_FOUND = 'Bus subscription not found!',
@@ -188,7 +195,6 @@ export enum ErrorMessage {
 
   // Momo errors
   CANNOT_CREATE_MOMO_PAYMENT = 'Cannot create momo payment',
-  INVALID_SIGNATURE = 'Invalid signature!',
   MOMO_CALLBACK_FAILED = 'Momo callback failed!',
   MOMO_IPN_CALLBACK_FAILED = 'Momo ipn callback failed!',
 }
@@ -307,6 +313,11 @@ export enum Message {
 
   // Payment messages
   PAYMENT_CREATED = 'Payment has been created successfully',
+  PAYMENT_URL_CREATED = 'Payment url has been created successfully',
+  PAYMENT_SUCCESSFUL = 'Payment has been received successfully.',
+  PAYMENT_FAILED = 'Payment failed.',
+  MOMO_CREATED = 'Momo payment has been created successfully.',
+  GET_PAYMENT = 'Get payment successfully.',
 
   // Bus Booking success messages
   BUS_SUBSCRIPTION_CREATED = 'Bus subscription created successfully.',
@@ -315,11 +326,6 @@ export enum Message {
   GET_USER_BUS_SUBSCRIPTIONS = 'Get user bus subscriptions successfully.',
   GET_BUS_SUBSCRIPTION_DETAIL = 'Get bus subscription detail successfully.',
   BUS_SUBSCRIPTION_GET_ALL = 'Get all bus subscription successfully.',
-
-  // Momo messages
-  MOMO_CREATED = 'Momo payment has been created successfully.',
-  PAYMENT_SUCCESSFUL = 'Payment has been received successfully.',
-  PAYMENT_FAILED = 'Payment failed.',
 }
 
 export enum StatusCode {
@@ -480,10 +486,16 @@ export enum StatusCode {
   // Payment codes
   CANNOT_CREATE_PAYMENT = 4241,
   INVALID_POINTS = 4242,
-  CANNOT_CREATE_MOMO_PAYMENT = 4245,
-  INVALID_SIGNATURE = 4246,
+  PAYMENT_NOT_FOUND = 4243,
+  CANNOT_GET_PAYMENT = 4244,
+  INVALID_SIGNATURE = 4245,
+  CANNOT_CREATE_MOMO_PAYMENT = 4246,
   MOMO_CALLBACK_FAILED = 4247,
   MOMO_IPN_CALLBACK_FAILED = 4248,
+  CANNOT_CREATE_VNPAY_PAYMENT_URL = 4249,
+  CANNOT_CALL_BACK_VNPAY_PAYMENT = 4250,
+  CANNOT_CALL_BACK_VNPAY_IPN = 4251,
+  PAYMENT_FORBIDDEN = 4252,
 
   // Bus subscription codes
   BUS_SUBSCRIPTION_NOT_FOUND = 4301,

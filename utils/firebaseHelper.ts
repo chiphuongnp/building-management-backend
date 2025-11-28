@@ -87,7 +87,7 @@ const updateDoc = async (collectionName: string, id: string, data: Record<string
     .collection(collectionName)
     .doc(id)
     .update({
-      ...convertTimestamps(data),
+      ...data,
       updated_at: new Date(),
     });
 };
@@ -134,7 +134,7 @@ const setTransaction = (
 ) => {
   const { id, ...cleanData } = data;
   const ref = id ? db.collection(collectionPath).doc(id) : db.collection(collectionPath).doc();
-  const docData = { ...convertTimestamps(cleanData), created_at: new Date() };
+  const docData = { ...cleanData, created_at: new Date() };
 
   transaction.set(ref, docData);
   return { id: ref.id, ...docData };
@@ -148,7 +148,7 @@ const updateTransaction = async (
 ): Promise<void> => {
   const ref = db.collection(collectionName).doc(id);
   transaction.update(ref, {
-    ...convertTimestamps(data),
+    ...data,
     updated_at: new Date(),
   });
 };

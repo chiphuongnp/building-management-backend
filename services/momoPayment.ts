@@ -4,7 +4,13 @@ import logger from '../utils/logger';
 import { momoConfig } from '../configs/momo';
 import { firebaseHelper, generateSignature, responseError, responseSuccess } from '../utils/index';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
-import { Collection, PaymentServiceProvider, PaymentStatus, Sites } from '../constants/enum';
+import {
+  Collection,
+  HmacAlgorithm,
+  PaymentServiceProvider,
+  PaymentStatus,
+  Sites,
+} from '../constants/enum';
 
 const paymentCollection = `${Sites.TOKYO}/${Collection.PAYMENTS}`;
 
@@ -40,7 +46,7 @@ const createMomoPayment = async (req: Request, res: Response) => {
       `&redirectUrl=${momoConfig.redirectUrl}` +
       `&requestId=${requestId}` +
       `&requestType=payWithMethod`;
-    const signature = generateSignature(rawSignature);
+    const signature = generateSignature(rawSignature, momoConfig.secretKey!, HmacAlgorithm.SHA256);
     const payload = {
       partnerCode: momoConfig.partnerCode,
       partnerName: momoConfig.partnerName,
@@ -105,7 +111,11 @@ const handleMomoCallback = async (req: Request, res: Response) => {
       `&responseTime=${responseTime}` +
       `&resultCode=${resultCode}` +
       `&transId=${transId}`;
-    const calculatedSignature = generateSignature(rawSignature);
+    const calculatedSignature = generateSignature(
+      rawSignature,
+      momoConfig.secretKey!,
+      HmacAlgorithm.SHA256,
+    );
 
     if (calculatedSignature !== signature) {
       return responseError(res, StatusCode.INVALID_SIGNATURE, ErrorMessage.INVALID_SIGNATURE);
@@ -161,7 +171,11 @@ const handleMomoIpn = async (req: Request, res: Response) => {
       `&responseTime=${responseTime}` +
       `&resultCode=${resultCode}` +
       `&transId=${transId}`;
-    const calculatedSignature = generateSignature(rawSignature);
+    const calculatedSignature = generateSignature(
+      rawSignature,
+      momoConfig.secretKey!,
+      HmacAlgorithm.SHA256,
+    );
 
     if (calculatedSignature !== signature) {
       return responseError(res, StatusCode.INVALID_SIGNATURE, ErrorMessage.INVALID_SIGNATURE);
