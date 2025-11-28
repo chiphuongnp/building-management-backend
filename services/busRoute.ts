@@ -2,10 +2,8 @@ import { Response } from 'express';
 import { BusRoute } from '../interfaces/busRoute';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { AuthRequest } from '../interfaces/jwt';
-import { firebaseHelper, responseError, responseSuccess } from '../utils';
+import { firebaseHelper, responseError, responseSuccess, logger } from '../utils/index';
 import { ActiveStatus, Collection, Sites } from '../constants/enum';
-import logger from '../utils/logger';
-import { getDocById } from '../utils/firebaseHelper';
 import { Bus } from '../interfaces/bus';
 
 const busRouteCollection = `${Sites.TOKYO}/${Collection.BUS_ROUTES}`;
@@ -30,7 +28,7 @@ export const createBusRoute = async (req: AuthRequest, res: Response) => {
 
     if (data.bus_id?.length) {
       for (const busId of data.bus_id) {
-        const existingBus: Bus = await getDocById(busCollection, busId);
+        const existingBus: Bus = await firebaseHelper.getDocById(busCollection, busId);
         if (!existingBus)
           return responseError(res, StatusCode.BUS_NOT_FOUND, ErrorMessage.BUS_NOT_FOUND, {
             id: busId,
@@ -115,7 +113,7 @@ export const updateBusRoute = async (req: AuthRequest, res: Response) => {
 
     if (data.bus_id?.length) {
       for (const busId of data.bus_id) {
-        const existingBus: Bus = await getDocById(busCollection, busId);
+        const existingBus: Bus = await firebaseHelper.getDocById(busCollection, busId);
         if (!existingBus) {
           return responseError(res, StatusCode.BUS_NOT_FOUND, ErrorMessage.BUS_NOT_FOUND, {
             id: busId,

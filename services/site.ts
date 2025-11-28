@@ -1,11 +1,9 @@
 import { Request, Response } from 'express';
-import { firebaseHelper } from '../utils/index';
+import { firebaseHelper, logger, responseError, responseSuccess } from '../utils/index';
 import { Site } from '../interfaces/site';
 import { Collection } from '../constants/enum';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { AuthRequest } from '../interfaces/jwt';
-import logger from '../utils/logger';
-import { responseError, responseSuccess } from '../utils/error';
 
 const siteCollection = `${Collection.SITES}`;
 const getSites = async (req: Request, res: Response) => {

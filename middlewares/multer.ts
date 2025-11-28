@@ -3,9 +3,8 @@ import fs from 'fs';
 import path from 'path';
 import { NextFunction, Request, Response } from 'express';
 import { MAX_IMAGE_SIZE } from '../constants/constant';
-import { responseError } from '../utils/error';
+import { responseError, logger } from '../utils/index';
 import { ErrorMessage, StatusCode } from '../constants/message';
-import logger from '../utils/logger';
 import { randomUUID } from 'crypto';
 
 const baseDir = 'uploads';

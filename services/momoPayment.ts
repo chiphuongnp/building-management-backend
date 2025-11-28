@@ -1,8 +1,13 @@
 import axios from 'axios';
 import { Request, Response } from 'express';
-import logger from '../utils/logger';
 import { momoConfig } from '../configs/momo';
-import { firebaseHelper, generateSignature, responseError, responseSuccess } from '../utils/index';
+import {
+  firebaseHelper,
+  generateSignature,
+  responseError,
+  responseSuccess,
+  logger,
+} from '../utils/index';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import {
   Collection,

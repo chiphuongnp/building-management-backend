@@ -1,11 +1,15 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { Collection, Sites } from '../constants/enum';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { AuthRequest } from '../interfaces/jwt';
-import logger from '../utils/logger';
 import { Bus } from '../interfaces/bus';
-import { deleteImages } from '../utils/deleteFile';
-import { firebaseHelper, responseError, responseSuccess } from '../utils/index';
+import {
+  firebaseHelper,
+  responseError,
+  responseSuccess,
+  logger,
+  deleteImages,
+} from '../utils/index';
 
 const busCollection = `${Sites.TOKYO}/${Collection.BUSES}`;
 

@@ -1,9 +1,7 @@
 import { Request, Response } from 'express';
-import { firebaseHelper } from '../utils/index';
+import { firebaseHelper, logger, responseError, responseSuccess } from '../utils/index';
 import { Collection, Sites } from '../constants/enum';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
-import logger from '../utils/logger';
-import { responseError, responseSuccess } from '../utils/error';
 
 const buildingCollection = `${Sites.TOKYO}/${Collection.BUILDINGS}`;
 const getBuildings = async (req: Request, res: Response) => {

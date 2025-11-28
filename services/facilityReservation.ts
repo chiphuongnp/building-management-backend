@@ -5,8 +5,8 @@ import {
   responseError,
   responseSuccess,
   calculateHoursDifference,
+  logger,
 } from '../utils/index';
-import logger from '../utils/logger';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { AuthRequest } from '../interfaces/jwt';
 import { Collection, FacilityReservationStatus, Sites, VATRate } from '../constants/enum';

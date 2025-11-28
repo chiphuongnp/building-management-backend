@@ -3,8 +3,13 @@ import { Collection, PaymentServiceProvider, VnpayRspCode, Sites } from '../cons
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { Payment } from '../interfaces/payment';
 import { updatePaymentStatus } from './payment';
-import { firebaseHelper, generateSignature, responseError, responseSuccess } from '../utils/index';
-import logger from '../utils/logger';
+import {
+  firebaseHelper,
+  generateSignature,
+  responseError,
+  responseSuccess,
+  logger,
+} from '../utils/index';
 import qs from 'qs';
 import moment from 'moment';
 

@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
-import { firebaseHelper, responseError, responseSuccess } from '../utils/index';
+import { firebaseHelper, responseError, responseSuccess, logger } from '../utils/index';
 import { Collection, FacilityStatus, Sites } from '../constants/enum';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
-import logger from '../utils/logger';
 import { AuthRequest } from '../interfaces/jwt';
 import { Facility } from '../interfaces/facility';
 
