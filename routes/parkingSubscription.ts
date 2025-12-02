@@ -6,13 +6,12 @@ import {
   getSubscriptions,
   getSubscriptionById,
   createParkingSubscription,
-  updateParkingSubscription,
+  cancelParkingSubscription,
   updateParkingSubscriptionStatus,
 } from '../services/parkingSubscription';
 import {
   validateIdParamSubscription,
   validateCreateSubscription,
-  validateUpdateSubscription,
   validateStatusSubscription,
 } from '../validations/parkingSubscription';
 
@@ -42,21 +41,20 @@ parkingSubscriptionRouter.post(
 );
 
 parkingSubscriptionRouter.patch(
-  '/update/:id',
-  authenticate,
-  requireRole(UserRole.MANAGER, UserRole.USER),
-  validateIdParamSubscription,
-  validateUpdateSubscription,
-  updateParkingSubscription,
-);
-
-parkingSubscriptionRouter.patch(
   '/update-status/:id',
   authenticate,
-  requireRole(UserRole.MANAGER, UserRole.USER),
+  requireRole(UserRole.MANAGER),
   validateIdParamSubscription,
   validateStatusSubscription,
   updateParkingSubscriptionStatus,
+);
+
+parkingSubscriptionRouter.patch(
+  '/cancel/:id',
+  authenticate,
+  requireRole(UserRole.MANAGER, UserRole.USER),
+  validateIdParamSubscription,
+  cancelParkingSubscription,
 );
 
 export default parkingSubscriptionRouter;

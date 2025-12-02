@@ -5,8 +5,12 @@ export interface ParkingSubscription {
   user_id: string;
   start_time: Date;
   end_time: Date;
-  amount: number;
-  payment_id?: string;
+  base_amount: number;
+  vat_charge: number;
+  discount: number;
+  points_used: number;
+  total_amount: number;
+  point_earned: number;
   status: ParkingSubscriptionStatus;
   created_at?: Date;
   created_by?: string;
