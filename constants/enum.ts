@@ -58,6 +58,7 @@ export enum Collection {
   EVENT_REGISTRATIONS = 'event_registrations',
   PAYMENTS = 'payments',
   BUS_SUBSCRIPTIONS = 'bus_subscriptions',
+  INFORMATION = 'information',
 }
 
 export enum ParkingSpaceType {
@@ -183,6 +184,8 @@ export enum Permission {
   GET_BOOKING_BUS_DETAIL = 'get_booking_bus_detail',
   GET_ALL_BOOKING_BUS = 'get_all_booking_bus',
   CREATE_BOOKING_BUS = 'create_booking_bus',
+  CREATE_INFORMATION = 'create_information',
+  VIEW_INFORMATION_LIST = 'view_information_list',
 }
 
 export enum EventRegistrationsStatus {
@@ -263,4 +266,27 @@ export enum RankMinimumSpending {
   MIN_AMOUNT_PLATINUM = 10000000,
   MIN_AMOUNT_GOLD = 5000000,
   MIN_AMOUNT_SILVER = 2000000,
+}
+
+export enum InformationCategory {
+  NOTIFICATION = 'notification',
+  INFO = 'info',
+  NEWS = 'news',
+  EVENT = 'event',
+}
+
+export enum InformationPriority {
+  LOW = 'low',
+  NORMAL = 'normal',
+  HIGH = 'high',
+}
+
+export enum InformationTarget {
+  ALL = 'all',
+  MANAGER = 'manager',
+}
+
+export enum InformationStatus {
+  SCHEDULED = 'scheduled',
+  SENT = 'sent',
 }
