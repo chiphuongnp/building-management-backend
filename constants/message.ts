@@ -197,6 +197,14 @@ export enum ErrorMessage {
   CANNOT_CREATE_MOMO_PAYMENT = 'Cannot create momo payment',
   MOMO_CALLBACK_FAILED = 'Momo callback failed!',
   MOMO_IPN_CALLBACK_FAILED = 'Momo ipn callback failed!',
+
+  // Information errors
+  INFORMATION_TITLE_EXISTS = 'The title of this information already exists!',
+  INFORMATION_NOT_FOUND = 'Information not found!',
+  CANNOT_CREATE_INFORMATION = 'Cannot create information',
+  CANNOT_GET_INFORMATION = 'Cannot get information',
+  CANNOT_GET_INFORMATION_LIST = 'Cannot get information list',
+  FORBIDDEN_INFORMATION = 'You are not allowed to view this information!',
 }
 
 export enum Message {
@@ -326,6 +334,12 @@ export enum Message {
   GET_USER_BUS_SUBSCRIPTIONS = 'Get user bus subscriptions successfully.',
   GET_BUS_SUBSCRIPTION_DETAIL = 'Get bus subscription detail successfully.',
   BUS_SUBSCRIPTION_GET_ALL = 'Get all bus subscription successfully.',
+
+  // Information messages
+  INFO_CREATED = 'New information has been created',
+  GET_INFORMATION_LIST = 'Get list of information successfully.',
+  GET_INFORMATION = 'Get information successfully.',
+  INFORMATION_LIST_EMPTY = 'The list of information is empty',
 }
 
 export enum StatusCode {
@@ -503,4 +517,12 @@ export enum StatusCode {
   SEAT_ALREADY_BOOKED = 4303,
   CANNOT_CREATE_BUS_SUBSCRIPTION = 4304,
   BUS_SUBSCRIPTION_GET_DETAIL_ERROR = 4305,
+
+  // Information codes
+  INFORMATION_TITLE_EXISTS = 4261,
+  INFORMATION_NOT_FOUND = 4262,
+  CANNOT_CREATE_INFORMATION = 4263,
+  CANNOT_GET_INFORMATION = 4264,
+  CANNOT_GET_INFORMATION_LIST = 4265,
+  FORBIDDEN_INFORMATION = 4266,
 }

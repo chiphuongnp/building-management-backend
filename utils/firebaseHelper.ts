@@ -70,7 +70,7 @@ const createDoc = async (
 ): Promise<FirebaseFirestore.DocumentReference> => {
   const { id, ...cleanData } = data;
   const docData = {
-    ...convertTimestamps(cleanData),
+    ...cleanData,
     created_at: new Date(),
   };
   if (id) {

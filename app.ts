@@ -23,6 +23,7 @@ import busSubscriptionRouter from './routes/busSubscription';
 import momoRouter from './routes/momoPayment';
 import vnpayRouter from './routes/vnpayPayment';
 import { logger } from './utils/index';
+import informationRouter from './routes/information';
 
 dotenv.config();
 const app: Application = express();
@@ -42,6 +43,7 @@ app.use(`/${Sites.TOKYO}/${Collection.BUS_ROUTES}`, busRouteRouter);
 app.use(`/${Sites.TOKYO}/${Collection.EVENT_REGISTRATIONS}`, eventRegistrationRouter);
 app.use(`/${Sites.TOKYO}/${Collection.PAYMENTS}`, paymentRouter);
 app.use(`/${Sites.TOKYO}/${Collection.BUS_SUBSCRIPTIONS}`, busSubscriptionRouter);
+app.use(`/${Sites.TOKYO}/${Collection.INFORMATION}`, informationRouter);
 app.use(`/${Sites.TOKYO}/${Collection.RESTAURANTS}/:restaurantId/${Collection.DISHES}`, dishRouter);
 app.use(
   `/${Sites.TOKYO}/${Collection.RESTAURANTS}/:restaurantId/${Collection.MENU_SCHEDULES}`,
