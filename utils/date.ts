@@ -23,3 +23,8 @@ export const getDayOfWeek = (input: Date): string => {
 export const calculateHoursDifference = (startTime: Date, endTime: Date): number => {
   return (startTime.getTime() - endTime.getTime()) / HOUR;
 };
+
+export const getLastMonth = () => {
+  const now = getNormalizedDate();
+  return new Date(now.setMonth(now.getMonth() - 1));
+};

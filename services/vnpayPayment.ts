@@ -89,18 +89,19 @@ export const vnpayReturnHandler = async (req: Request, res: Response) => {
     const rspCode = query['vnp_ResponseCode'];
     const orderInfo = query['vnp_OrderInfo'];
     const paymentId = orderInfo.split('Payment_')[1];
+    const amount = Number(query['vnp_Amount']) / 100;
     const payment: Payment = await firebaseHelper.getDocById(paymentCollection, paymentId);
     if (!payment) {
       return responseError(res, StatusCode.PAYMENT_NOT_FOUND, ErrorMessage.PAYMENT_NOT_FOUND);
     }
 
     if (rspCode === VnpayRspCode.SUCCESS) {
-      await updatePaymentStatus(paymentId, serviceId, PaymentServiceProvider.VNPAY, true);
+      await updatePaymentStatus(paymentId, serviceId, amount, PaymentServiceProvider.VNPAY, true);
 
       return responseSuccess(res, Message.PAYMENT_SUCCESSFUL);
     }
 
-    await updatePaymentStatus(paymentId, serviceId, PaymentServiceProvider.VNPAY, false);
+    await updatePaymentStatus(paymentId, serviceId, amount, PaymentServiceProvider.VNPAY, false);
 
     return responseSuccess(res, Message.PAYMENT_FAILED);
   } catch (error) {
@@ -137,18 +138,19 @@ export const vnpayIpnHandler = async (req: Request, res: Response) => {
     const rspCode = query['vnp_ResponseCode'];
     const orderInfo = query['vnp_OrderInfo'];
     const paymentId = orderInfo.split('Payment_')[1];
+    const amount = Number(query['vnp_Amount']) / 100;
     const payment: Payment = await firebaseHelper.getDocById(paymentCollection, paymentId);
     if (!payment) {
       return responseError(res, StatusCode.PAYMENT_NOT_FOUND, ErrorMessage.PAYMENT_NOT_FOUND);
     }
 
     if (rspCode === VnpayRspCode.SUCCESS) {
-      await updatePaymentStatus(paymentId, serviceId, PaymentServiceProvider.VNPAY, true);
+      await updatePaymentStatus(paymentId, serviceId, amount, PaymentServiceProvider.VNPAY, true);
 
       return res.send({ RspCode: rspCode, Message: Message.PAYMENT_SUCCESSFUL });
     }
 
-    await updatePaymentStatus(paymentId, serviceId, PaymentServiceProvider.VNPAY, false);
+    await updatePaymentStatus(paymentId, serviceId, amount, PaymentServiceProvider.VNPAY, false);
 
     return res.send({ RspCode: rspCode, Message: Message.PAYMENT_FAILED });
   } catch (error) {

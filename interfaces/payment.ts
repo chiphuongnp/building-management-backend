@@ -9,6 +9,7 @@ export interface Payment {
   id: string;
   user_id: string;
   service_id: string;
+  amount: number;
   service_type: PaymentServiceProvider;
   reference_id: string;
   reference_type: PaymentReferenceType;
