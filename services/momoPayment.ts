@@ -106,12 +106,24 @@ const handleMomoCallback = async (req: Request, res: Response) => {
     let paymentId = decoded.payment_id;
 
     if (!Number(resultCode)) {
-      await updatePaymentStatus(paymentId, String(orderId), PaymentServiceProvider.MOMO, true);
+      await updatePaymentStatus(
+        paymentId,
+        String(orderId),
+        Number(amount),
+        PaymentServiceProvider.MOMO,
+        true,
+      );
 
       return responseSuccess(res, Message.PAYMENT_SUCCESSFUL);
     }
 
-    await updatePaymentStatus(paymentId, String(orderId), PaymentServiceProvider.MOMO, false);
+    await updatePaymentStatus(
+      paymentId,
+      String(orderId),
+      Number(amount),
+      PaymentServiceProvider.MOMO,
+      false,
+    );
 
     return responseSuccess(res, Message.PAYMENT_FAILED);
   } catch (error) {
@@ -166,12 +178,24 @@ const handleMomoIpn = async (req: Request, res: Response) => {
     let paymentId = decoded.payment_id;
 
     if (!Number(resultCode)) {
-      await updatePaymentStatus(paymentId, String(orderId), PaymentServiceProvider.MOMO, true);
+      await updatePaymentStatus(
+        paymentId,
+        String(orderId),
+        Number(amount),
+        PaymentServiceProvider.MOMO,
+        true,
+      );
 
       return responseSuccess(res, Message.PAYMENT_SUCCESSFUL);
     }
 
-    await updatePaymentStatus(paymentId, String(orderId), PaymentServiceProvider.MOMO, false);
+    await updatePaymentStatus(
+      paymentId,
+      String(orderId),
+      Number(amount),
+      PaymentServiceProvider.MOMO,
+      false,
+    );
 
     return responseSuccess(res, Message.PAYMENT_FAILED);
   } catch (error) {

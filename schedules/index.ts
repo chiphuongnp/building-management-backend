@@ -4,6 +4,7 @@ import { startMenuItemsSync } from './menuCron';
 import { startParkingExpiration } from './parkingCron';
 import { startDishSalesJob } from './restaurantDishCron';
 import { startDailySalesJob } from './restaurantSaleCron';
+import { startUserRankJob } from './userRankCron';
 
 export const initSchedules = (site: Sites) => {
   startMenuItemsSync(site);
@@ -11,4 +12,5 @@ export const initSchedules = (site: Sites) => {
   startDailySalesJob(site);
   startDishSalesJob(site);
   startEventExpiration(site);
+  startUserRankJob(site);
 };

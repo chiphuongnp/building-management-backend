@@ -92,6 +92,7 @@ export enum CronSchedule {
   DAILY_SALES = '0 0 * * *',
   DISH_SALES = '0 0 * * *',
   EVENT_EXPIRATION = '0 0 * * *',
+  USER_RANK = '0 0 1 * *',
 }
 
 export enum FacilityType {
@@ -256,4 +257,10 @@ export enum VnpayRspCode {
   SUCCESS = '00',
   INVALID_SIGNATURE = '97',
   SYSTEM_ERROR = '99',
+}
+
+export enum RankMinimumSpending {
+  MIN_AMOUNT_PLATINUM = 10000000,
+  MIN_AMOUNT_GOLD = 5000000,
+  MIN_AMOUNT_SILVER = 2000000,
 }

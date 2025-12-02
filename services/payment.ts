@@ -74,6 +74,7 @@ export const getPayment = async (req: AuthRequest, res: Response) => {
 export const updatePaymentStatus = async (
   paymentId: string,
   orderId: string,
+  amount: number,
   provider: PaymentServiceProvider,
   isSuccess: boolean,
 ) => {
@@ -81,6 +82,7 @@ export const updatePaymentStatus = async (
 
   await firebaseHelper.updateDoc(paymentCollection, paymentId, {
     status: isSuccess ? PaymentStatus.SUCCESS : PaymentStatus.FAILED,
+    amount,
     service_id: orderId,
     service_type: provider,
     transaction_time: new Date(),
