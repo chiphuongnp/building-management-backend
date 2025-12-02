@@ -87,6 +87,10 @@ export enum ErrorMessage {
   CANNOT_GET_PARKING_SUBSCRIPTION_LIST = 'Can not get list of parking subscription!',
   PARKING_SUBSCRIPTION_NOT_FOUND = 'Parking subscription not found!',
   CANNOT_CREATE_PARKING_SUBSCRIPTION = 'Cannot create parking subscription!',
+  CANNOT_UPDATE_PARKING_SUBSCRIPTION = 'Cannot update parking subscription!',
+  CANNOT_UPDATE_PARKING_SUBSCRIPTION_STATUS = 'Cannot update parking subscription status!',
+  CANNOT_CANCEL_PARKING_SUBSCRIPTION = 'Cannot cancel parking subscription!',
+  CANCEL_PARKING_SUBSCRIPTION_FORBIDDEN = 'You are not allowed to cancel this parking subscription!',
 
   //Permission messages
   PERMISSION_NOT_FOUND = 'Permission not found',
@@ -95,8 +99,6 @@ export enum ErrorMessage {
   CANNOT_UPDATE_PERMISSION = 'Cannot update permission',
   CANNOT_GET_PERMISSION_LIST = 'Cannot get list of permissions',
   PERMISSION_GET_DETAIL = 'Cannot get permission detail',
-  CANNOT_UPDATE_PARKING_SUBSCRIPTION = 'Cannot update parking subscription!',
-  CANNOT_UPDATE_PARKING_SUBSCRIPTION_STATUS = 'Cannot update parking subscription status!',
 
   // Facility messages
   CANNOT_GET_FACILITY_LIST = 'Can not get list of facility!',
@@ -258,6 +260,8 @@ export enum Message {
   PARKING_SUBSCRIPTION_CREATED = 'Parking subscription created successfully.',
   PARKING_SUBSCRIPTION_UPDATED = 'Parking subscription has been updated successfully.',
   GET_PARKING_SUBSCRIPTION = 'Get parking subscription(s) successfully.',
+  PARKING_SUBSCRIPTION_STATUS_UPDATED = 'Parking subscription status has been updated successfully.',
+  PARKING_SUBSCRIPTION_CANCELED = 'Parking subscription canceled successfully.',
 
   // Order messages
   ORDER_CREATED = 'Order has been created successfully.',
@@ -274,7 +278,6 @@ export enum Message {
   PERMISSION_UPDATED = 'Permission updated successfully',
   PERMISSION_GET_ALL = 'Get all permissions successfully',
   PERMISSION_GET_DETAIL = 'Get permission detail successfully',
-  PARKING_SUBSCRIPTION_STATUS_UPDATED = 'Parking subscription status has been updated successfully.',
 
   // Facility messages
   FACILITY_CREATED = 'Facility created successfully.',
@@ -427,6 +430,8 @@ export enum StatusCode {
   CANNOT_CREATE_PARKING_SUBSCRIPTION = 4123,
   CANNOT_UPDATE_PARKING_SUBSCRIPTION = 4124,
   CANNOT_UPDATE_PARKING_SUBSCRIPTION_STATUS = 4125,
+  CANNOT_CANCEL_PARKING_SUBSCRIPTION = 4126,
+  CANCEL_PARKING_SUBSCRIPTION_FORBIDDEN = 4127,
 
   // Facility codes
   CANNOT_GET_FACILITY_LIST = 4141,

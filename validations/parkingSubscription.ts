@@ -13,11 +13,14 @@ const subscriptionFieldsSchema = {
     'number.min': 'Duration must be at least 1 month',
     'number.max': 'Duration cannot exceed 12 months',
   }),
-  amount: Joi.number().min(0).messages({
+  base_amount: Joi.number().min(0).messages({
     'number.base': 'Amount must be a number',
     'number.min': 'Amount cannot be negative',
   }),
-  payment_id: Joi.string().optional(),
+  points_used: Joi.number().min(0).optional().messages({
+    'number.base': 'Points used must be a number',
+    'number.min': 'Points used cannot be negative',
+  }),
   status: Joi.string()
     .valid(...Object.values(ParkingSubscriptionStatus))
     .optional()
@@ -40,30 +43,19 @@ const validateStartDate = (value: any, helpers: any) => {
 };
 
 const createSubscriptionSchema = Joi.object({
-  user_id: Joi.string().required().messages({
-    'string.empty': 'User ID is required',
-    'any.required': 'User ID is required',
-  }),
   start_date: subscriptionFieldsSchema.start_date.optional(),
   month_duration: subscriptionFieldsSchema.month_duration.required().messages({
     'any.required': 'Duration is required',
   }),
-  amount: subscriptionFieldsSchema.amount.required().messages({
+  base_amount: subscriptionFieldsSchema.base_amount.required().messages({
     'any.required': 'Amount is required',
   }),
-  payment_id: subscriptionFieldsSchema.payment_id,
-  status: subscriptionFieldsSchema.status,
+  points_used: subscriptionFieldsSchema.points_used,
 })
   .custom(validateStartDate)
   .messages({
     'date.min': 'Start date cannot be in the past',
   });
-
-export const updateSubscriptionInfoSchema = Joi.object({
-  month_duration: subscriptionFieldsSchema.month_duration.required(),
-  amount: subscriptionFieldsSchema.amount.optional(),
-  payment_id: subscriptionFieldsSchema.payment_id.optional(),
-});
 
 export const updateSubscriptionStatusSchema = Joi.object({
   status: subscriptionFieldsSchema.status,
@@ -84,19 +76,6 @@ const idParamSubscriptionSchema = Joi.object({
 
 export const validateCreateSubscription = (req: Request, res: Response, next: NextFunction) => {
   const { error } = createSubscriptionSchema.validate(req.body);
-  if (error) {
-    return res.status(400).json({ success: false, message: error.details[0].message });
-  }
-  next();
-};
-
-export const validateUpdateSubscription = (req: Request, res: Response, next: NextFunction) => {
-  const { error: paramError } = idParamSubscriptionSchema.validate(req.params);
-  if (paramError) {
-    return res.status(400).json({ success: false, message: paramError.details[0].message });
-  }
-
-  const { error } = updateSubscriptionInfoSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ success: false, message: error.details[0].message });
   }
