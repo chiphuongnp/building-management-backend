@@ -6,15 +6,23 @@ import {
   responseSuccess,
   calculateHoursDifference,
   logger,
-  calculatePercentage,
+  calculatePayment,
 } from '../utils/index';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { AuthRequest } from '../interfaces/jwt';
-import { Collection, FacilityReservationStatus, Sites, VATRate } from '../constants/enum';
+import {
+  Collection,
+  FacilityReservationStatus,
+  FacilityStatus,
+  FacilityType,
+  Sites,
+  VATRate,
+} from '../constants/enum';
 import { FacilityReservation } from '../interfaces/facilityReservation';
 import { Timestamp } from 'firebase-admin/firestore';
 import { Facility } from '../interfaces/facility';
 import { CANCEL_TIME_VALID } from '../constants/constant';
+import { User } from '../interfaces/user';
 
 const facilityReservationCollection = `${Sites.TOKYO}/${Collection.FACILITY_RESERVATIONS}`;
 const facilityCollection = `${Sites.TOKYO}/${Collection.FACILITIES}`;
@@ -86,11 +94,16 @@ const getFacilityReservationById = async (req: Request, res: Response) => {
 
 const createFacilityReservation = async (req: AuthRequest, res: Response) => {
   try {
+    const uid = req.user?.uid;
+    if (!uid) {
+      return responseError(res, StatusCode.ACCOUNT_NOT_FOUND, ErrorMessage.ACCOUNT_NOT_FOUND);
+    }
+
     const {
       facility_id: facilityId,
-      user_id: userId,
       start_date: startDate,
       hour_duration: hourDuration,
+      points_used,
       ...data
     } = req.body;
     const facility: Facility = await firebaseHelper.getDocById(facilityCollection, facilityId);
@@ -98,9 +111,9 @@ const createFacilityReservation = async (req: AuthRequest, res: Response) => {
       return responseError(res, StatusCode.FACILITY_NOT_FOUND, ErrorMessage.FACILITY_NOT_FOUND);
     }
 
-    const user = await firebaseHelper.getDocById(userCollection, userId);
-    if (!user) {
-      return responseError(res, StatusCode.USER_NOT_FOUND, ErrorMessage.USER_NOT_FOUND);
+    const user: User = await firebaseHelper.getDocById(userCollection, uid);
+    if (points_used > (user.points ?? 0)) {
+      return responseError(res, StatusCode.INVALID_POINTS, ErrorMessage.INVALID_POINTS);
     }
 
     const startTime = startDate ? new Date(startDate) : getTomorrow();
@@ -121,28 +134,60 @@ const createFacilityReservation = async (req: AuthRequest, res: Response) => {
       );
     }
 
-    const basePrice = facility.base_price * Number(hourDuration) + facility.service_charge;
-    const vatCharge = calculatePercentage(basePrice, VATRate.DEFAULT);
+    const baseAmount = facility.base_price * Number(hourDuration) + facility.service_charge;
     const facilityReservationData = {
-      user_id: userId,
+      user_id: uid,
       facility_id: facilityId,
       start_time: Timestamp.fromDate(startTime),
       end_time: Timestamp.fromDate(endTime),
       status: FacilityReservationStatus.RESERVED,
       ...data,
     };
-    if (facility.facility_type !== 'room') {
-      facilityReservationData.amount = basePrice;
-      facilityReservationData.vat = vatCharge;
-      facilityReservationData.total_price = basePrice + vatCharge;
-    }
-
-    const docRef = await firebaseHelper.createDoc(
-      facilityReservationCollection,
-      facilityReservationData,
+    const { finalAmount, discount, pointsEarned, finalPointsUsed, vatCharge } = calculatePayment(
+      baseAmount,
+      user.ranks,
+      points_used,
+      VATRate.DEFAULT,
     );
+    if (facility.facility_type !== FacilityType.ROOM) {
+      facilityReservationData.base_amount = baseAmount;
+      facilityReservationData.vat_charge = vatCharge;
+      facilityReservationData.discount = discount;
+      facilityReservationData.points_earned = pointsEarned;
+      facilityReservationData.points_used = finalPointsUsed;
+      facilityReservationData.total_amount = finalAmount;
+    }
+    const facilityReservationId = await firebaseHelper.runTransaction(async (transaction) => {
+      const facilityReservation = await firebaseHelper.setTransaction(
+        facilityReservationCollection,
+        facilityReservationData,
+        transaction,
+      );
 
-    return responseSuccess(res, Message.FACILITY_RESERVATION_CREATED, { id: docRef.id });
+      await firebaseHelper.updateTransaction(
+        facilityCollection,
+        facilityId,
+        {
+          status: FacilityStatus.RESERVED,
+        },
+        transaction,
+      );
+
+      const updatedPoints = (user.points ?? 0) - finalPointsUsed + pointsEarned;
+      await firebaseHelper.updateTransaction(
+        userCollection,
+        uid,
+        { points: updatedPoints },
+        transaction,
+      );
+
+      return facilityReservation.id;
+    });
+
+    return responseSuccess(res, Message.FACILITY_RESERVATION_CREATED, {
+      id: facilityReservationId,
+      finalAmount,
+    });
   } catch (error) {
     logger.warn(ErrorMessage.CANNOT_CREATE_FACILITY_RESERVATION + error);
 

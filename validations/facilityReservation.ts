@@ -4,10 +4,6 @@ import { FacilityReservationStatus } from '../constants/enum';
 import { getTomorrow } from '../utils/index';
 
 const createReservationSchema = Joi.object({
-  user_id: Joi.string().min(1).required().messages({
-    'string.empty': 'User ID cannot be empty',
-    'any.required': 'User ID is required',
-  }),
   facility_id: Joi.string().min(1).required().messages({
     'string.empty': 'Facility ID cannot be empty',
     'any.required': 'Facility ID is required',
@@ -29,9 +25,9 @@ const createReservationSchema = Joi.object({
     'date.greater': 'End time must be after start time',
     'any.required': 'End time is required',
   }),
-  payment_id: Joi.string().min(1).required().messages({
-    'string.empty': 'Payment ID cannot be empty',
-    'any.required': 'Payment ID is required',
+  points_used: Joi.number().min(0).optional().messages({
+    'number.base': 'Points used must be a number',
+    'number.min': 'Points used cannot be negative',
   }),
   status: Joi.string()
     .valid(...Object.values(FacilityReservationStatus))

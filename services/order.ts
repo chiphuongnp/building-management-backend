@@ -11,7 +11,6 @@ import {
   responseSuccess,
   calculatePayment,
   logger,
-  calculatePercentage,
 } from '../utils/index';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { Timestamp } from 'firebase-admin/firestore';
@@ -58,19 +57,18 @@ const createOrder = async (req: AuthRequest, res: Response, next: NextFunction) 
       (sum: number, item: OrderDetail) => sum + item.price * item.quantity,
       0,
     );
-    const vat_charge = calculatePercentage(base_amount, VATRate.FOOD);
-    const total_amount = base_amount + vat_charge;
-    const { finalAmount, discount, pointsEarned, finalPointsUsed } = calculatePayment(
-      total_amount,
+    const { finalAmount, discount, pointsEarned, finalPointsUsed, vatCharge } = calculatePayment(
+      base_amount,
       user.ranks,
       points_used,
+      VATRate.FOOD,
     );
     const newOrder: Order = {
       ...orders,
       status: OrderStatus.PENDING,
       user_id: req.user?.uid,
       base_amount,
-      vat_charge,
+      vat_charge: vatCharge,
       discount,
       points_used: finalPointsUsed,
       total_amount: finalAmount,
@@ -134,7 +132,7 @@ const createOrder = async (req: AuthRequest, res: Response, next: NextFunction) 
     });
 
     return responseSuccess(res, Message.ORDER_CREATED, { id: orderId });
-  } catch (error) {
+  } catch (error: any) {
     logger.warn(`${ErrorMessage.CANNOT_CREATE_DISH} | ${error}`);
 
     switch (error.message) {

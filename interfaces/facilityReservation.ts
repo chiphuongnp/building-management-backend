@@ -7,10 +7,12 @@ export interface FacilityReservation {
   facility_id: string;
   start_time: Date;
   end_time: Date;
-  amount: number;
+  base_amount: number;
   vat_charge: number;
-  total_price: number;
-  payment_id: string;
+  discount: number;
+  points_used: number;
+  total_amount: number;
+  point_earned: number;
   status: FacilityReservationStatus;
   created_at: Date | firestore.Timestamp;
   updated_at?: Date | firestore.Timestamp | null;
