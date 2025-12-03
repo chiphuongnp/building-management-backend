@@ -6,7 +6,6 @@ import {
   logger,
   getTomorrow,
   calculatePayment,
-  calculatePercentage,
 } from '../utils/index';
 import {
   Collection,
@@ -109,19 +108,18 @@ const createParkingSubscription = async (req: AuthRequest, res: Response) => {
       return responseError(res, StatusCode.INVALID_POINTS, ErrorMessage.INVALID_POINTS);
     }
 
-    const vat_charge = calculatePercentage(base_amount, VATRate.DEFAULT);
-    const total_amount = base_amount + vat_charge;
-    const { finalAmount, discount, pointsEarned, finalPointsUsed } = calculatePayment(
-      total_amount,
+    const { finalAmount, discount, pointsEarned, finalPointsUsed, vatCharge } = calculatePayment(
+      base_amount,
       user.ranks,
       points_used,
+      VATRate.DEFAULT,
     );
     const newParkingSubscription = {
       user_id: uid,
       start_time: Timestamp.fromDate(startTime),
       end_time: Timestamp.fromDate(endTime),
       base_amount,
-      vat_charge,
+      vat_charge: vatCharge,
       discount,
       points_used: finalPointsUsed,
       total_amount: finalAmount,
