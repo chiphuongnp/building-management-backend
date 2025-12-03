@@ -207,6 +207,12 @@ export enum ErrorMessage {
   CANNOT_GET_INFORMATION = 'Cannot get information',
   CANNOT_GET_INFORMATION_LIST = 'Cannot get information list',
   FORBIDDEN_INFORMATION = 'You are not allowed to view this information!',
+
+  // Mailer errors
+  RECIPIENT_MAIL_REQUIRED = 'Recipient email is required',
+  SENDER_MAIL_NOT_CONFIGURED = 'Sender email is not configured',
+  NO_RECIPIENT_EMAILS = 'No valid recipient email addresses',
+  SEND_INFORMATION_FAILED = 'Failed to send information notification',
 }
 
 export enum Message {
@@ -530,4 +536,8 @@ export enum StatusCode {
   CANNOT_GET_INFORMATION = 4264,
   CANNOT_GET_INFORMATION_LIST = 4265,
   FORBIDDEN_INFORMATION = 4266,
+
+  // Mailer errors
+  NO_RECIPIENT_EMAILS = 4275,
+  SEND_INFORMATION_FAILED = 4276,
 }
