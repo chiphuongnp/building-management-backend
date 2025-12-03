@@ -94,6 +94,7 @@ export enum CronSchedule {
   DISH_SALES = '0 0 * * *',
   EVENT_EXPIRATION = '0 0 * * *',
   USER_RANK = '0 0 1 * *',
+  INFORMATION = '*/10 * * * *',
 }
 
 export enum FacilityType {
