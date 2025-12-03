@@ -6,6 +6,7 @@ import {
   responseSuccess,
   calculateHoursDifference,
   logger,
+  calculatePercentage,
 } from '../utils/index';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { AuthRequest } from '../interfaces/jwt';
@@ -121,7 +122,7 @@ const createFacilityReservation = async (req: AuthRequest, res: Response) => {
     }
 
     const basePrice = facility.base_price * Number(hourDuration) + facility.service_charge;
-    const vatCharge = basePrice * VATRate.DEFAULT;
+    const vatCharge = calculatePercentage(basePrice, VATRate.DEFAULT);
     const facilityReservationData = {
       user_id: userId,
       facility_id: facilityId,

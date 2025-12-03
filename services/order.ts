@@ -11,6 +11,7 @@ import {
   responseSuccess,
   calculatePayment,
   logger,
+  calculatePercentage,
 } from '../utils/index';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { Timestamp } from 'firebase-admin/firestore';
@@ -57,7 +58,7 @@ const createOrder = async (req: AuthRequest, res: Response, next: NextFunction) 
       (sum: number, item: OrderDetail) => sum + item.price * item.quantity,
       0,
     );
-    const vat_charge = base_amount * VATRate.FOOD;
+    const vat_charge = calculatePercentage(base_amount, VATRate.FOOD);
     const total_amount = base_amount + vat_charge;
     const { finalAmount, discount, pointsEarned, finalPointsUsed } = calculatePayment(
       total_amount,

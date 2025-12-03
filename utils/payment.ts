@@ -26,3 +26,7 @@ export const getRankFromAmount = (amount: number) => {
       return UserRank.BRONZE;
   }
 };
+
+export const calculatePercentage = (amount: number, percent: number): number => {
+  return (amount * percent) / 100;
+};
