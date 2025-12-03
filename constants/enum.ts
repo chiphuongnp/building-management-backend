@@ -127,8 +127,8 @@ export enum OrderStatus {
 }
 
 export enum VATRate {
-  FOOD = 0.1,
-  DEFAULT = 0.05,
+  FOOD = 10,
+  DEFAULT = 5,
 }
 
 export enum FacilityReservationStatus {
