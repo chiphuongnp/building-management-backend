@@ -37,7 +37,18 @@ export const createInformation = async (req: AuthRequest, res: Response) => {
     };
     const docRef = await firebaseHelper.createDoc(informationCollection, newInfo);
 
-    if (newInfo.priority === InformationPriority.HIGH) await sendInformation(newInfo);
+    if (newInfo.priority === InformationPriority.HIGH) {
+      const users: User[] =
+        newInfo.target === InformationTarget.ALL
+          ? await firebaseHelper.getAllDocs(userCollection)
+          : await firebaseHelper.getDocsByFields(userCollection, [
+              { field: 'roles', operator: '==', value: UserRole.MANAGER },
+            ]);
+      if (!users.length)
+        return responseError(res, StatusCode.USER_NOT_FOUND, ErrorMessage.USER_NOT_FOUND);
+
+      await sendInformation(users, newInfo);
+    }
 
     return responseSuccess(res, Message.INFO_CREATED, { id: docRef.id });
   } catch (error: any) {
@@ -115,13 +126,7 @@ export const getInformation = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const sendInformation = async (info: Information) => {
-  const users: User[] =
-    info.target === InformationTarget.ALL
-      ? await firebaseHelper.getAllDocs(userCollection)
-      : await firebaseHelper.getDocsByFields(userCollection, [
-          { field: 'roles', operator: '==', value: UserRole.MANAGER },
-        ]);
+export const sendInformation = async (users: User[], info: Information) => {
   const recipients = users.map((user) => user.email).filter((email): email is string => !!email);
   if (!recipients.length) {
     throw new Error(ErrorMessage.NO_RECIPIENT_EMAILS);
@@ -129,14 +134,16 @@ export const sendInformation = async (info: Information) => {
 
   const subject = `BuildingEco: ${info.title}`;
   const html = `
-  <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-    <h2 style="color: #d32f2f;">${info.title}</h2>
-    <h2 style="color: #d32f2f;">${info.category}</h2>
-    <p>${info.content}</p>
-    <hr style="border:none; border-top:1px solid #eee;" />
-    <p style="font-size: 0.9em; color:#777;">
-      This is an automated notification from BuildingEco.
-    </p>
+  <div style="font-family: Arial, sans-serif; background:#f9f9f9; padding:20px; color:#333;">
+    <div style="max-width:600px; margin:0 auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+      <h1 style="color:#d32f2f; margin-bottom:10px;">${info.title}</h1>
+      <h3 style="color:#555; margin-top:0; margin-bottom:20px;">Category: ${info.category}</h3>
+      <p style="line-height:1.6; margin-bottom:20px;">${info.content}</p>
+      <hr style="border:none; border-top:1px solid #eee; margin-bottom:20px;" />
+      <p style="font-size:0.85em; color:#777; margin:0;">
+        This is an automated notification from <strong>BuildingEco</strong>.
+      </p>
+    </div>
   </div>
   `;
 

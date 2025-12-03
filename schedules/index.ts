@@ -1,5 +1,6 @@
 import { Sites } from '../constants/enum';
 import { startEventExpiration } from './eventCron';
+import { startInformationJob } from './informationCron';
 import { startMenuItemsSync } from './menuCron';
 import { startParkingExpiration } from './parkingCron';
 import { startDishSalesJob } from './restaurantDishCron';
@@ -13,4 +14,5 @@ export const initSchedules = (site: Sites) => {
   startDishSalesJob(site);
   startEventExpiration(site);
   startUserRankJob(site);
+  startInformationJob(site);
 };
