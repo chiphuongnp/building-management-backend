@@ -24,9 +24,17 @@ import momoRouter from './routes/momoPayment';
 import vnpayRouter from './routes/vnpayPayment';
 import { logger } from './utils/index';
 import informationRouter from './routes/information';
+import cors from 'cors';
 
 dotenv.config();
 const app: Application = express();
+app.use(
+  cors({
+    origin: process.env.FE_URL,
+    credentials: true,
+  }),
+);
+
 app.use(express.json());
 
 app.use(`/${Collection.SITES}`, siteRouter);
