@@ -12,20 +12,14 @@ const userSchema = Joi.object({
       'string.pattern.base':
         'Password must be at least 8 characters and include uppercase, lowercase, and a number.',
     }),
-  confirmPassword: Joi.string().min(8).optional().trim().valid(Joi.ref('password')).messages({
+  confirm_password: Joi.string().min(8).optional().trim().valid(Joi.ref('password')).messages({
     'string.empty': 'Confirm password is required',
     'string.min': 'Confirm password must be at least 8 characters long',
     'any.only': 'Confirm password must match password',
   }),
-  fullName: Joi.string().min(3).max(50).required(),
+  full_name: Joi.string().min(3).max(50).required(),
   phone: Joi.string().min(8).max(15).required(),
-  avatar_url: Joi.string().uri().allow(null).optional(),
-  ranks: Joi.string()
-    .valid(...Object.values(UserRank))
-    .allow(null)
-    .optional(),
-  points: Joi.number().min(0).allow(null).optional(),
-  roles: Joi.string()
+  role: Joi.string()
     .valid(...Object.values(UserRole))
     .optional(),
   permissions: Joi.array().items(Joi.string()).allow(null).optional(),
@@ -33,11 +27,8 @@ const userSchema = Joi.object({
 
 const updateUserSchema = Joi.object({
   username: Joi.string().min(3).max(30).optional(),
-  fullName: Joi.string().min(3).max(50).optional(),
+  full_name: Joi.string().min(3).max(50).optional(),
   phone: Joi.string().min(8).max(15).optional(),
-  roles: Joi.string()
-    .valid(...Object.values(UserRole))
-    .optional(),
   permissions: Joi.array().items(Joi.string()).allow(null).optional(),
 });
 

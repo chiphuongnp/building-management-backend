@@ -3,7 +3,7 @@ import { AuthRequest } from '../interfaces/jwt';
 
 export const requireRole = (...requiredRoles: string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
-    if (!req.user || !req.user.roles) {
+    if (!req.user || !req.user.role) {
       res.status(401).json({
         success: false,
         message: 'Unauthorized: No user role found',
@@ -11,7 +11,7 @@ export const requireRole = (...requiredRoles: string[]) => {
       return;
     }
 
-    const hasRole = requiredRoles.includes(req.user.roles);
+    const hasRole = requiredRoles.includes(req.user.role);
     if (!hasRole) {
       return res.status(403).json({
         success: false,
