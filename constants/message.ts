@@ -209,10 +209,23 @@ export enum ErrorMessage {
   FORBIDDEN_INFORMATION = 'You are not allowed to view this information!',
 
   // Mailer errors
-  RECIPIENT_MAIL_REQUIRED = 'Recipient email is required',
-  SENDER_MAIL_NOT_CONFIGURED = 'Sender email is not configured',
-  NO_RECIPIENT_EMAILS = 'No valid recipient email addresses',
-  SEND_INFORMATION_FAILED = 'Failed to send information notification',
+  RECIPIENT_MAIL_REQUIRED = 'Recipient email is required!',
+  SENDER_MAIL_NOT_CONFIGURED = 'Sender email is not configured!',
+  NO_RECIPIENT_EMAILS = 'No valid recipient email addresses!',
+  SEND_INFORMATION_FAILED = 'Failed to send information notification!',
+
+  // Auth errors
+  INVALID_TOKEN = 'Invalid or already revoked token!',
+  ACCOUNT_INACTIVE = 'Account is inactive or banned!',
+  INVALID_PASSWORD = 'Invalid password!',
+  LOGIN_FAILED = 'Login request failed!',
+  REGISTER_FAILED = 'Register request failed!',
+  FIREBASE_AUTH_FAILED = 'Firebase Auth error!',
+  CANNOT_CREATE_USER = 'Cannot create user!',
+  SEND_ACTIVATION_MAIL_FAILED = 'Failed to send activation mail!',
+  ACCOUNT_EMAIL_EXISTS = 'Email already exists!',
+  LOGOUT_FAILED = 'Login request failed!',
+  REFRESH_TOKEN_REQUIRED = 'Refresh token is required!',
 }
 
 export enum Message {
@@ -349,6 +362,11 @@ export enum Message {
   GET_INFORMATION_LIST = 'Get list of information successfully.',
   GET_INFORMATION = 'Get information successfully.',
   INFORMATION_LIST_EMPTY = 'The list of information is empty',
+
+  // Auth messages
+  LOGIN_SUCCESS = 'Login successfully',
+  REGISTER_SUCCESS = 'Register successfully',
+  LOGOUT_SUCCESS = 'Logout successfully',
 }
 
 export enum StatusCode {
@@ -359,6 +377,19 @@ export enum StatusCode {
   USER_GET_DETAIL = 4004,
   ACCOUNT_NOT_FOUND = 4005,
   USER_UPDATE = 4006,
+
+  // Auth errors
+  INVALID_TOKEN = 4007,
+  ACCOUNT_INACTIVE = 4008,
+  INVALID_PASSWORD = 4009,
+  LOGIN_FAILED = 4010,
+  REGISTER_FAILED = 4011,
+  FIREBASE_AUTH_FAILED = 4012,
+  CANNOT_CREATE_USER = 4013,
+  SEND_ACTIVATION_MAIL_FAILED = 4014,
+  ACCOUNT_EMAIL_EXISTS = 4015,
+  LOGOUT_FAILED = 4016,
+  REFRESH_TOKEN_REQUIRED = 4017,
 
   // Menu Schedule status codes
   CANNOT_CREATE_MENU_SCHEDULE = 4061,
