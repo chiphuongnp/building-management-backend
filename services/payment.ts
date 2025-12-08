@@ -24,11 +24,15 @@ export const createPayment = async (req: AuthRequest, res: Response) => {
 
       const paymentData: Payment = {
         ...req.body,
-        user_id: user.uid,
+        user_id: user.id,
         status: PaymentStatus.PENDING,
         transaction_time: new Date(),
       };
-      const payment = firebaseHelper.setTransaction(paymentCollection, paymentData, transaction);
+      const payment = await firebaseHelper.setTransaction(
+        paymentCollection,
+        paymentData,
+        transaction,
+      );
 
       return payment.id;
     });

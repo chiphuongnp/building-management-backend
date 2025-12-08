@@ -66,7 +66,7 @@ const createOrder = async (req: AuthRequest, res: Response, next: NextFunction) 
     const newOrder: Order = {
       ...orders,
       status: OrderStatus.PENDING,
-      user_id: req.user?.uid,
+      user_id: user.id,
       base_amount,
       vat_charge: vatCharge,
       discount,
@@ -123,7 +123,7 @@ const createOrder = async (req: AuthRequest, res: Response, next: NextFunction) 
       const updatedPoints = (user.points ?? 0) - finalPointsUsed + pointsEarned;
       await firebaseHelper.updateTransaction(
         userUrl,
-        user.uid,
+        user.id,
         { points: updatedPoints },
         transaction,
       );

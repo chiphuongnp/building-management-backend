@@ -1,6 +1,5 @@
 import express from 'express';
-import { validateUpdateUser, validateUser } from '../validations/user';
-import { register } from '../services/auth';
+import { validateUpdateUser } from '../validations/user';
 import { getAllUser, getProfile, getUserDetail, updateUser } from '../services/user';
 import { authenticate } from '../middlewares/auth';
 import { requirePermission, requireRole } from '../middlewares/permission';
@@ -9,8 +8,6 @@ import { upload } from '../middlewares/multer';
 import { MAX_IMAGE_COUNT } from '../constants/constant';
 
 const usersRouter = express.Router();
-
-usersRouter.post('/', validateUser, register);
 
 usersRouter.get(
   '/',

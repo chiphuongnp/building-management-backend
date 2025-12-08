@@ -2,7 +2,6 @@ import { ActiveStatus, UserRank, UserRole } from '../constants/enum';
 
 export interface User {
   id: string;
-  uid: string;
   email: string;
   username: string;
   password?: string;

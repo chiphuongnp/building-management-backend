@@ -1,182 +1,167 @@
 import { Request, Response } from 'express';
-import { db, firebaseHelper } from '../utils/index';
-import bcrypt from 'bcrypt';
+import {
+  firebaseHelper,
+  logger,
+  responseError,
+  responseSuccess,
+  sendEmail,
+  signAccessToken,
+  signActivationToken,
+  signRefreshToken,
+  verifyActivationToken,
+  verifyRefreshToken,
+} from '../utils/index';
 import * as admin from 'firebase-admin';
-import { ActiveStatus, Collection, Sites, SitesName } from '../constants/enum';
-import { getDocById, getDocsByFields } from '../utils/firebaseHelper';
+import { ActiveStatus, Collection, Sites, SitesName, UserRank, UserRole } from '../constants/enum';
 import { User } from '../interfaces/user';
-import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt';
 import { AuthRequest } from '../interfaces/jwt';
+import { ErrorMessage, Message, StatusCode } from '../constants/message';
+import { DEFAULT_AVATAR_URL } from '../constants/constant';
+import { ACCESS_TOKEN_EXPIRES } from '../constants/jwt';
+
+const authUrl = `${Sites.TOKYO}/${Collection.AUTH}`;
+const userCollection = `${Sites.TOKYO}/${Collection.USERS}`;
+const getTokenPath = (uid: string) => {
+  const tokenPath = `${userCollection}/${uid}/tokens`;
+
+  return { tokenPath };
+};
 
 export const register = async (req: Request, res: Response) => {
-  const {
-    email,
-    password,
-    username,
-    fullName,
-    phone,
-    avatar_url,
-    ranks,
-    points,
-    roles,
-    permissions,
-  } = req.body;
-  let uid: string;
-  let authUser: admin.auth.UserRecord | null = null;
-
   try {
-    if (password) {
-      authUser = await admin.auth().createUser({
-        email,
-        password,
-        displayName: fullName,
-      });
-      uid = authUser.uid;
-    } else {
-      const tempUser = await admin.auth().createUser({ email });
-      uid = tempUser.uid;
+    const { email, password, username, full_name: fullName, phone } = req.body;
+
+    const user = await firebaseHelper.getDocByField(userCollection, 'email', email);
+    if (user.length) {
+      return responseError(res, StatusCode.ACCOUNT_EMAIL_EXISTS, ErrorMessage.ACCOUNT_EMAIL_EXISTS);
     }
 
-    const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
+    const authUser = await admin.auth().createUser({
+      email,
+      password,
+      displayName: fullName,
+    });
+
+    const uid = authUser.uid;
     const userData = {
       id: uid,
-      uid,
       email,
       username,
-      password: hashedPassword,
       fullName,
       phone,
-      avatar_url: avatar_url || null,
-      ranks: ranks || null,
-      points: points ?? 0,
-      roles: roles,
-      permissions: permissions || [],
+      image_urls: [DEFAULT_AVATAR_URL],
+      ranks: UserRank.BRONZE,
+      points: 0,
+      roles: UserRole.USER,
       status: ActiveStatus.INACTIVE,
-      updated_at: null,
-      updated_by: null,
     };
-    const result = await firebaseHelper.createDoc(`${Sites.TOKYO}/${Collection.USERS}`, userData);
+    const result = await firebaseHelper.createDoc(userCollection, userData);
     if (!result) {
-      res.status(400).json({
-        status: false,
-        message: 'Create user failed.',
-      });
-      return;
+      return responseError(res, StatusCode.CANNOT_CREATE_USER, ErrorMessage.CANNOT_CREATE_USER);
     }
-    const { password: _, ...safeUser } = userData;
-    return res.status(201).json({
-      success: true,
-      message: 'Register successfully',
-      data: safeUser,
-    });
+
+    await sendActivationMail(email, uid, fullName);
+
+    return responseSuccess(res, Message.REGISTER_SUCCESS, userData);
   } catch (err: any) {
+    logger.warn(`${ErrorMessage.REGISTER_FAILED} | ${err}`);
+
     if (err.code?.startsWith('auth/')) {
-      res.status(400).json({
-        success: false,
-        message: '[User][Create] Firebase Auth error!',
-      });
+      return responseError(
+        res,
+        StatusCode.FIREBASE_AUTH_FAILED,
+        `${ErrorMessage.FIREBASE_AUTH_FAILED} | ${err.message}`,
+      );
     }
-    res.status(400).json({
-      success: false,
-      message: '[User][Create] Request failed!',
-    });
+
+    return responseError(res, StatusCode.REGISTER_FAILED, ErrorMessage.REGISTER_FAILED);
   }
 };
 
 export const login = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
-
   try {
-    const userRecord = await admin.auth().getUserByEmail(email);
-    const userDoc = (await getDocById(
-      `${Sites.TOKYO}/${Collection.USERS}`,
-      userRecord.uid,
-    )) as User;
-    if (!userDoc) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found in this site',
-      });
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return responseError(res, StatusCode.INVALID_TOKEN, ErrorMessage.INVALID_TOKEN);
     }
 
-    if (userDoc.status !== ActiveStatus.ACTIVE) {
-      return res.status(403).json({
-        success: false,
-        message: 'Account is inactive or banned',
-      });
+    const idToken = authHeader.split(' ')[1];
+    const decoded = await admin.auth().verifyIdToken(idToken);
+    const user: User = await firebaseHelper.getDocById(userCollection, decoded.uid);
+    if (!user) {
+      return responseError(res, StatusCode.USER_NOT_FOUND, ErrorMessage.USER_NOT_FOUND);
+    }
+
+    if (user.status !== ActiveStatus.ACTIVE) {
+      return responseError(res, StatusCode.ACCOUNT_INACTIVE, ErrorMessage.ACCOUNT_INACTIVE);
     }
 
     const payload = {
-      uid: userRecord.uid,
-      email: userRecord.email,
+      uid: user.id,
+      email: user.email,
       site: SitesName.TOKYO,
-      roles: userDoc.roles,
-      permissions: userDoc.permissions || [],
+      roles: user.roles,
+      permissions: user.permissions || [],
     };
     const accessToken = signAccessToken(payload);
     const refreshToken = signRefreshToken(payload);
-    await db.collection(`${Sites.TOKYO}/${Collection.USERS}/${userRecord.uid}/tokens`).add({
+    const { tokenPath } = getTokenPath(user.id);
+    await firebaseHelper.createDoc(tokenPath, {
       refreshToken,
-      created_at: admin.firestore.Timestamp.now(),
       revoked: false,
     });
 
-    return res.status(200).json({
-      success: true,
-      message: 'Login successful',
-      data: {
-        accessToken,
-        refreshToken,
-        tokenType: 'Bearer',
-        expiresIn: process.env.ACCESS_TOKEN_EXPIRES,
-        user: {
-          uid: userRecord.uid,
-          email: userRecord.email,
-          displayName: userRecord.displayName,
-          site: SitesName.TOKYO,
-          roles: userDoc.roles,
-          permissions: userDoc.permissions,
-        },
-      },
+    return responseSuccess(res, Message.LOGIN_SUCCESS, {
+      accessToken,
+      refreshToken,
+      expiresIn: ACCESS_TOKEN_EXPIRES,
     });
   } catch (error: any) {
+    logger.warn(`${ErrorMessage.LOGIN_FAILED} | ${error}`);
+
     if (error.code === 'auth/user-not-found') {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found with this email',
-      });
+      return responseError(res, StatusCode.USER_NOT_FOUND, ErrorMessage.USER_NOT_FOUND);
+    } else if (error.code?.startsWith('auth/')) {
+      return responseError(
+        res,
+        StatusCode.FIREBASE_AUTH_FAILED,
+        `${ErrorMessage.FIREBASE_AUTH_FAILED} | ${error.message}`,
+      );
     }
-    return res.status(400).json({
-      success: false,
-      message: '[User][Login] Request failed!',
-    });
+
+    return responseError(res, StatusCode.LOGIN_FAILED, ErrorMessage.LOGIN_FAILED);
   }
 };
 
 export const refreshToken = async (req: Request, res: Response) => {
   const { refreshToken } = req.body;
   if (!refreshToken) {
-    return res.status(400).json({ success: false, message: 'refreshToken required' });
+    return responseError(
+      res,
+      StatusCode.REFRESH_TOKEN_REQUIRED,
+      ErrorMessage.REFRESH_TOKEN_REQUIRED,
+    );
   }
 
   try {
     const decoded = verifyRefreshToken(refreshToken) as any;
     const { uid, siteId } = decoded;
-    const userDoc = (await getDocById(`${Sites.TOKYO}/${Collection.USERS}`, uid)) as User;
+    const userDoc: User = await firebaseHelper.getDocById(userCollection, uid);
     if (!userDoc || userDoc.status !== ActiveStatus.ACTIVE) {
-      return res.status(403).json({ success: false, message: 'Invalid refresh token' });
+      return responseError(res, StatusCode.USER_NOT_FOUND, ErrorMessage.USER_NOT_FOUND);
     }
 
-    const tokenDoc = await getDocsByFields(
-      `${Sites.TOKYO}/${Collection.USERS}/${uid}/tokens`,
+    const { tokenPath } = getTokenPath(uid);
+    const tokenDoc = await firebaseHelper.getDocsByFields(
+      tokenPath,
       [
         { field: 'refreshToken', operator: '==', value: refreshToken },
         { field: 'revoked', operator: '==', value: false },
       ],
       1,
     );
-    if (tokenDoc.empty) {
-      return res.status(403).json({ success: false, message: 'Token revoked or invalid' });
+    if (!tokenDoc.length) {
+      return responseError(res, StatusCode.INVALID_TOKEN, ErrorMessage.INVALID_TOKEN);
     }
 
     const payload = {
@@ -187,59 +172,117 @@ export const refreshToken = async (req: Request, res: Response) => {
       permissions: userDoc.permissions || [],
     };
     const newAccessToken = signAccessToken(payload);
-    return res.json({
-      success: true,
-      data: {
-        accessToken: newAccessToken,
-        tokenType: 'Bearer',
-        expiresIn: 15 * 60,
-      },
+
+    return responseSuccess(res, Message.LOGIN_SUCCESS, {
+      accessToken: newAccessToken,
+      expiresIn: ACCESS_TOKEN_EXPIRES,
     });
   } catch (error) {
-    return res.status(403).json({
-      success: false,
-      message: 'Invalid or expired refresh token',
-    });
+    logger.warn(`${ErrorMessage.INVALID_TOKEN} | ${error}`);
+
+    return responseError(res, StatusCode.INVALID_TOKEN, ErrorMessage.INVALID_TOKEN);
   }
 };
 
 export const logout = async (req: AuthRequest, res: Response) => {
   const { refreshToken } = req.body;
-  const uid = req.user?.uid;
-  const site = req.user?.site;
-  if (!refreshToken || !uid || !site) {
-    return res.status(400).json({
-      success: false,
-      message: 'refreshToken, uid, siteId required',
-    });
+  const uid = req.user?.uid!;
+  if (!refreshToken) {
+    return responseError(
+      res,
+      StatusCode.REFRESH_TOKEN_REQUIRED,
+      ErrorMessage.REFRESH_TOKEN_REQUIRED,
+    );
   }
 
   try {
-    const snapshot = await getDocsByFields(`sites/${site}/${Collection.USERS}/${uid}/tokens`, [
+    const { tokenPath } = getTokenPath(uid);
+    const tokens = await firebaseHelper.getDocsByFields(tokenPath, [
       { field: 'refreshToken', operator: '==', value: refreshToken },
       { field: 'revoked', operator: '==', value: false },
     ]);
-    if (snapshot.empty) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid or already revoked token',
-      });
+    if (!tokens.length) {
+      return responseError(res, StatusCode.INVALID_TOKEN, ErrorMessage.INVALID_TOKEN);
     }
 
-    const batch = db.batch();
-    snapshot.docs.forEach((doc) => {
-      batch.update(doc.ref, { revoked: true });
-    });
-    await batch.commit();
+    await firebaseHelper.updateBatchDocs(userCollection, tokens);
 
-    return res.json({
-      success: true,
-      message: 'Logged out successfully',
-    });
+    return responseSuccess(res, Message.LOGOUT_SUCCESS);
   } catch (error) {
-    return res.status(400).json({
-      success: false,
-      message: '[Logout] Request failed',
+    logger.warn(`${ErrorMessage.INVALID_TOKEN} | ${error}`);
+
+    return responseError(res, StatusCode.LOGOUT_FAILED, ErrorMessage.LOGOUT_FAILED);
+  }
+};
+
+const sendActivationMail = async (email: string, uid: string, fullName: string = 'User') => {
+  if (!email) throw new Error(ErrorMessage.NO_RECIPIENT_EMAILS);
+
+  const token = signActivationToken({ uid });
+  const activationUrl = `${process.env.BE_URL}/${authUrl}/activate?token=${token}`;
+  const subject = 'Activate Your Account';
+  const html = `
+  <div style="font-family: Arial, sans-serif; background:#f4f4f4; padding:20px; color:#333;">
+    <div style="max-width:600px; margin:0 auto; background:#ffffff; padding:24px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+      
+      <h2 style="color:#1976d2; margin-bottom:10px;">Welcome, ${fullName}!</h2>
+      <p style="line-height:1.6; font-size:15px; margin-bottom:20px;">
+        Your account was created successfully.  
+        Click the button below to activate your account.
+      </p>
+
+      <a href="${activationUrl}" 
+         style="display:inline-block; padding:12px 20px; background:#1976d2; color:#fff; 
+                text-decoration:none; border-radius:6px; font-weight:bold;">
+        Activate Account
+      </a>
+
+      <p style="margin-top:20px; font-size:14px; color:#666;">
+        Or open this link:<br/>
+        <a href="${activationUrl}" style="color:#1976d2;">${activationUrl}</a>
+      </p>
+
+      <hr style="border:none; border-top:1px solid #eee; margin:24px 0;" />
+
+      <p style="font-size:12px; color:#999;">
+        This is an automated email. Do not reply.
+      </p>
+    </div>
+  </div>
+  `;
+
+  try {
+    await sendEmail(email, subject, html);
+  } catch (error) {
+    logger.error(`${ErrorMessage.SEND_ACTIVATION_MAIL_FAILED} | ${error}`);
+
+    throw new Error(ErrorMessage.SEND_ACTIVATION_MAIL_FAILED);
+  }
+};
+
+export const activateAccount = async (req: Request, res: Response) => {
+  try {
+    const token = req.query.token as string;
+    if (!token) {
+      return res.status(400).send('<h1>Activation token missing</h1>');
+    }
+
+    const payload = verifyActivationToken(token) as { uid: string };
+    const user: User = await firebaseHelper.getDocById(userCollection, payload.uid);
+    if (!user) {
+      return res.status(404).send('<h1>User not found</h1>');
+    }
+
+    if (user.status === ActiveStatus.ACTIVE) {
+      return res.send('<h1>Your account is already activated</h1>');
+    }
+
+    await firebaseHelper.updateDoc(userCollection, payload.uid, {
+      status: ActiveStatus.ACTIVE,
     });
+
+    return res.send('<h1>Account activated successfully</h1>');
+  } catch (err) {
+    return res.status(400).send('<h1>Invalid or expired activation link</h1>');
   }
 };

@@ -10,3 +10,5 @@ export const DEFAULT_PARTICIPANTS = 0;
 // payment constants
 export const POINTS_EARN_RATE = 20000;
 export const POINT_EXCHANGE_VALUE = 1000;
+// bcrypt constant
+export const DEFAULT_AVATAR_URL = 'uploads/user-images/default-avatar.png';
