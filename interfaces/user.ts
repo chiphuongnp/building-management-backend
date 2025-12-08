@@ -4,17 +4,16 @@ export interface User {
   id: string;
   email: string;
   username: string;
-  password?: string;
-  fullName: string;
+  full_name: string;
   phone: string;
-  image_urls?: string[] | null;
-  ranks?: UserRank;
+  image_url?: string | null;
+  rank?: UserRank;
   points?: number | null;
-  roles: UserRole;
+  role: UserRole;
   permissions?: string[] | null;
   status: ActiveStatus;
-  created_at: Date | FirebaseFirestore.Timestamp;
-  updated_at?: Date | FirebaseFirestore.Timestamp | null;
-  created_by: string;
+  created_at?: Date;
+  updated_at?: Date | null;
+  created_by?: string;
   updated_by?: string | null;
 }

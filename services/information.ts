@@ -42,7 +42,7 @@ export const createInformation = async (req: AuthRequest, res: Response) => {
         newInfo.target === InformationTarget.ALL
           ? await firebaseHelper.getAllDocs(userCollection)
           : await firebaseHelper.getDocsByFields(userCollection, [
-              { field: 'roles', operator: '==', value: UserRole.MANAGER },
+              { field: 'role', operator: '==', value: UserRole.MANAGER },
             ]);
       if (!users.length)
         return responseError(res, StatusCode.USER_NOT_FOUND, ErrorMessage.USER_NOT_FOUND);
@@ -106,7 +106,7 @@ export const getInformation = async (req: AuthRequest, res: Response) => {
       );
     }
 
-    if (req.user?.roles !== UserRole.MANAGER && information.target === InformationTarget.MANAGER) {
+    if (req.user?.role !== UserRole.MANAGER && information.target === InformationTarget.MANAGER) {
       return responseError(
         res,
         StatusCode.FORBIDDEN_INFORMATION,

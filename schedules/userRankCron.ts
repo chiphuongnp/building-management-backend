@@ -46,7 +46,7 @@ const runUserRankJob = async (site: Sites) => {
           const totalAmount = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
           const newRank = getRankFromAmount(totalAmount);
           await firebaseHelper.updateDoc(userCollection, userId, {
-            ranks: newRank,
+            rank: newRank,
           });
 
           logger.info(`[UserRankCron] Updated rank for user ID ${userId}: ${newRank}`);

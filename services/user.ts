@@ -65,15 +65,15 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
       return responseError(res, StatusCode.USER_NOT_FOUND, ErrorMessage.USER_NOT_FOUND);
     }
 
-    const files = req?.files as Express.Multer.File[];
-    const imageUrls = files?.map((file) => file.path.replace(/\\/g, '/'));
-    if (imageUrls.length && user.image_urls?.length) {
-      await deleteImages(user.image_urls);
+    const file = req.file as Express.Multer.File | undefined;
+    const newImageUrl = file ? file.path.replace(/\\/g, '/') : null;
+    if (newImageUrl && user.image_url) {
+      await deleteImages([user.image_url]);
     }
 
-    const updatedUser = {
+    const updatedUser: User = {
       ...req.body,
-      image_urls: imageUrls.length ? imageUrls : user.image_urls,
+      image_url: newImageUrl ? newImageUrl : user.image_url,
       updated_by: req.user?.uid,
     };
     await firebaseHelper.updateDoc(userCollection, userId, updatedUser);

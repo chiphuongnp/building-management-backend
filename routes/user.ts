@@ -32,7 +32,7 @@ usersRouter.patch(
   authenticate,
   requireRole(UserRole.MANAGER),
   requirePermission(Permission.UPDATE_USER),
-  upload.array('user-images', MAX_IMAGE_COUNT),
+  upload.single('user-images'),
   validateUpdateUser,
   updateUser,
 );

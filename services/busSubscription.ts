@@ -105,7 +105,7 @@ export const createBusSubscription = async (req: AuthRequest, res: Response) => 
       const subscriptionData: BusSubscription = {
         ...data,
         employee_id: user.id,
-        employee_name: user.fullName,
+        employee_name: user.full_name,
         employee_phone: user.phone,
         status: BusSubscriptionStatus.PENDING,
       };

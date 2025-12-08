@@ -31,8 +31,8 @@ export const register = async (req: Request, res: Response) => {
   try {
     const { email, password, username, full_name: fullName, phone } = req.body;
 
-    const user = await firebaseHelper.getDocByField(userCollection, 'email', email);
-    if (user.length) {
+    const users: User[] = await firebaseHelper.getDocByField(userCollection, 'email', email);
+    if (users.length) {
       return responseError(res, StatusCode.ACCOUNT_EMAIL_EXISTS, ErrorMessage.ACCOUNT_EMAIL_EXISTS);
     }
 
@@ -43,16 +43,16 @@ export const register = async (req: Request, res: Response) => {
     });
 
     const uid = authUser.uid;
-    const userData = {
+    const userData: User = {
       id: uid,
       email,
       username,
-      fullName,
+      full_name: fullName,
       phone,
-      image_urls: [DEFAULT_AVATAR_URL],
-      ranks: UserRank.BRONZE,
+      image_url: DEFAULT_AVATAR_URL,
+      rank: UserRank.BRONZE,
       points: 0,
-      roles: UserRole.USER,
+      role: UserRole.USER,
       status: ActiveStatus.INACTIVE,
     };
     const result = await firebaseHelper.createDoc(userCollection, userData);
@@ -100,7 +100,7 @@ export const login = async (req: Request, res: Response) => {
       uid: user.id,
       email: user.email,
       site: SitesName.TOKYO,
-      roles: user.roles,
+      role: user.role,
       permissions: user.permissions || [],
     };
     const accessToken = signAccessToken(payload);
@@ -168,7 +168,7 @@ export const refreshToken = async (req: Request, res: Response) => {
       uid,
       email: userDoc.email,
       siteId,
-      roles: userDoc.roles,
+      role: userDoc.role,
       permissions: userDoc.permissions || [],
     };
     const newAccessToken = signAccessToken(payload);

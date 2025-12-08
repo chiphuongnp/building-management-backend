@@ -63,7 +63,7 @@ export const getPayment = async (req: AuthRequest, res: Response) => {
       return responseError(res, StatusCode.PAYMENT_NOT_FOUND, ErrorMessage.PAYMENT_NOT_FOUND);
     }
 
-    if (req.user?.roles !== UserRole.MANAGER && payment.user_id !== req.user?.uid) {
+    if (req.user?.role !== UserRole.MANAGER && payment.user_id !== req.user?.uid) {
       return responseError(res, StatusCode.PAYMENT_FORBIDDEN, ErrorMessage.PAYMENT_FORBIDDEN);
     }
 

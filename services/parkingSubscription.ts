@@ -110,7 +110,7 @@ const createParkingSubscription = async (req: AuthRequest, res: Response) => {
 
     const { finalAmount, discount, pointsEarned, finalPointsUsed, vatCharge } = calculatePayment(
       base_amount,
-      user.ranks,
+      user.rank,
       points_used,
       VATRate.DEFAULT,
     );

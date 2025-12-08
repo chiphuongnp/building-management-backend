@@ -57,7 +57,7 @@ const runInformationJob = async (site: Sites) => {
         if (!users.length) logger.warn(`[InfoCron] No users found in site ${site}!`);
 
         managers = await firebaseHelper.getDocsByFields(userCollection, [
-          { field: 'roles', operator: '==', value: UserRole.MANAGER },
+          { field: 'role', operator: '==', value: UserRole.MANAGER },
         ]);
         if (!managers.length) logger.warn(`[InfoCron] No managers found in site ${site}!`);
 
@@ -71,7 +71,7 @@ const runInformationJob = async (site: Sites) => {
 
       case hasManager:
         managers = await firebaseHelper.getDocsByFields(userCollection, [
-          { field: 'roles', operator: '==', value: UserRole.MANAGER },
+          { field: 'role', operator: '==', value: UserRole.MANAGER },
         ]);
         if (!managers.length) logger.warn(`[InfoCron] No managers found in site ${site}!`);
 

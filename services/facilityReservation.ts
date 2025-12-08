@@ -145,7 +145,7 @@ const createFacilityReservation = async (req: AuthRequest, res: Response) => {
     };
     const { finalAmount, discount, pointsEarned, finalPointsUsed, vatCharge } = calculatePayment(
       baseAmount,
-      user.ranks,
+      user.rank,
       points_used,
       VATRate.DEFAULT,
     );

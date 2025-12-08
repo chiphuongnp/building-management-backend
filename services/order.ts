@@ -44,7 +44,7 @@ const createOrder = async (req: AuthRequest, res: Response, next: NextFunction) 
     const deliveryInfo =
       orders.pickup_method === PickupMethod.DELIVERY
         ? {
-            contact_name: delivery_info?.contact_name || user?.fullName || 'Guest',
+            contact_name: delivery_info?.contact_name || user?.full_name || 'Guest',
             contact_phone: delivery_info?.contact_phone || user?.phone || '',
             notes: delivery_info?.notes || '',
           }
@@ -59,7 +59,7 @@ const createOrder = async (req: AuthRequest, res: Response, next: NextFunction) 
     );
     const { finalAmount, discount, pointsEarned, finalPointsUsed, vatCharge } = calculatePayment(
       base_amount,
-      user.ranks,
+      user.rank,
       points_used,
       VATRate.FOOD,
     );
