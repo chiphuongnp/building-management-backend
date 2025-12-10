@@ -4,11 +4,13 @@ import {
   getBuildingById,
   createBuilding,
   updateBuilding,
+  updateBuildingStatus,
 } from '../services/building';
 import {
   validateCreateBuilding,
   validateUpdateBuilding,
   validateIdParam,
+  validateUpdateBuildingStatus,
 } from '../validations/building';
 import { requireRole, requirePermission } from '../middlewares/permission';
 import { authenticate } from '../middlewares/auth';
@@ -43,6 +45,16 @@ buildingRouter.patch(
   validateIdParam,
   validateUpdateBuilding,
   updateBuilding,
+);
+
+buildingRouter.patch(
+  '/update-status/:id',
+  authenticate,
+  requireRole(UserRole.MANAGER),
+  requirePermission(Permission.UPDATE_BUILDING),
+  validateIdParam,
+  validateUpdateBuildingStatus,
+  updateBuildingStatus,
 );
 
 export default buildingRouter;

@@ -48,6 +48,7 @@ export enum ErrorMessage {
   BUILDING_CODE_ALREADY_EXISTS = 'Building code already exists!',
   CANNOT_CREATE_BUILDING = 'Cannot create building!',
   CANNOT_UPDATE_BUILDING = 'Cannot update building!',
+  CANNOT_UPDATE_BUILDING_STATUS = 'Cannot update building status!',
 
   // Parking space messages
   CANNOT_GET_PARKING_SPACE_LIST = 'Can not get list of parking space!',
@@ -256,6 +257,7 @@ export enum Message {
   BUILDING_CREATED = 'Building created successfully.',
   BUILDING_UPDATED = 'Building has been updated successfully.',
   GET_BUILDINGS = 'Get building(s) successfully.',
+  BUILDING_STATUS_UPDATED = 'Building status has been updated successfully.',
 
   // Parking space messages
   PARKING_SPACE_CREATED = 'Parking space created successfully.',
@@ -450,6 +452,7 @@ export enum StatusCode {
   BUILDING_CODE_ALREADY_EXISTS = 4044,
   CANNOT_CREATE_BUILDING = 4045,
   CANNOT_UPDATE_BUILDING = 4046,
+  CANNOT_UPDATE_BUILDING_STATUS = 4047,
 
   // Parking space status codes
   CANNOT_GET_PARKING_SPACE_LIST = 4081,
