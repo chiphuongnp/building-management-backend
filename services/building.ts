@@ -123,4 +123,23 @@ const updateBuilding = async (req: Request, res: Response) => {
   }
 };
 
-export { createBuilding, updateBuilding, getBuildingById, getBuildings };
+const updateBuildingStatus = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    await firebaseHelper.updateDoc(buildingCollection, id, {
+      status: req.body.status,
+    });
+
+    return responseSuccess(res, Message.BUILDING_STATUS_UPDATED, { id });
+  } catch (error) {
+    logger.warn(ErrorMessage.CANNOT_UPDATE_BUILDING_STATUS + error);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_UPDATE_BUILDING_STATUS,
+      ErrorMessage.CANNOT_UPDATE_BUILDING_STATUS,
+    );
+  }
+};
+
+export { createBuilding, updateBuilding, updateBuildingStatus, getBuildingById, getBuildings };
