@@ -5,7 +5,6 @@ import { authenticate } from '../middlewares/auth';
 import { requirePermission, requireRole } from '../middlewares/permission';
 import { Permission, UserRole } from '../constants/enum';
 import { upload } from '../middlewares/multer';
-import { MAX_IMAGE_COUNT } from '../constants/constant';
 
 const usersRouter = express.Router();
 

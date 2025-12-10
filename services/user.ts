@@ -6,19 +6,32 @@ import {
   responseError,
   responseSuccess,
 } from '../utils/index';
-import { Collection, Sites } from '../constants/enum';
+import { Collection, Sites, UserRole } from '../constants/enum';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { AuthRequest } from '../interfaces/jwt';
 import { User } from '../interfaces/user';
+import { WhereFilterOp } from 'firebase-admin/firestore';
 
 const userCollection = `${Sites.TOKYO}/${Collection.USERS}`;
-
 export const getAllUser = async (req: Request, res: Response) => {
   try {
-    const users = await firebaseHelper.getAllDocs(userCollection);
+    const { role } = req.query;
+    const filters: { field: string; operator: WhereFilterOp; value: any }[] = [];
+    if (role) {
+      filters.push({ field: 'role', operator: '==', value: role });
+    }
+
+    let users: User[];
+    if (filters.length) {
+      users = await firebaseHelper.getDocsByFields(userCollection, filters);
+    } else {
+      users = await firebaseHelper.getAllDocs(userCollection);
+    }
+
     return responseSuccess(res, Message.USER_GET_ALL, users);
   } catch (error) {
     logger.warn(ErrorMessage.USER_GET_ALL + error);
+
     return responseError(res, StatusCode.USER_GET_ALL, ErrorMessage.REQUEST_FAILED);
   }
 };

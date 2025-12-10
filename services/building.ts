@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { firebaseHelper, logger, responseError, responseSuccess } from '../utils/index';
-import { Collection, Sites } from '../constants/enum';
+import { ActiveStatus, Collection, Sites } from '../constants/enum';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
+import { AuthRequest } from '../interfaces/jwt';
 
 const buildingCollection = `${Sites.TOKYO}/${Collection.BUILDINGS}`;
 const getBuildings = async (req: Request, res: Response) => {
@@ -36,7 +37,7 @@ const getBuildingById = async (req: Request, res: Response) => {
   }
 };
 
-const createBuilding = async (req: Request, res: Response) => {
+const createBuilding = async (req: AuthRequest, res: Response) => {
   try {
     const data = req.body;
     const nameExists = await firebaseHelper.getDocByField(buildingCollection, 'name', data.name);
@@ -57,7 +58,12 @@ const createBuilding = async (req: Request, res: Response) => {
       );
     }
 
-    const docRef = await firebaseHelper.createDoc(buildingCollection, data);
+    const buildingData = {
+      ...data,
+      status: ActiveStatus.ACTIVE,
+      created_by: req.user?.uid,
+    };
+    const docRef = await firebaseHelper.createDoc(buildingCollection, buildingData);
     return responseSuccess(res, Message.BUILDING_CREATED, { id: docRef.id });
   } catch (error) {
     logger.warn(ErrorMessage.CANNOT_CREATE_BUILDING + error);

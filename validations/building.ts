@@ -20,13 +20,6 @@ const createBuildingSchema = Joi.object({
   manager_id: Joi.string().required().min(1).messages({
     'string.empty': 'Manager Id is required',
   }),
-  status: Joi.string().valid('active', 'inactive').required().messages({
-    'any.only': 'Status must be either active or inactive',
-    'any.required': 'Status is required',
-  }),
-  created_by: Joi.string().min(1).optional().messages({
-    'string.empty': 'Created by is required',
-  }),
 });
 
 const updateBuildingSchema = Joi.object({
