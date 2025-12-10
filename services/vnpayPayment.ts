@@ -12,6 +12,7 @@ import {
 } from '../utils/index';
 import qs from 'qs';
 import moment from 'moment';
+import * as ENV from '../configs/envConfig';
 
 const paymentCollection = `${Sites.TOKYO}/${Collection.PAYMENTS}`;
 export const createVnpayUrl = async (req: Request, res: Response) => {
@@ -29,10 +30,10 @@ export const createVnpayUrl = async (req: Request, res: Response) => {
     }
 
     const createDate = moment(new Date()).format('YYYYMMDDHHmmss');
-    const tmnCode = process.env.VNP_TMN_CODE ?? '';
-    const secretKey = process.env.VNP_HASH_SECRET ?? '';
-    const vnpUrl = process.env.VNP_URL ?? '';
-    const returnUrl = process.env.VNP_RETURN_URL ?? '';
+    const tmnCode = ENV.VNP_TMN_CODE ?? '';
+    const secretKey = ENV.VNP_HASH_SECRET ?? '';
+    const vnpUrl = ENV.VNP_URL ?? '';
+    const returnUrl = ENV.VNP_RETURN_URL ?? '';
 
     let params: Record<string, string | number> = {
       vnp_Version: '2.1.0',
@@ -72,7 +73,7 @@ export const createVnpayUrl = async (req: Request, res: Response) => {
 export const vnpayReturnHandler = async (req: Request, res: Response) => {
   try {
     const query = { ...req.query } as Record<string, string>;
-    const vnp_HashSecret = process.env.VNP_HASH_SECRET ?? '';
+    const vnp_HashSecret = ENV.VNP_HASH_SECRET ?? '';
     const secureHash = query['vnp_SecureHash'];
     delete query['vnp_SecureHash'];
     delete query['vnp_SecureHashType'];
@@ -118,7 +119,7 @@ export const vnpayReturnHandler = async (req: Request, res: Response) => {
 export const vnpayIpnHandler = async (req: Request, res: Response) => {
   try {
     const query = { ...req.query } as Record<string, string>;
-    const vnp_HashSecret = process.env.VNP_HASH_SECRET ?? '';
+    const vnp_HashSecret = ENV.VNP_HASH_SECRET ?? '';
     const secureHash = query['vnp_SecureHash'];
     delete query['vnp_SecureHash'];
     delete query['vnp_SecureHashType'];

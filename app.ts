@@ -1,4 +1,3 @@
-import dotenv from 'dotenv';
 import express, { Application } from 'express';
 import { Collection, Sites } from './constants/enum';
 import siteRouter from './routes/site';
@@ -25,12 +24,13 @@ import vnpayRouter from './routes/vnpayPayment';
 import { logger } from './utils/index';
 import informationRouter from './routes/information';
 import cors from 'cors';
+import path from 'path';
+import * as ENV from './configs/envConfig';
 
-dotenv.config();
 const app: Application = express();
 app.use(
   cors({
-    origin: process.env.FE_URL,
+    origin: ENV.FE_URL,
     credentials: true,
   }),
 );
@@ -68,8 +68,9 @@ app.use(
 );
 app.use('/momo', momoRouter);
 app.use('/vnpay', vnpayRouter);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-const PORT = process.env.APP_PORT || 5000;
+const PORT = ENV.APP_PORT || 5000;
 app.listen(PORT, () => {
   logger.info(`Server running on port ${PORT}`);
 });

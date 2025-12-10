@@ -4,11 +4,11 @@ import {
   ACTIVATE_TOKEN_EXPIRES,
   REFRESH_TOKEN_EXPIRES,
 } from '../constants/jwt';
-require('dotenv').config();
+import * as ENV from '../configs/envConfig';
 
-const ACCESS_TOKEN_SECRET = process.env.JWT_ACCESS_SECRET as string;
-const REFRESH_TOKEN_SECRET = process.env.JWT_REFRESH_SECRET as string;
-const ACTIVATION_TOKEN_SECRET = process.env.JWT_ACTIVATE_SECRET as string;
+const ACCESS_TOKEN_SECRET = ENV.JWT_ACCESS_SECRET as string;
+const REFRESH_TOKEN_SECRET = ENV.JWT_REFRESH_SECRET as string;
+const ACTIVATION_TOKEN_SECRET = ENV.JWT_ACTIVATE_SECRET as string;
 
 export const signAccessToken = (payload: any) => {
   return jwt.sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRES });

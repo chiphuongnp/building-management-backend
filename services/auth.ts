@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import {
+  admin,
   firebaseHelper,
   logger,
   responseError,
@@ -11,13 +12,13 @@ import {
   verifyActivationToken,
   verifyRefreshToken,
 } from '../utils/index';
-import * as admin from 'firebase-admin';
 import { ActiveStatus, Collection, Sites, SitesName, UserRank, UserRole } from '../constants/enum';
 import { User } from '../interfaces/user';
 import { AuthRequest } from '../interfaces/jwt';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { DEFAULT_AVATAR_URL } from '../constants/constant';
 import { ACCESS_TOKEN_EXPIRES } from '../constants/jwt';
+import * as ENV from '../configs/envConfig';
 
 const authUrl = `${Sites.TOKYO}/${Collection.AUTH}`;
 const userCollection = `${Sites.TOKYO}/${Collection.USERS}`;
@@ -219,7 +220,7 @@ const sendActivationMail = async (email: string, uid: string, fullName: string =
   if (!email) throw new Error(ErrorMessage.NO_RECIPIENT_EMAILS);
 
   const token = signActivationToken({ uid });
-  const activationUrl = `${process.env.BE_URL}/${authUrl}/activate?token=${token}`;
+  const activationUrl = `${ENV.BE_URL}/${authUrl}/activate?token=${token}`;
   const subject = 'Activate Your Account';
   const html = `
   <div style="font-family: Arial, sans-serif; background:#f4f4f4; padding:20px; color:#333;">
@@ -283,6 +284,8 @@ export const activateAccount = async (req: Request, res: Response) => {
 
     return res.send('<h1>Account activated successfully</h1>');
   } catch (err) {
+    logger.error(`${ErrorMessage.INVALID_LINK} | ${err}`);
+
     return res.status(400).send('<h1>Invalid or expired activation link</h1>');
   }
 };
