@@ -1,12 +1,30 @@
 import express from 'express';
-import { validateUpdateUser } from '../validations/user';
-import { getAllUser, getProfile, getUserDetail, updateUser } from '../services/user';
+import { validateUpdateUser, validateUser } from '../validations/user';
+import {
+  createSuperManager,
+  createUser,
+  getAllUser,
+  getProfile,
+  getUserDetail,
+  updateUser,
+} from '../services/user';
 import { authenticate } from '../middlewares/auth';
 import { requirePermission, requireRole } from '../middlewares/permission';
 import { Permission, UserRole } from '../constants/enum';
 import { upload } from '../middlewares/multer';
 
 const usersRouter = express.Router();
+
+usersRouter.post('/init-manager', validateUser, createSuperManager);
+
+usersRouter.post(
+  '/create',
+  authenticate,
+  requireRole(UserRole.MANAGER),
+  requirePermission(Permission.CREATE_USER),
+  validateUser,
+  createUser,
+);
 
 usersRouter.get(
   '/',

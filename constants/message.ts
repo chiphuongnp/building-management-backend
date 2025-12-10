@@ -32,6 +32,7 @@ export enum ErrorMessage {
 
   //Authenticate error messages
   UNAUTHORIZE_NOT_FOUND = 'Unauthorized: User ID not found',
+  UNAUTHORIZED = 'Unauthorized!',
 
   // Site messages
   CANNOT_GET_SITE_LIST = 'Can not get list of sites!',
@@ -214,6 +215,7 @@ export enum ErrorMessage {
   SENDER_MAIL_NOT_CONFIGURED = 'Sender email is not configured!',
   NO_RECIPIENT_EMAILS = 'No valid recipient email addresses!',
   SEND_INFORMATION_FAILED = 'Failed to send information notification!',
+  INVALID_LINK = 'Invalid or expired activation link',
 
   // Auth errors
   INVALID_TOKEN = 'Invalid or already revoked token!',
@@ -227,6 +229,7 @@ export enum ErrorMessage {
   ACCOUNT_EMAIL_EXISTS = 'Email already exists!',
   LOGOUT_FAILED = 'Login request failed!',
   REFRESH_TOKEN_REQUIRED = 'Refresh token is required!',
+  CANNOT_CREATE_SUPER_MANAGER = 'Cannot create super manager!',
 }
 
 export enum Message {
@@ -241,6 +244,7 @@ export enum Message {
   DISH_GET_DETAIL = `Get restaurant's dish successfully`,
 
   //User messages
+  SUPER_MANAGER_CREATED = 'First manager created successfully',
   USER_CREATED = 'User created successfully',
   USER_UPDATED = 'User updated successfully',
   USER_GET_ALL = 'Get all user successfully',
@@ -392,6 +396,8 @@ export enum StatusCode {
   ACCOUNT_EMAIL_EXISTS = 4015,
   LOGOUT_FAILED = 4016,
   REFRESH_TOKEN_REQUIRED = 4017,
+  UNAUTHORIZED = 4018,
+  CANNOT_CREATE_SUPER_MANAGER = 4019,
 
   // Menu Schedule status codes
   CANNOT_CREATE_MENU_SCHEDULE = 4061,

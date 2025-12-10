@@ -5,12 +5,15 @@ import {
   deleteImages,
   responseError,
   responseSuccess,
+  admin,
 } from '../utils/index';
-import { Collection, Sites, UserRole } from '../constants/enum';
+import { ActiveStatus, Collection, Permission, Sites, UserRole, UserRank } from '../constants/enum';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { AuthRequest } from '../interfaces/jwt';
 import { User } from '../interfaces/user';
 import { WhereFilterOp } from 'firebase-admin/firestore';
+import { DEFAULT_AVATAR_URL } from '../constants/constant';
+import * as ENV from '../configs/envConfig';
 
 const userCollection = `${Sites.TOKYO}/${Collection.USERS}`;
 export const getAllUser = async (req: Request, res: Response) => {
@@ -94,6 +97,123 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
     return responseSuccess(res, Message.USER_UPDATED, userId);
   } catch (error) {
     logger.warn(ErrorMessage.USER_UPDATED + error);
+
     return responseError(res, StatusCode.USER_UPDATE, ErrorMessage.REQUEST_FAILED);
+  }
+};
+
+export const createUser = async (req: AuthRequest, res: Response) => {
+  try {
+    const { email, password, username, full_name: fullName, phone, role, permissions } = req.body;
+    const users: User[] = await firebaseHelper.getDocByField(userCollection, 'email', email);
+    if (users.length) {
+      return responseError(res, StatusCode.ACCOUNT_EMAIL_EXISTS, ErrorMessage.ACCOUNT_EMAIL_EXISTS);
+    }
+
+    const authUser = await admin.auth().createUser({
+      email,
+      password,
+      displayName: fullName,
+    });
+    const uid = authUser.uid;
+    const userData: User = {
+      id: uid,
+      email,
+      username,
+      phone,
+      role: role ? role : UserRole.USER,
+      permissions: role === UserRole.MANAGER ? permissions : [],
+      full_name: fullName,
+      image_url: DEFAULT_AVATAR_URL,
+      rank: UserRank.BRONZE,
+      points: 0,
+      status: ActiveStatus.ACTIVE,
+      created_by: req.user?.uid,
+    };
+
+    const result = await firebaseHelper.createDoc(userCollection, userData);
+    if (!result) {
+      return responseError(res, StatusCode.CANNOT_CREATE_USER, ErrorMessage.CANNOT_CREATE_USER);
+    }
+
+    return responseSuccess(res, Message.USER_CREATED, userData);
+  } catch (err: any) {
+    logger.warn(`${ErrorMessage.CANNOT_CREATE_USER} | ${err}`);
+
+    if (err.code?.startsWith('auth/')) {
+      return responseError(
+        res,
+        StatusCode.FIREBASE_AUTH_FAILED,
+        `${ErrorMessage.FIREBASE_AUTH_FAILED} | ${err.message}`,
+      );
+    }
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_CREATE_USER,
+      `${ErrorMessage.CANNOT_CREATE_USER} | ${err.message}`,
+    );
+  }
+};
+
+export const createSuperManager = async (req: Request, res: Response) => {
+  try {
+    const { email, password, username, full_name: fullName, phone } = req.body;
+    const secret = req.headers['x-init-secret'];
+    if (secret !== ENV.INIT_MANAGER_SECRET) {
+      return responseError(res, StatusCode.UNAUTHORIZED, ErrorMessage.UNAUTHORIZED);
+    }
+
+    const users: User[] = await firebaseHelper.getDocByField(
+      userCollection,
+      'role',
+      UserRole.MANAGER,
+    );
+    if (users.length) {
+      return responseError(res, StatusCode.UNAUTHORIZED, ErrorMessage.UNAUTHORIZED);
+    }
+
+    const authUser = await admin.auth().createUser({
+      email,
+      password,
+      displayName: fullName,
+    });
+    const uid = authUser.uid;
+    const userData = {
+      id: uid,
+      email,
+      username,
+      phone,
+      full_name: fullName,
+      role: UserRole.MANAGER,
+      permissions: [Permission.CREATE_USER],
+      image_url: DEFAULT_AVATAR_URL,
+      rank: UserRank.BRONZE,
+      points: 0,
+      status: ActiveStatus.ACTIVE,
+    };
+
+    const result = await firebaseHelper.createDoc(userCollection, userData);
+    if (!result) {
+      return responseError(res, StatusCode.CANNOT_CREATE_USER, ErrorMessage.CANNOT_CREATE_USER);
+    }
+
+    return responseSuccess(res, Message.SUPER_MANAGER_CREATED, userData);
+  } catch (err: any) {
+    logger.warn(`${ErrorMessage.CANNOT_CREATE_SUPER_MANAGER} | ${err}`);
+
+    if (err.code?.startsWith('auth/')) {
+      return responseError(
+        res,
+        StatusCode.FIREBASE_AUTH_FAILED,
+        `${ErrorMessage.FIREBASE_AUTH_FAILED} | ${err.message}`,
+      );
+    }
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_CREATE_SUPER_MANAGER,
+      `${ErrorMessage.CANNOT_CREATE_SUPER_MANAGER} | ${err.message}`,
+    );
   }
 };
