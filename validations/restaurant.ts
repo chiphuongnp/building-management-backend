@@ -55,7 +55,7 @@ const createRestaurantSchema = Joi.object<Restaurant>({
     'string.max': 'Name must not exceed 100 characters',
   }),
   description: Joi.string().max(500).optional(),
-  operating_hours: operatingHoursSchema.optional(),
+  operating_hours: operatingHoursSchema.required(),
   contact: contactSchema.optional(),
 });
 
@@ -66,12 +66,6 @@ const updateRestaurantSchema = Joi.object<Partial<Restaurant>>({
   description: Joi.string().max(500).optional(),
   operating_hours: operatingHoursSchema.optional(),
   contact: contactSchema.optional(),
-  status: Joi.string()
-    .valid(...Object.values(ActiveStatus))
-    .optional()
-    .messages({
-      'any.only': 'Invalid status value',
-    }),
 });
 
 const idParamSchema = Joi.object({

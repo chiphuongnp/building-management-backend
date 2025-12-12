@@ -26,7 +26,7 @@ const getPaths = (restaurantId: string) => {
   return { menuPath, dailySalePath, dishSalePath };
 };
 
-const getRestaurants = async (req: AuthRequest, res: Response, next: NextFunction) => {
+const getRestaurants = async (req: AuthRequest, res: Response) => {
   try {
     const { status, building_id } = req.query;
     const filters: { field: string; operator: WhereFilterOp; value: any }[] = [];
@@ -49,9 +49,9 @@ const getRestaurants = async (req: AuthRequest, res: Response, next: NextFunctio
       return responseError(res, StatusCode.RESTAURANT_NOT_FOUND, ErrorMessage.RESTAURANT_NOT_FOUND);
     }
 
-    return responseSuccess(res, Message.RESTAURANT_GET_ALL, { restaurants });
+    return responseSuccess(res, Message.RESTAURANT_GET_ALL, restaurants);
   } catch (error) {
-    logger.warn(ErrorMessage.CANNOT_GET_RESTAURANT_LIST + error);
+    logger.warn(`${ErrorMessage.CANNOT_GET_RESTAURANT_LIST} | ${error}`);
 
     return responseError(
       res,
@@ -61,7 +61,7 @@ const getRestaurants = async (req: AuthRequest, res: Response, next: NextFunctio
   }
 };
 
-const getRestaurant = async (req: AuthRequest, res: Response, next: NextFunction) => {
+const getRestaurant = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const restaurant: Restaurant = await firebaseHelper.getDocById(restaurantUrl, id);
@@ -69,9 +69,9 @@ const getRestaurant = async (req: AuthRequest, res: Response, next: NextFunction
       return responseError(res, StatusCode.RESTAURANT_NOT_FOUND, ErrorMessage.RESTAURANT_NOT_FOUND);
     }
 
-    return responseSuccess(res, Message.RESTAURANT_GET_DETAIL, { restaurant });
+    return responseSuccess(res, Message.RESTAURANT_GET_DETAIL, restaurant);
   } catch (error) {
-    logger.warn(ErrorMessage.CANNOT_GET_RESTAURANT_DETAIL + error);
+    logger.warn(`${ErrorMessage.CANNOT_GET_RESTAURANT_DETAIL} | ${error}`);
 
     return responseError(
       res,
@@ -81,7 +81,7 @@ const getRestaurant = async (req: AuthRequest, res: Response, next: NextFunction
   }
 };
 
-const createRestaurant = async (req: AuthRequest, res: Response, next: NextFunction) => {
+const createRestaurant = async (req: AuthRequest, res: Response) => {
   try {
     const { building_id, name } = req.body;
     const building = await firebaseHelper.getDocById(buildingUrl, building_id);
@@ -111,7 +111,7 @@ const createRestaurant = async (req: AuthRequest, res: Response, next: NextFunct
 
     return responseSuccess(res, Message.RESTAURANT_CREATED, { id: docRef.id });
   } catch (error) {
-    logger.warn(ErrorMessage.CANNOT_CREATE_RESTAURANT + error);
+    logger.warn(`${ErrorMessage.CANNOT_CREATE_RESTAURANT} | ${error}`);
 
     return responseError(
       res,
@@ -121,7 +121,7 @@ const createRestaurant = async (req: AuthRequest, res: Response, next: NextFunct
   }
 };
 
-const updateRestaurant = async (req: AuthRequest, res: Response, next: NextFunction) => {
+const updateRestaurant = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { building_id, name } = req.body;
@@ -160,7 +160,7 @@ const updateRestaurant = async (req: AuthRequest, res: Response, next: NextFunct
 
     return responseSuccess(res, Message.RESTAURANT_UPDATED, { id });
   } catch (error) {
-    logger.warn(ErrorMessage.CANNOT_UPDATE_RESTAURANT + error);
+    logger.warn(`${ErrorMessage.CANNOT_UPDATE_RESTAURANT} | ${error}`);
 
     return responseError(
       res,
@@ -170,7 +170,7 @@ const updateRestaurant = async (req: AuthRequest, res: Response, next: NextFunct
   }
 };
 
-const getRestaurantMenu = async (req: AuthRequest, res: Response, next: NextFunction) => {
+const getRestaurantMenu = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const restaurant: Restaurant = await firebaseHelper.getDocById(restaurantUrl, id);
@@ -188,9 +188,9 @@ const getRestaurantMenu = async (req: AuthRequest, res: Response, next: NextFunc
       );
     }
 
-    return responseSuccess(res, Message.GET_MENU_ITEMS, { menuItems });
+    return responseSuccess(res, Message.GET_MENU_ITEMS, menuItems);
   } catch (error) {
-    logger.warn(ErrorMessage.CANNOT_GET_MENU_ITEM_LIST + error);
+    logger.warn(`${ErrorMessage.CANNOT_GET_MENU_ITEM_LIST} | ${error}`);
 
     return responseError(
       res,
@@ -200,7 +200,7 @@ const getRestaurantMenu = async (req: AuthRequest, res: Response, next: NextFunc
   }
 };
 
-const getRestaurantDailySale = async (req: AuthRequest, res: Response, next: NextFunction) => {
+const getRestaurantDailySale = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const restaurant: Restaurant = await firebaseHelper.getDocById(restaurantUrl, id);
@@ -221,7 +221,7 @@ const getRestaurantDailySale = async (req: AuthRequest, res: Response, next: Nex
         created_at: new Date(),
       };
 
-      return responseSuccess(res, Message.NO_SALES_DATA, { dailySales: defaultSale });
+      return responseSuccess(res, Message.NO_SALES_DATA, defaultSale);
     }
 
     const { dailySalePath } = getPaths(id);
@@ -234,9 +234,9 @@ const getRestaurantDailySale = async (req: AuthRequest, res: Response, next: Nex
       );
     }
 
-    return responseSuccess(res, Message.GET_DAILY_SALES, { dailySales });
+    return responseSuccess(res, Message.GET_DAILY_SALES, dailySales);
   } catch (error) {
-    logger.warn(ErrorMessage.CANNOT_GET_DAILY_SALES + error);
+    logger.warn(`${ErrorMessage.CANNOT_GET_DAILY_SALES} | ${error}`);
 
     return responseError(
       res,
@@ -246,7 +246,7 @@ const getRestaurantDailySale = async (req: AuthRequest, res: Response, next: Nex
   }
 };
 
-const getRestaurantDishSales = async (req: AuthRequest, res: Response, next: NextFunction) => {
+const getRestaurantDishSales = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const restaurant: Restaurant = await firebaseHelper.getDocById(restaurantUrl, id);
@@ -270,9 +270,7 @@ const getRestaurantDishSales = async (req: AuthRequest, res: Response, next: Nex
         },
       ];
 
-      return responseSuccess(res, Message.NO_SALES_DATA, {
-        dishSales: defaultDishSales,
-      });
+      return responseSuccess(res, Message.NO_SALES_DATA, defaultDishSales);
     }
 
     const { dishSalePath } = getPaths(id);
@@ -283,15 +281,15 @@ const getRestaurantDishSales = async (req: AuthRequest, res: Response, next: Nex
       return responseError(res, StatusCode.DISH_SALES_NOT_FOUND, ErrorMessage.DISH_SALES_NOT_FOUND);
     }
 
-    return responseSuccess(res, Message.GET_DISH_SALES, { dishSales });
+    return responseSuccess(res, Message.GET_DISH_SALES, dishSales);
   } catch (error) {
-    logger.warn(ErrorMessage.CANNOT_GET_DISH_SALES + error);
+    logger.warn(`${ErrorMessage.CANNOT_GET_DISH_SALES} | ${error}`);
 
     return responseError(res, StatusCode.CANNOT_GET_DISH_SALES, ErrorMessage.CANNOT_GET_DISH_SALES);
   }
 };
 
-const updateRestaurantStatus = async (req: AuthRequest, res: Response, next: NextFunction) => {
+const updateRestaurantStatus = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -304,7 +302,7 @@ const updateRestaurantStatus = async (req: AuthRequest, res: Response, next: Nex
 
     return responseSuccess(res, Message.ORDER_UPDATED, { id });
   } catch (error) {
-    logger.error(ErrorMessage.CANNOT_UPDATE_ORDER_STATUS + error);
+    logger.warn(`${ErrorMessage.CANNOT_UPDATE_ORDER_STATUS} | ${error}`);
 
     return responseError(
       res,
