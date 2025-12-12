@@ -230,6 +230,7 @@ export enum ErrorMessage {
   LOGOUT_FAILED = 'Login request failed!',
   REFRESH_TOKEN_REQUIRED = 'Refresh token is required!',
   CANNOT_CREATE_SUPER_MANAGER = 'Cannot create super manager!',
+  CANNOT_UPDATE_PASSWORD = 'Cannot update password!',
 }
 
 export enum Message {
@@ -250,7 +251,8 @@ export enum Message {
   USER_GET_ALL = 'Get all user successfully',
   USER_GET_DETAIL = `Get user's detail successfully`,
   USER_GET_PROFILE = `Get profile successfully`,
-  UNAUTHORIZE_NOT_FOUND = 'UNAUTHORIZE_NOT_FOUND',
+  UNAUTHORIZE_NOT_FOUND = 'Unauthorized not found',
+  PASSWORD_UPDATED = 'Password updated successfully',
 
   // Site messages
   SITE_CREATED = 'Site created successfully.',
@@ -398,6 +400,7 @@ export enum StatusCode {
   REFRESH_TOKEN_REQUIRED = 4017,
   UNAUTHORIZED = 4018,
   CANNOT_CREATE_SUPER_MANAGER = 4019,
+  CANNOT_UPDATE_PASSWORD = 4020,
 
   // Menu Schedule status codes
   CANNOT_CREATE_MENU_SCHEDULE = 4061,

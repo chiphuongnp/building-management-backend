@@ -224,21 +224,41 @@ export const createSuperManager = async (req: Request, res: Response) => {
   }
 };
 
-export const updatePassword = async (req: AuthRequest, res: Request) => {
-  const { password } = req.body;
-  const uid = req.user?.uid!;
-  await admin.auth().updateUser(uid, { password });
-  await admin.auth().revokeRefreshTokens(uid);
+export const updatePassword = async (req: AuthRequest, res: Response) => {
+  try {
+    const { password } = req.body;
+    const uid = req.user?.uid!;
+    await admin.auth().updateUser(uid, { password });
+    await admin.auth().revokeRefreshTokens(uid);
 
-  const { tokenPath } = getTokenPath(uid);
-  const tokens = await firebaseHelper.getDocsByFields(tokenPath, [
-    { field: 'revoked', operator: '==', value: false },
-  ]);
-  await firebaseHelper.updateBatchDocs(
-    tokenPath,
-    tokens.map((t) => ({
-      ...t,
-      revoked: true,
-    })),
-  );
+    const { tokenPath } = getTokenPath(uid);
+    const tokens = await firebaseHelper.getDocsByFields(tokenPath, [
+      { field: 'revoked', operator: '==', value: false },
+    ]);
+    await firebaseHelper.updateBatchDocs(
+      tokenPath,
+      tokens.map((t) => ({
+        ...t,
+        revoked: true,
+      })),
+    );
+
+    return responseSuccess(res, Message.PASSWORD_UPDATED, { id: uid });
+  } catch (err: any) {
+    logger.warn(`${ErrorMessage.CANNOT_UPDATE_PASSWORD} | ${err}`);
+
+    if (err.code?.startsWith('auth/')) {
+      return responseError(
+        res,
+        StatusCode.FIREBASE_AUTH_FAILED,
+        `${ErrorMessage.FIREBASE_AUTH_FAILED} | ${err.message}`,
+      );
+    }
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_UPDATE_PASSWORD,
+      `${ErrorMessage.CANNOT_UPDATE_PASSWORD} | ${err.message}`,
+    );
+  }
 };
