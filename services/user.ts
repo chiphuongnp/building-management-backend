@@ -16,6 +16,12 @@ import { DEFAULT_AVATAR_URL } from '../constants/constant';
 import * as ENV from '../configs/envConfig';
 
 const userCollection = `${Sites.TOKYO}/${Collection.USERS}`;
+const getTokenPath = (uid: string) => {
+  const tokenPath = `${userCollection}/${uid}/tokens`;
+
+  return { tokenPath };
+};
+
 export const getAllUser = async (req: Request, res: Response) => {
   try {
     const { role } = req.query;
@@ -75,7 +81,7 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
 
 export const updateUser = async (req: AuthRequest, res: Response) => {
   try {
-    const { userId } = req.params;
+    const userId = req.user?.uid!;
     const user: User = await firebaseHelper.getDocById(userCollection, userId);
     if (!user) {
       return responseError(res, StatusCode.USER_NOT_FOUND, ErrorMessage.USER_NOT_FOUND);
@@ -216,4 +222,23 @@ export const createSuperManager = async (req: Request, res: Response) => {
       `${ErrorMessage.CANNOT_CREATE_SUPER_MANAGER} | ${err.message}`,
     );
   }
+};
+
+export const updatePassword = async (req: AuthRequest, res: Request) => {
+  const { password } = req.body;
+  const uid = req.user?.uid!;
+  await admin.auth().updateUser(uid, { password });
+  await admin.auth().revokeRefreshTokens(uid);
+
+  const { tokenPath } = getTokenPath(uid);
+  const tokens = await firebaseHelper.getDocsByFields(tokenPath, [
+    { field: 'revoked', operator: '==', value: false },
+  ]);
+  await firebaseHelper.updateBatchDocs(
+    tokenPath,
+    tokens.map((t) => ({
+      ...t,
+      revoked: true,
+    })),
+  );
 };

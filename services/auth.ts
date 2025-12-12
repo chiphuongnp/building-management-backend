@@ -206,7 +206,13 @@ export const logout = async (req: AuthRequest, res: Response) => {
       return responseError(res, StatusCode.INVALID_TOKEN, ErrorMessage.INVALID_TOKEN);
     }
 
-    await firebaseHelper.updateBatchDocs(userCollection, tokens);
+    await firebaseHelper.updateBatchDocs(
+      tokenPath,
+      tokens.map((t) => ({
+        ...t,
+        revoked: true,
+      })),
+    );
 
     return responseSuccess(res, Message.LOGOUT_SUCCESS);
   } catch (error) {
