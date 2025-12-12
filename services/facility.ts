@@ -82,6 +82,7 @@ const createFacility = async (req: AuthRequest, res: Response) => {
     const docRef = await firebaseHelper.createDoc(facilityCollection, {
       ...req.body,
       created_by: req.user?.uid,
+      status: FacilityStatus.AVAILABLE,
     });
     return responseSuccess(res, Message.FACILITY_CREATED, { id: docRef.id });
   } catch (error) {

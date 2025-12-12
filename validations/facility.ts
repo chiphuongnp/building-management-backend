@@ -54,12 +54,6 @@ const createFacilitySchema = Joi.object<Facility>({
     'number.base': 'Service charge must be a number',
     'number.min': 'Service charge cannot be negative',
   }),
-  status: Joi.string()
-    .valid(...Object.values(FacilityStatus))
-    .optional()
-    .messages({
-      'any.only': 'Status must be either available, reserved, or maintenance',
-    }),
   created_by: Joi.string().min(1).optional().messages({
     'string.empty': 'Created by cannot be empty',
   }),
