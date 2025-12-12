@@ -56,6 +56,20 @@ const registerSchema = Joi.object({
   phone: Joi.string().min(8).max(15).required(),
 });
 
+const updatePasswordSchema = Joi.object({
+  password: Joi.string()
+    .required()
+    .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/)
+    .messages({
+      'string.pattern.base':
+        'Password must be at least 8 characters and include uppercase, lowercase, and a number.',
+    }),
+  confirm_password: Joi.string().required().valid(Joi.ref('password')).messages({
+    'any.only': 'Confirm password must match password',
+    'string.empty': 'Confirm password is required',
+  }),
+});
+
 export const validateUser = (req: Request, res: Response, next: NextFunction) => {
   const { error } = userSchema.validate(req.body);
   if (error) {
@@ -74,6 +88,14 @@ export const validateUpdateUser = (req: Request, res: Response, next: NextFuncti
 
 export const validateRegister = (req: Request, res: Response, next: NextFunction) => {
   const { error } = registerSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ success: false, message: error.details[0].message });
+  }
+  next();
+};
+
+export const validateUpdatePassword = (req: Request, res: Response, next: NextFunction) => {
+  const { error } = updatePasswordSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ success: false, message: error.details[0].message });
   }

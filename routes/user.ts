@@ -1,11 +1,12 @@
 import express from 'express';
-import { validateUpdateUser, validateUser } from '../validations/user';
+import { validateUpdatePassword, validateUpdateUser, validateUser } from '../validations/user';
 import {
   createSuperManager,
   createUser,
   getAllUser,
   getProfile,
   getUserDetail,
+  updatePassword,
   updateUser,
 } from '../services/user';
 import { authenticate } from '../middlewares/auth';
@@ -45,13 +46,13 @@ usersRouter.get(
 usersRouter.get('/profile', authenticate, requireRole(UserRole.MANAGER, UserRole.USER), getProfile);
 
 usersRouter.patch(
-  '/:userId',
+  '/profile',
   authenticate,
-  requireRole(UserRole.MANAGER),
-  requirePermission(Permission.UPDATE_USER),
   upload.single('user-images'),
   validateUpdateUser,
   updateUser,
 );
+
+usersRouter.patch('/update-password', authenticate, validateUpdatePassword, updatePassword);
 
 export default usersRouter;
