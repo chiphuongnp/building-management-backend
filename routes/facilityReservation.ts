@@ -13,6 +13,7 @@ import {
   validateCreateFacilityReservation,
   validateIdParamFacilityReservation,
 } from '../validations/facilityReservation';
+import { parsePagination } from '../middlewares/pagination';
 
 const facilityReservationRouter = express.Router({ mergeParams: true });
 
@@ -20,6 +21,7 @@ facilityReservationRouter.get(
   '/',
   authenticate,
   requireRole(UserRole.MANAGER),
+  parsePagination,
   getFacilityReservations,
 );
 

@@ -51,6 +51,7 @@ export enum ErrorMessage {
   CANNOT_CREATE_BUILDING = 'Cannot create building!',
   CANNOT_UPDATE_BUILDING = 'Cannot update building!',
   CANNOT_UPDATE_BUILDING_STATUS = 'Cannot update building status!',
+  CANNOT_GET_BUILDING_STATS = `Cannot get building's stats!`,
 
   // Parking space messages
   CANNOT_GET_PARKING_SPACE_LIST = 'Can not get list of parking space!',
@@ -112,6 +113,7 @@ export enum ErrorMessage {
   FACILITY_LOCATION_ALREADY_EXISTS = 'Facility location already exists!',
   CANNOT_UPDATE_FACILITY = 'Cannot update facility!',
   CANNOT_UPDATE_FACILITY_STATUS = 'Cannot update facility status!',
+  CANNOT_GET_FACILITY_STATS = `Cannot get facility's stats!`,
 
   // Order messages
   CANNOT_CREATE_ORDER = 'Cannot create order!',
@@ -261,11 +263,12 @@ export enum Message {
   SITE_UPDATED = 'Site has been updated successfully.',
   GET_SITES = 'Get site(s) successfully.',
 
-  // Site messages
+  // Building messages
   BUILDING_CREATED = 'Building created successfully.',
   BUILDING_UPDATED = 'Building has been updated successfully.',
   GET_BUILDINGS = 'Get building(s) successfully.',
   BUILDING_STATUS_UPDATED = 'Building status has been updated successfully.',
+  BUILDING_GET_STATS = `Get building's stats successfully`,
 
   // Parking space messages
   PARKING_SPACE_CREATED = 'Parking space created successfully.',
@@ -315,6 +318,7 @@ export enum Message {
   GET_AVAILABLE_FACILITY = 'Get available facilities successfully.',
   FACILITY_UPDATED = 'Facility updated successfully.',
   FACILITY_STATUS_UPDATED = 'Facility status has been updated successfully.',
+  FACILITY_GET_STATS = `Get facility's stats successfully`,
 
   // Bus messages
   BUS_CREATED = 'Bus created successfully.',
@@ -465,6 +469,7 @@ export enum StatusCode {
   CANNOT_CREATE_BUILDING = 4045,
   CANNOT_UPDATE_BUILDING = 4046,
   CANNOT_UPDATE_BUILDING_STATUS = 4047,
+  CANNOT_GET_BUILDING_STATS = 4048,
 
   // Parking space status codes
   CANNOT_GET_PARKING_SPACE_LIST = 4081,
@@ -494,6 +499,7 @@ export enum StatusCode {
   FACILITY_LOCATION_ALREADY_EXISTS = 4146,
   CANNOT_UPDATE_FACILITY = 4147,
   CANNOT_UPDATE_FACILITY_STATUS = 4148,
+  CANNOT_GET_FACILITY_STATS = 4149,
 
   // Order codes
   CANNOT_CREATE_ORDER = 4161,

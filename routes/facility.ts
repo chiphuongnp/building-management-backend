@@ -6,6 +6,7 @@ import {
   createFacility,
   updateFacility,
   updateFacilityStatus,
+  getFacilityStats,
 } from '../services/facility';
 import {
   validateCreateFacility,
@@ -16,16 +17,31 @@ import {
 import { requireRole, requirePermission } from '../middlewares/permission';
 import { authenticate } from '../middlewares/auth';
 import { Permission, UserRole } from '../constants/enum';
+import { parsePagination } from '../middlewares/pagination';
 
 const facilityRouter = express.Router({ mergeParams: true });
 
-facilityRouter.get('/', authenticate, requireRole(UserRole.MANAGER, UserRole.USER), getFacilities);
+facilityRouter.get(
+  '/',
+  authenticate,
+  requireRole(UserRole.MANAGER, UserRole.USER),
+  parsePagination,
+  getFacilities,
+);
 
 facilityRouter.get(
   '/available',
   authenticate,
   requireRole(UserRole.MANAGER, UserRole.USER),
   getAvailableFacility,
+);
+
+facilityRouter.get(
+  '/stats',
+  authenticate,
+  requireRole(UserRole.MANAGER),
+  requirePermission(Permission.VIEW_BUILDING_STATS),
+  getFacilityStats,
 );
 
 facilityRouter.get(
