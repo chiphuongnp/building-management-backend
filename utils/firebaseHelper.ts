@@ -1,7 +1,25 @@
+import { OrderByDirection } from 'firebase-admin/firestore';
+import { DEFAULT_ORDER_BY, DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from '../constants/constant';
 import { db, convertTimestamps } from './index';
+import { OrderDirection } from '../constants/enum';
 
-const getAllDocs = async (collectionName: string) => {
-  const snapshot = await db.collection(collectionName).get();
+const getAllDocs = async (
+  collectionName: string,
+  orderBy: string = DEFAULT_ORDER_BY,
+  order: OrderByDirection = OrderDirection.DESCENDING,
+  page?: number,
+  limit?: number,
+) => {
+  let query: FirebaseFirestore.Query = db.collection(collectionName);
+  query = query.orderBy(orderBy, order);
+  if (page && limit) {
+    const offset = (page - 1) * limit;
+    query = query.offset(offset).limit(limit);
+  } else if (limit) {
+    query = query.limit(limit);
+  }
+
+  const snapshot = await query.get();
   const data = snapshot.docs
     .map((doc) => ({
       id: doc.id,
@@ -41,15 +59,21 @@ const getDocByField = async (collectionName: string, field: string, value: any) 
 const getDocsByFields = async (
   collectionPath: string,
   conditions: { field: string; operator: FirebaseFirestore.WhereFilterOp; value: any }[],
+  orderBy: string = DEFAULT_ORDER_BY,
+  order: OrderByDirection = OrderDirection.DESCENDING,
+  page?: number,
   limit?: number,
 ) => {
   let query: FirebaseFirestore.Query = db.collection(collectionPath);
-
   for (const condition of conditions) {
     query = query.where(condition.field, condition.operator, condition.value);
   }
 
-  if (limit) {
+  query = query.orderBy(orderBy, order);
+  if (page && limit) {
+    const offset = (page - 1) * limit;
+    query = query.offset(offset).limit(limit);
+  } else if (limit) {
     query = query.limit(limit);
   }
 
@@ -62,6 +86,24 @@ const getDocsByFields = async (
     .filter((item) => !item.deleted_at);
 
   return data;
+};
+
+const countAllDocs = async (collectionName: string) => {
+  const snapshot = await db.collection(collectionName).count().get();
+  return snapshot.data().count;
+};
+
+const countDocsByFields = async (
+  collectionPath: string,
+  conditions: { field: string; operator: FirebaseFirestore.WhereFilterOp; value: any }[],
+) => {
+  let query: FirebaseFirestore.Query = db.collection(collectionPath);
+  for (const condition of conditions) {
+    query = query.where(condition.field, condition.operator, condition.value);
+  }
+
+  const snapshot = await query.count().get();
+  return snapshot.data().count;
 };
 
 const createDoc = async (
@@ -177,6 +219,8 @@ export {
   getAllDocs,
   getDocById,
   getDocByField,
+  countAllDocs,
+  countDocsByFields,
   createDoc,
   updateDoc,
   getDocsByFields,

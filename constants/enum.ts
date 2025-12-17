@@ -188,6 +188,7 @@ export enum Permission {
   CREATE_BOOKING_BUS = 'create_booking_bus',
   CREATE_INFORMATION = 'create_information',
   VIEW_INFORMATION_LIST = 'view_information_list',
+  VIEW_RESTAURANT_STATS = 'view_restaurant_stats',
 }
 
 export enum EventRegistrationsStatus {
@@ -291,4 +292,9 @@ export enum InformationTarget {
 export enum InformationStatus {
   SCHEDULED = 'scheduled',
   SENT = 'sent',
+}
+
+export enum OrderDirection {
+  ASCENDING = 'asc',
+  DESCENDING = 'desc',
 }

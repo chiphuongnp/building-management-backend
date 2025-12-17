@@ -1,5 +1,10 @@
 import { Request } from 'express';
 
+export interface PaginationParams {
+  page: number;
+  page_size: number;
+}
+
 export interface AuthRequest extends Request {
   user?: {
     uid: string;
@@ -8,4 +13,5 @@ export interface AuthRequest extends Request {
     role: string;
     permissions: string[];
   };
+  pagination?: PaginationParams;
 }

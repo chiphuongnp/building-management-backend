@@ -6,6 +6,7 @@ export enum ErrorMessage {
   CANNOT_UPDATE_RESTAURANT = 'Cannot update restaurant!',
   CANNOT_GET_RESTAURANT_LIST = 'Cannot get list of restaurants!',
   CANNOT_GET_RESTAURANT_DETAIL = `Cannot get restaurant's detail!`,
+  CANNOT_GET_RESTAURANT_STATS = `Cannot get restaurant's stats!`,
 
   // Dish messages
   DISH_NOT_FOUND = 'Dish(es) not found for this restaurant!',
@@ -239,6 +240,7 @@ export enum Message {
   RESTAURANT_UPDATED = 'Restaurant updated successfully.',
   RESTAURANT_GET_ALL = 'Get all restaurants successfully',
   RESTAURANT_GET_DETAIL = `Get restaurant's detail successfully`,
+  RESTAURANT_GET_STATS = `Get restaurant's stats successfully`,
   DISH_CREATED = 'New dish has been added successfully.',
   DISH_UPDATED = 'Dish has been updated successfully.',
   DISH_GET_ALL = 'Get all available dishes successfully',
@@ -437,6 +439,7 @@ export enum StatusCode {
   CANNOT_GET_DISH_DETAIL = 4110,
   CANNOT_CREATE_DISH = 4111,
   CANNOT_UPDATE_DISH = 4112,
+  CANNOT_GET_RESTAURANT_STATS = 4113,
 
   //Permission
   PERMISSION_GET_ALL = 5001,
