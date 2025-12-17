@@ -153,14 +153,10 @@ export const refreshToken = async (req: Request, res: Response) => {
     }
 
     const { tokenPath } = getTokenPath(uid);
-    const tokenDoc = await firebaseHelper.getDocsByFields(
-      tokenPath,
-      [
-        { field: 'refreshToken', operator: '==', value: refreshToken },
-        { field: 'revoked', operator: '==', value: false },
-      ],
-      1,
-    );
+    const tokenDoc = await firebaseHelper.getDocsByFields(tokenPath, [
+      { field: 'refreshToken', operator: '==', value: refreshToken },
+      { field: 'revoked', operator: '==', value: false },
+    ]);
     if (!tokenDoc.length) {
       return responseError(res, StatusCode.INVALID_TOKEN, ErrorMessage.INVALID_TOKEN);
     }
