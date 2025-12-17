@@ -12,3 +12,8 @@ export const POINTS_EARN_RATE = 20000;
 export const POINT_EXCHANGE_VALUE = 1000;
 // bcrypt constant
 export const DEFAULT_AVATAR_URL = 'uploads/user-images/default-avatar.png';
+// pagination
+export const DEFAULT_PAGE = 1;
+export const DEFAULT_PAGE_SIZE = 3;
+export const DEFAULT_PAGE_TOTAL = 1;
+export const DEFAULT_ORDER_BY = 'created_at';

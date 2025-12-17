@@ -1,4 +1,4 @@
-import { Response, NextFunction } from 'express';
+import { Response } from 'express';
 import { AuthRequest } from './../interfaces/jwt';
 import { MenuItem } from './../interfaces/menu';
 import { DailySale } from './../interfaces/dailySale';
@@ -6,15 +6,16 @@ import { DishSale } from './../interfaces/dishSale';
 import { Restaurant } from './../interfaces/restaurant';
 import { ActiveStatus, Collection, Sites } from '../constants/enum';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
-import { TIMEZONE } from '../constants/constant';
+import { DEFAULT_PAGE_TOTAL, TIMEZONE } from '../constants/constant';
 import {
   firebaseHelper,
   getNormalizedDate,
   responseError,
   responseSuccess,
   logger,
+  capitalizeName,
 } from '../utils/index';
-import { WhereFilterOp } from 'firebase-admin/firestore';
+import { OrderByDirection, WhereFilterOp } from 'firebase-admin/firestore';
 
 const restaurantUrl = `${Sites.TOKYO}/${Collection.RESTAURANTS}`;
 const buildingUrl = `${Sites.TOKYO}/${Collection.BUILDINGS}`;
@@ -28,8 +29,17 @@ const getPaths = (restaurantId: string) => {
 
 const getRestaurants = async (req: AuthRequest, res: Response) => {
   try {
-    const { status, building_id } = req.query;
+    const { status, building_id, name, order, order_by } = req.query;
+    const { page, page_size } = req.pagination ?? {};
     const filters: { field: string; operator: WhereFilterOp; value: any }[] = [];
+    if (name) {
+      const capitalizedName = capitalizeName(name as string);
+      filters.push(
+        { field: 'name', operator: '>=', value: capitalizedName },
+        { field: 'name', operator: '<=', value: capitalizedName + '\uf8ff' },
+      );
+    }
+
     if (building_id) {
       filters.push({ field: 'building_id', operator: '==', value: building_id });
     }
@@ -38,18 +48,43 @@ const getRestaurants = async (req: AuthRequest, res: Response) => {
       filters.push({ field: 'status', operator: '==', value: status });
     }
 
+    const total = filters.length
+      ? await firebaseHelper.countDocsByFields(restaurantUrl, filters)
+      : await firebaseHelper.countAllDocs(restaurantUrl);
+    const totalPage = page_size
+      ? Math.max(DEFAULT_PAGE_TOTAL, Math.ceil(total / page_size))
+      : DEFAULT_PAGE_TOTAL;
+    const orderBy = name ? 'name' : (order_by as string);
+    const orderDirection = order as OrderByDirection;
     let restaurants: Restaurant[];
     if (filters.length) {
-      restaurants = await firebaseHelper.getDocsByFields(restaurantUrl, filters);
+      restaurants = await firebaseHelper.getDocsByFields(
+        restaurantUrl,
+        filters,
+        orderBy,
+        orderDirection,
+        page,
+        page_size,
+      );
     } else {
-      restaurants = await firebaseHelper.getAllDocs(restaurantUrl);
+      restaurants = await firebaseHelper.getAllDocs(
+        restaurantUrl,
+        orderBy,
+        orderDirection,
+        page,
+        page_size,
+      );
     }
 
-    if (!restaurants.length) {
-      return responseError(res, StatusCode.RESTAURANT_NOT_FOUND, ErrorMessage.RESTAURANT_NOT_FOUND);
-    }
-
-    return responseSuccess(res, Message.RESTAURANT_GET_ALL, restaurants);
+    return responseSuccess(res, Message.RESTAURANT_GET_ALL, {
+      restaurants,
+      pagination: {
+        page,
+        page_size,
+        total,
+        total_page: totalPage,
+      },
+    });
   } catch (error) {
     logger.warn(`${ErrorMessage.CANNOT_GET_RESTAURANT_LIST} | ${error}`);
 
@@ -57,6 +92,30 @@ const getRestaurants = async (req: AuthRequest, res: Response) => {
       res,
       StatusCode.CANNOT_GET_RESTAURANT_LIST,
       ErrorMessage.CANNOT_GET_RESTAURANT_LIST,
+    );
+  }
+};
+
+const getRestaurantsStats = async (req: AuthRequest, res: Response) => {
+  try {
+    const total = await firebaseHelper.countAllDocs(restaurantUrl);
+    const active = await firebaseHelper.countDocsByFields(restaurantUrl, [
+      { field: 'status', operator: '==', value: ActiveStatus.ACTIVE },
+    ]);
+    const inactive = total - active;
+
+    return responseSuccess(res, Message.RESTAURANT_GET_STATS, {
+      total,
+      active,
+      inactive,
+    });
+  } catch (error) {
+    logger.warn(`${ErrorMessage.CANNOT_GET_RESTAURANT_STATS} | ${error}`);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_GET_RESTAURANT_STATS,
+      ErrorMessage.CANNOT_GET_RESTAURANT_STATS,
     );
   }
 };
@@ -321,4 +380,5 @@ export {
   getRestaurantDailySale,
   getRestaurantDishSales,
   updateRestaurantStatus,
+  getRestaurantsStats,
 };
