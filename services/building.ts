@@ -81,16 +81,32 @@ const getBuildings = async (req: AuthRequest, res: Response) => {
 
 const getBuildingsStats = async (req: AuthRequest, res: Response) => {
   try {
-    const total = await firebaseHelper.countAllDocs(buildingCollection);
-    const active = await firebaseHelper.countDocsByFields(buildingCollection, [
-      { field: 'status', operator: '==', value: ActiveStatus.ACTIVE },
+    const buildings = await firebaseHelper.getDocsWithFields(buildingCollection, [
+      'status',
+      'manager_id',
     ]);
-    const inactive = total - active;
+    const total = buildings.length;
+    const stats = buildings.reduce(
+      (acc, building) => {
+        if (building.status === ActiveStatus.ACTIVE) {
+          acc.active++;
+        }
 
+        if (building.manager_id) {
+          acc.managerSet.add(building.manager_id);
+        }
+
+        return acc;
+      },
+      { active: 0, managerSet: new Set<string>() },
+    );
+
+    const managers = Array.from(stats.managerSet);
     return responseSuccess(res, Message.BUILDING_GET_STATS, {
       total,
-      active,
-      inactive,
+      active: stats.active,
+      inactive: total - stats.active,
+      managers,
     });
   } catch (error) {
     logger.warn(`${ErrorMessage.CANNOT_GET_BUILDING_STATS} | ${error}`);
