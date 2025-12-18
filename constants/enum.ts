@@ -189,6 +189,8 @@ export enum Permission {
   CREATE_INFORMATION = 'create_information',
   VIEW_INFORMATION_LIST = 'view_information_list',
   VIEW_RESTAURANT_STATS = 'view_restaurant_stats',
+  VIEW_BUILDING_STATS = 'view_building_stats',
+  VIEW_FACILITY_STATS = 'view_facility_stats',
 }
 
 export enum EventRegistrationsStatus {

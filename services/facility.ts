@@ -1,17 +1,78 @@
 import { Request, Response } from 'express';
-import { firebaseHelper, responseError, responseSuccess, logger } from '../utils/index';
+import {
+  firebaseHelper,
+  responseError,
+  responseSuccess,
+  logger,
+  capitalizeName,
+} from '../utils/index';
 import { Collection, FacilityStatus, Sites } from '../constants/enum';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { AuthRequest } from '../interfaces/jwt';
 import { Facility } from '../interfaces/facility';
+import { OrderByDirection, WhereFilterOp } from 'firebase-admin/firestore';
+import { DEFAULT_PAGE_TOTAL } from '../constants/constant';
 
 const facilityCollection = `${Sites.TOKYO}/${Collection.FACILITIES}`;
 const buildingCollection = `${Sites.TOKYO}/${Collection.BUILDINGS}`;
-const getFacilities = async (req: Request, res: Response) => {
+const getFacilities = async (req: AuthRequest, res: Response) => {
   try {
-    const facilities: Facility[] = await firebaseHelper.getAllDocs(facilityCollection);
+    const { status, building_id, name, order, order_by } = req.query;
+    const { page, page_size } = req.pagination ?? {};
+    const filters: { field: string; operator: WhereFilterOp; value: any }[] = [];
+    if (name) {
+      const capitalizedName = capitalizeName(name as string);
+      filters.push(
+        { field: 'name', operator: '>=', value: capitalizedName },
+        { field: 'name', operator: '<=', value: capitalizedName + '\uf8ff' },
+      );
+    }
 
-    return responseSuccess(res, Message.GET_FACILITIES, facilities);
+    if (building_id) {
+      filters.push({ field: 'building_id', operator: '==', value: building_id });
+    }
+
+    if (status) {
+      filters.push({ field: 'status', operator: '==', value: status });
+    }
+
+    const total = filters.length
+      ? await firebaseHelper.countDocsByFields(facilityCollection, filters)
+      : await firebaseHelper.countAllDocs(facilityCollection);
+    const totalPage = page_size
+      ? Math.max(DEFAULT_PAGE_TOTAL, Math.ceil(total / page_size))
+      : DEFAULT_PAGE_TOTAL;
+    const orderBy = name ? 'name' : (order_by as string);
+    const orderDirection = order as OrderByDirection;
+    let facilities: Facility[];
+    if (filters.length) {
+      facilities = await firebaseHelper.getDocsByFields(
+        facilityCollection,
+        filters,
+        orderBy,
+        orderDirection,
+        page,
+        page_size,
+      );
+    } else {
+      facilities = await firebaseHelper.getAllDocs(
+        facilityCollection,
+        orderBy,
+        orderDirection,
+        page,
+        page_size,
+      );
+    }
+
+    return responseSuccess(res, Message.GET_FACILITIES, {
+      facilities,
+      pagination: {
+        page,
+        page_size,
+        total,
+        total_page: totalPage,
+      },
+    });
   } catch (error) {
     logger.warn(ErrorMessage.CANNOT_GET_FACILITY_LIST + error);
 
@@ -19,6 +80,34 @@ const getFacilities = async (req: Request, res: Response) => {
       res,
       StatusCode.CANNOT_GET_FACILITY_LIST,
       ErrorMessage.CANNOT_GET_FACILITY_LIST,
+    );
+  }
+};
+
+const getFacilityStats = async (req: AuthRequest, res: Response) => {
+  try {
+    const total = await firebaseHelper.countAllDocs(buildingCollection);
+    const maintenance = await firebaseHelper.countDocsByFields(buildingCollection, [
+      { field: 'status', operator: '==', value: FacilityStatus.MAINTENANCE },
+    ]);
+    const reserved = await firebaseHelper.countDocsByFields(buildingCollection, [
+      { field: 'status', operator: '==', value: FacilityStatus.RESERVED },
+    ]);
+    const available = total - maintenance - reserved;
+
+    return responseSuccess(res, Message.FACILITY_GET_STATS, {
+      total,
+      maintenance,
+      reserved,
+      available,
+    });
+  } catch (error) {
+    logger.warn(`${ErrorMessage.CANNOT_GET_FACILITY_STATS} | ${error}`);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_GET_FACILITY_STATS,
+      ErrorMessage.CANNOT_GET_FACILITY_STATS,
     );
   }
 };
@@ -182,4 +271,5 @@ export {
   createFacility,
   updateFacility,
   updateFacilityStatus,
+  getFacilityStats,
 };

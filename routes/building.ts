@@ -5,6 +5,7 @@ import {
   createBuilding,
   updateBuilding,
   updateBuildingStatus,
+  getBuildingsStats,
 } from '../services/building';
 import {
   validateCreateBuilding,
@@ -15,10 +16,25 @@ import {
 import { requireRole, requirePermission } from '../middlewares/permission';
 import { authenticate } from '../middlewares/auth';
 import { Permission, UserRole } from '../constants/enum';
+import { parsePagination } from '../middlewares/pagination';
 
 const buildingRouter = express.Router({ mergeParams: true });
 
-buildingRouter.get('/', authenticate, requireRole(UserRole.MANAGER, UserRole.USER), getBuildings);
+buildingRouter.get(
+  '/',
+  authenticate,
+  requireRole(UserRole.MANAGER, UserRole.USER),
+  parsePagination,
+  getBuildings,
+);
+
+buildingRouter.get(
+  '/stats',
+  authenticate,
+  requireRole(UserRole.MANAGER),
+  requirePermission(Permission.VIEW_BUILDING_STATS),
+  getBuildingsStats,
+);
 
 buildingRouter.get(
   '/:id',

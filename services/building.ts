@@ -1,15 +1,73 @@
 import { Request, Response } from 'express';
-import { firebaseHelper, logger, responseError, responseSuccess } from '../utils/index';
+import {
+  capitalizeName,
+  firebaseHelper,
+  logger,
+  responseError,
+  responseSuccess,
+} from '../utils/index';
 import { ActiveStatus, Collection, Sites } from '../constants/enum';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { AuthRequest } from '../interfaces/jwt';
+import { OrderByDirection, WhereFilterOp } from 'firebase-admin/firestore';
+import { DEFAULT_PAGE_TOTAL } from '../constants/constant';
+import { Building } from '../interfaces/building';
 
 const buildingCollection = `${Sites.TOKYO}/${Collection.BUILDINGS}`;
-const getBuildings = async (req: Request, res: Response) => {
+const getBuildings = async (req: AuthRequest, res: Response) => {
   try {
-    const building = await firebaseHelper.getAllDocs(buildingCollection);
+    const { status, name, order, order_by } = req.query;
+    const { page, page_size } = req.pagination ?? {};
+    const filters: { field: string; operator: WhereFilterOp; value: any }[] = [];
+    if (name) {
+      const capitalizedName = capitalizeName(name as string);
+      filters.push(
+        { field: 'name', operator: '>=', value: capitalizedName },
+        { field: 'name', operator: '<=', value: capitalizedName + '\uf8ff' },
+      );
+    }
 
-    return responseSuccess(res, Message.GET_BUILDINGS, building);
+    if (status) {
+      filters.push({ field: 'status', operator: '==', value: status });
+    }
+
+    const total = filters.length
+      ? await firebaseHelper.countDocsByFields(buildingCollection, filters)
+      : await firebaseHelper.countAllDocs(buildingCollection);
+    const totalPage = page_size
+      ? Math.max(DEFAULT_PAGE_TOTAL, Math.ceil(total / page_size))
+      : DEFAULT_PAGE_TOTAL;
+    const orderBy = name ? 'name' : (order_by as string);
+    const orderDirection = order as OrderByDirection;
+    let buildings: Building[];
+    if (filters.length) {
+      buildings = await firebaseHelper.getDocsByFields(
+        buildingCollection,
+        filters,
+        orderBy,
+        orderDirection,
+        page,
+        page_size,
+      );
+    } else {
+      buildings = await firebaseHelper.getAllDocs(
+        buildingCollection,
+        orderBy,
+        orderDirection,
+        page,
+        page_size,
+      );
+    }
+
+    return responseSuccess(res, Message.GET_BUILDINGS, {
+      buildings,
+      pagination: {
+        page,
+        page_size,
+        total,
+        total_page: totalPage,
+      },
+    });
   } catch (error) {
     logger.warn(ErrorMessage.CANNOT_GET_BUILDING_LIST + error);
 
@@ -17,6 +75,30 @@ const getBuildings = async (req: Request, res: Response) => {
       res,
       StatusCode.CANNOT_GET_BUILDING_LIST,
       ErrorMessage.CANNOT_GET_BUILDING_LIST,
+    );
+  }
+};
+
+const getBuildingsStats = async (req: AuthRequest, res: Response) => {
+  try {
+    const total = await firebaseHelper.countAllDocs(buildingCollection);
+    const active = await firebaseHelper.countDocsByFields(buildingCollection, [
+      { field: 'status', operator: '==', value: ActiveStatus.ACTIVE },
+    ]);
+    const inactive = total - active;
+
+    return responseSuccess(res, Message.BUILDING_GET_STATS, {
+      total,
+      active,
+      inactive,
+    });
+  } catch (error) {
+    logger.warn(`${ErrorMessage.CANNOT_GET_BUILDING_STATS} | ${error}`);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_GET_BUILDING_STATS,
+      ErrorMessage.CANNOT_GET_BUILDING_STATS,
     );
   }
 };
@@ -142,4 +224,11 @@ const updateBuildingStatus = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export { createBuilding, updateBuilding, updateBuildingStatus, getBuildingById, getBuildings };
+export {
+  createBuilding,
+  updateBuilding,
+  updateBuildingStatus,
+  getBuildingById,
+  getBuildings,
+  getBuildingsStats,
+};

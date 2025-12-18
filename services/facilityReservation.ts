@@ -19,21 +19,65 @@ import {
   VATRate,
 } from '../constants/enum';
 import { FacilityReservation } from '../interfaces/facilityReservation';
-import { Timestamp } from 'firebase-admin/firestore';
+import { OrderByDirection, Timestamp, WhereFilterOp } from 'firebase-admin/firestore';
 import { Facility } from '../interfaces/facility';
-import { CANCEL_TIME_VALID } from '../constants/constant';
+import { CANCEL_TIME_VALID, DEFAULT_PAGE_TOTAL } from '../constants/constant';
 import { User } from '../interfaces/user';
 
 const facilityReservationCollection = `${Sites.TOKYO}/${Collection.FACILITY_RESERVATIONS}`;
 const facilityCollection = `${Sites.TOKYO}/${Collection.FACILITIES}`;
 const userCollection = `${Sites.TOKYO}/${Collection.USERS}`;
-const getFacilityReservations = async (req: Request, res: Response) => {
+const getFacilityReservations = async (req: AuthRequest, res: Response) => {
   try {
-    const facilityReservations: FacilityReservation[] = await firebaseHelper.getAllDocs(
-      facilityReservationCollection,
-    );
+    const { status, facility_id, order, order_by } = req.query;
+    const { page, page_size } = req.pagination ?? {};
+    const filters: { field: string; operator: WhereFilterOp; value: any }[] = [];
 
-    return responseSuccess(res, Message.GET_FACILITY_RESERVATIONS, facilityReservations);
+    if (facility_id) {
+      filters.push({ field: 'facility_id', operator: '==', value: facility_id });
+    }
+
+    if (status) {
+      filters.push({ field: 'status', operator: '==', value: status });
+    }
+
+    const total = filters.length
+      ? await firebaseHelper.countDocsByFields(facilityReservationCollection, filters)
+      : await firebaseHelper.countAllDocs(facilityReservationCollection);
+    const totalPage = page_size
+      ? Math.max(DEFAULT_PAGE_TOTAL, Math.ceil(total / page_size))
+      : DEFAULT_PAGE_TOTAL;
+    const orderBy = order_by as string;
+    const orderDirection = order as OrderByDirection;
+    let facilityReservations: FacilityReservation[];
+    if (filters.length) {
+      facilityReservations = await firebaseHelper.getDocsByFields(
+        facilityReservationCollection,
+        filters,
+        orderBy,
+        orderDirection,
+        page,
+        page_size,
+      );
+    } else {
+      facilityReservations = await firebaseHelper.getAllDocs(
+        facilityReservationCollection,
+        orderBy,
+        orderDirection,
+        page,
+        page_size,
+      );
+    }
+
+    return responseSuccess(res, Message.GET_FACILITY_RESERVATIONS, {
+      facilityReservations,
+      pagination: {
+        page,
+        page_size,
+        total,
+        total_page: totalPage,
+      },
+    });
   } catch (error) {
     logger.warn(ErrorMessage.CANNOT_GET_FACILITY_RESERVATION_LIST + error);
 
