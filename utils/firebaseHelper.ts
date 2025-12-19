@@ -88,6 +88,19 @@ const getDocsByFields = async (
   return data;
 };
 
+const getDocsWithFields = async (collectionName: string, columns?: string[]) => {
+  let query = db.collection(collectionName);
+  if (columns && columns.length > 0) {
+    query = query.select(...columns) as any;
+  }
+
+  const snapshot = await query.get();
+  return snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...convertTimestamps(doc.data()),
+  }));
+};
+
 const countAllDocs = async (collectionName: string) => {
   const snapshot = await db.collection(collectionName).count().get();
   return snapshot.data().count;
@@ -230,4 +243,5 @@ export {
   setTransaction,
   updateTransaction,
   updateBatchDocs,
+  getDocsWithFields,
 };
