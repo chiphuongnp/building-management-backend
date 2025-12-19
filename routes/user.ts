@@ -6,6 +6,7 @@ import {
   getAllUser,
   getProfile,
   getUserDetail,
+  getUsersStats,
   updatePassword,
   updateUser,
 } from '../services/user';
@@ -13,6 +14,7 @@ import { authenticate } from '../middlewares/auth';
 import { requirePermission, requireRole } from '../middlewares/permission';
 import { Permission, UserRole } from '../constants/enum';
 import { upload } from '../middlewares/multer';
+import { parsePagination } from '../middlewares/pagination';
 
 const usersRouter = express.Router();
 
@@ -32,7 +34,16 @@ usersRouter.get(
   authenticate,
   requireRole(UserRole.MANAGER),
   requirePermission(Permission.GET_ALL_USERS),
+  parsePagination,
   getAllUser,
+);
+
+usersRouter.get(
+  '/stats',
+  authenticate,
+  requireRole(UserRole.MANAGER),
+  requirePermission(Permission.GET_USER_STATS),
+  getUsersStats,
 );
 
 usersRouter.get(

@@ -6,13 +6,14 @@ import {
   responseError,
   responseSuccess,
   admin,
+  capitalizeName,
 } from '../utils/index';
 import { ActiveStatus, Collection, Permission, Sites, UserRole, UserRank } from '../constants/enum';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { AuthRequest } from '../interfaces/jwt';
 import { User } from '../interfaces/user';
-import { WhereFilterOp } from 'firebase-admin/firestore';
-import { DEFAULT_AVATAR_URL } from '../constants/constant';
+import { OrderByDirection, WhereFilterOp } from 'firebase-admin/firestore';
+import { DEFAULT_AVATAR_URL, DEFAULT_PAGE_TOTAL } from '../constants/constant';
 import * as ENV from '../configs/envConfig';
 
 const userCollection = `${Sites.TOKYO}/${Collection.USERS}`;
@@ -22,26 +23,110 @@ const getTokenPath = (uid: string) => {
   return { tokenPath };
 };
 
-export const getAllUser = async (req: Request, res: Response) => {
+export const getAllUser = async (req: AuthRequest, res: Response) => {
   try {
-    const { role } = req.query;
+    const { page, page_size: pageSize } = req.pagination ?? {};
+    const { search_text, search_field, role, rank, order, order_by } = req.query;
     const filters: { field: string; operator: WhereFilterOp; value: any }[] = [];
+    if (search_text && search_field == 'full_name') {
+      const capitalizedName = capitalizeName(search_text as string);
+      filters.push(
+        { field: 'full_name', operator: '>=', value: capitalizedName },
+        { field: 'full_name', operator: '<=', value: capitalizedName + '\uf8ff' },
+      );
+    }
+
+    if (search_text && search_field == 'email') {
+      filters.push(
+        { field: 'email', operator: '>=', value: search_text },
+        { field: 'email', operator: '<=', value: search_text + '\uf8ff' },
+      );
+    }
+
     if (role) {
       filters.push({ field: 'role', operator: '==', value: role });
     }
 
-    let users: User[];
-    if (filters.length) {
-      users = await firebaseHelper.getDocsByFields(userCollection, filters);
-    } else {
-      users = await firebaseHelper.getAllDocs(userCollection);
+    if (rank) {
+      filters.push({ field: 'rank', operator: '==', value: rank });
     }
 
-    return responseSuccess(res, Message.USER_GET_ALL, users);
+    const total = filters.length
+      ? await firebaseHelper.countDocsByFields(userCollection, filters)
+      : await firebaseHelper.countAllDocs(userCollection);
+    const totalPage = pageSize
+      ? Math.max(DEFAULT_PAGE_TOTAL, Math.ceil(total / pageSize))
+      : DEFAULT_PAGE_TOTAL;
+    const orderBy = search_text && search_field ? (search_field as string) : (order_by as string);
+    const orderDirection = order as OrderByDirection;
+
+    let users: User[];
+    if (filters.length) {
+      users = await firebaseHelper.getDocsByFields(
+        userCollection,
+        filters,
+        orderBy,
+        orderDirection,
+        page,
+        pageSize,
+      );
+    } else {
+      users = await firebaseHelper.getAllDocs(
+        userCollection,
+        orderBy,
+        orderDirection,
+        page,
+        pageSize,
+      );
+    }
+
+    return responseSuccess(res, Message.USER_GET_ALL, {
+      users,
+      pagination: {
+        page,
+        page_size: pageSize,
+        total,
+        total_page: totalPage,
+      },
+    });
   } catch (error) {
-    logger.warn(ErrorMessage.USER_GET_ALL + error);
+    logger.warn(`${ErrorMessage.USER_GET_ALL} | ${error}`);
 
     return responseError(res, StatusCode.USER_GET_ALL, ErrorMessage.REQUEST_FAILED);
+  }
+};
+
+export const getUsersStats = async (_req: AuthRequest, res: Response) => {
+  try {
+    const users: User[] = await firebaseHelper.getDocsWithFields(userCollection, ['role', 'rank']);
+    const total = users.length;
+    const stats = users.reduce(
+      (acc, user) => {
+        if (user.role) {
+          acc.roles[user.role] = (acc.roles[user.role] || 0) + 1;
+        }
+
+        if (user.rank) {
+          acc.ranks[user.rank] = (acc.ranks[user.rank] || 0) + 1;
+        }
+
+        return acc;
+      },
+      {
+        roles: {} as Record<string, number>,
+        ranks: {} as Record<string, number>,
+      },
+    );
+
+    return responseSuccess(res, Message.USER_GET_STATS, {
+      total,
+      roles: stats.roles,
+      ranks: stats.ranks,
+    });
+  } catch (error) {
+    logger.warn(`${ErrorMessage.CANNOT_GET_USER_STATS} | ${error}`);
+
+    return responseError(res, StatusCode.CANNOT_GET_USER_STATS, ErrorMessage.CANNOT_GET_USER_STATS);
   }
 };
 
