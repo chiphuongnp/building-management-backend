@@ -86,20 +86,46 @@ const getFacilities = async (req: AuthRequest, res: Response) => {
 
 const getFacilityStats = async (req: AuthRequest, res: Response) => {
   try {
-    const total = await firebaseHelper.countAllDocs(buildingCollection);
-    const maintenance = await firebaseHelper.countDocsByFields(buildingCollection, [
-      { field: 'status', operator: '==', value: FacilityStatus.MAINTENANCE },
+    const facilities = await firebaseHelper.getDocsWithFields(facilityCollection, [
+      'status',
+      'building_id',
     ]);
-    const reserved = await firebaseHelper.countDocsByFields(buildingCollection, [
-      { field: 'status', operator: '==', value: FacilityStatus.RESERVED },
-    ]);
-    const available = total - maintenance - reserved;
+    const total = facilities.length;
+    const stats = facilities.reduce(
+      (acc, facility) => {
+        switch (facility.status) {
+          case FacilityStatus.AVAILABLE:
+            acc.available++;
+            break;
+          case FacilityStatus.MAINTENANCE:
+            acc.maintenance++;
+            break;
+          case FacilityStatus.RESERVED:
+            acc.reserved++;
+            break;
+        }
 
+        if (facility.building_id) {
+          acc.buildingSet.add(facility.building_id);
+        }
+
+        return acc;
+      },
+      {
+        available: 0,
+        maintenance: 0,
+        reserved: 0,
+        buildingSet: new Set<string>(),
+      },
+    );
+
+    const buildings = Array.from(stats.buildingSet);
     return responseSuccess(res, Message.FACILITY_GET_STATS, {
       total,
-      maintenance,
-      reserved,
-      available,
+      available: stats.available,
+      maintenance: stats.maintenance,
+      reserved: stats.reserved,
+      buildings,
     });
   } catch (error) {
     logger.warn(`${ErrorMessage.CANNOT_GET_FACILITY_STATS} | ${error}`);
