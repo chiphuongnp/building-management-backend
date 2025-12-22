@@ -96,18 +96,34 @@ const getRestaurants = async (req: AuthRequest, res: Response) => {
   }
 };
 
-const getRestaurantsStats = async (req: AuthRequest, res: Response) => {
+const getRestaurantsStats = async (_req: AuthRequest, res: Response) => {
   try {
-    const total = await firebaseHelper.countAllDocs(restaurantUrl);
-    const active = await firebaseHelper.countDocsByFields(restaurantUrl, [
-      { field: 'status', operator: '==', value: ActiveStatus.ACTIVE },
+    const restaurants: Restaurant[] = await firebaseHelper.getDocsWithFields(restaurantUrl, [
+      'status',
+      'building_id',
     ]);
-    const inactive = total - active;
+    const total = restaurants.length;
+    const stats = restaurants.reduce(
+      (acc, restaurant) => {
+        if (restaurant.status === ActiveStatus.ACTIVE) {
+          acc.active++;
+        }
 
+        if (restaurant.building_id) {
+          acc.building_ids.add(restaurant.building_id);
+        }
+
+        return acc;
+      },
+      { active: 0, building_ids: new Set<string>() },
+    );
+
+    const building_ids = Array.from(stats.building_ids);
     return responseSuccess(res, Message.RESTAURANT_GET_STATS, {
       total,
-      active,
-      inactive,
+      active: stats.active,
+      inactive: total - stats.active,
+      building_ids,
     });
   } catch (error) {
     logger.warn(`${ErrorMessage.CANNOT_GET_RESTAURANT_STATS} | ${error}`);
