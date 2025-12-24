@@ -29,14 +29,9 @@ const facilityCollection = `${Sites.TOKYO}/${Collection.FACILITIES}`;
 const userCollection = `${Sites.TOKYO}/${Collection.USERS}`;
 const getFacilityReservations = async (req: AuthRequest, res: Response) => {
   try {
-    const { status, facility_id, order, order_by } = req.query;
+    const { status, order, order_by } = req.query;
     const { page, page_size } = req.pagination ?? {};
     const filters: { field: string; operator: WhereFilterOp; value: any }[] = [];
-
-    if (facility_id) {
-      filters.push({ field: 'facility_id', operator: '==', value: facility_id });
-    }
-
     if (status) {
       filters.push({ field: 'status', operator: '==', value: status });
     }
