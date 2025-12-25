@@ -26,7 +26,7 @@ const getTokenPath = (uid: string) => {
 export const getAllUser = async (req: AuthRequest, res: Response) => {
   try {
     const { page, page_size: pageSize } = req.pagination ?? {};
-    const { search_text, search_field, role, rank, order, order_by } = req.query;
+    const { search_text, search_field, status, role, rank, order, order_by } = req.query;
     const filters: { field: string; operator: WhereFilterOp; value: any }[] = [];
     if (search_text && search_field == 'full_name') {
       const capitalizedName = capitalizeName(search_text as string);
@@ -49,6 +49,10 @@ export const getAllUser = async (req: AuthRequest, res: Response) => {
 
     if (rank) {
       filters.push({ field: 'rank', operator: '==', value: rank });
+    }
+
+    if (status) {
+      filters.push({ field: 'status', operator: '==', value: status });
     }
 
     const total = filters.length
