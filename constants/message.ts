@@ -63,6 +63,7 @@ export enum ErrorMessage {
   CANNOT_UPDATE_PARKING_SPACE = 'Cannot update parking space!',
   CANNOT_UPDATE_PARKING_SPACE_STATUS = 'Cannot update parking space status!',
   PARKING_SPACE_ALREADY_RESERVED = 'This parking space is already reserved!',
+  CANNOT_GET_PARKING_SPACE_STATS = `Cannot get parking space's stats!`,
 
   // General messages
   REQUEST_FAILED = 'Request failed!',
@@ -278,6 +279,7 @@ export enum Message {
   PARKING_SPACE_STATUS_UPDATED = 'Parking space status has been updated successfully.',
   GET_PARKING_SPACE = 'Get parking space(s) successfully.',
   GET_AVAILABLE_PARKING_SPACE = 'Get available parking space(s) successfully.',
+  PARKING_SPACE_GET_STATS = `Get parking space's stats successfully`,
 
   // Menu Schedule messages
   MENU_SCHEDULE_CREATED = 'Menu schedule(s) created successfully.',
@@ -457,6 +459,7 @@ export enum StatusCode {
   CANNOT_GET_AVAILABLE_PARKING_SPACE = 4086,
   CANNOT_UPDATE_PARKING_SPACE_STATUS = 4087,
   PARKING_SPACE_ALREADY_RESERVED = 4088,
+  CANNOT_GET_PARKING_SPACE_STATS = 4089,
 
   // Restaurant messages
   RESTAURANT_NOT_FOUND = 4101,
