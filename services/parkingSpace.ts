@@ -4,11 +4,23 @@ import { Collection, ParkingSpaceStatus, Sites } from '../constants/enum';
 import { ParkingSpace } from '../interfaces/parkingSpace';
 import { AuthRequest } from '../interfaces/jwt';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
+import { WhereFilterOp } from 'firebase-admin/firestore';
 
 const parkingSpaceCollection = `${Sites.TOKYO}/${Collection.PARKING_SPACES}`;
 const getParkingSpaces = async (req: Request, res: Response) => {
   try {
-    const parkingSpaces: ParkingSpace[] = await firebaseHelper.getAllDocs(parkingSpaceCollection);
+    const { building_id } = req.query;
+    const filters: { field: string; operator: WhereFilterOp; value: any }[] = [];
+    if (building_id) {
+      filters.push({ field: 'building_id', operator: '==', value: building_id });
+    }
+
+    let parkingSpaces: ParkingSpace[];
+    if (filters.length) {
+      parkingSpaces = await firebaseHelper.getDocsByFields(parkingSpaceCollection, filters);
+    } else {
+      parkingSpaces = await firebaseHelper.getAllDocs(parkingSpaceCollection);
+    }
 
     return responseSuccess(res, Message.GET_PARKING_SPACE, parkingSpaces);
   } catch (error) {
@@ -22,7 +34,53 @@ const getParkingSpaces = async (req: Request, res: Response) => {
   }
 };
 
-const getBuildingById = async (req: Request, res: Response) => {
+const getParkingSpaceStats = async (req: AuthRequest, res: Response) => {
+  try {
+    const { building_id } = req.query;
+    const parkingSpaces = await firebaseHelper.getDocByField(
+      parkingSpaceCollection,
+      'building_id',
+      building_id,
+    );
+    const stats = parkingSpaces.reduce(
+      (acc, space) => {
+        acc.total += 1;
+
+        switch (space.status) {
+          case ParkingSpaceStatus.AVAILABLE:
+            acc.available += 1;
+            break;
+          case ParkingSpaceStatus.MAINTENANCE:
+            acc.maintenance += 1;
+            break;
+          case ParkingSpaceStatus.RESERVED:
+            acc.reserved += 1;
+            break;
+        }
+
+        return acc;
+      },
+      {
+        total: 0,
+        available: 0,
+        maintenance: 0,
+        reserved: 0,
+      },
+    );
+
+    return responseSuccess(res, Message.PARKING_SPACE_GET_STATS, stats);
+  } catch (error) {
+    logger.warn(`${ErrorMessage.CANNOT_GET_PARKING_SPACE_STATS} | ${error}`);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_GET_PARKING_SPACE_STATS,
+      ErrorMessage.CANNOT_GET_PARKING_SPACE_STATS,
+    );
+  }
+};
+
+const getParkingSpaceById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const parkingSpace: ParkingSpace = await firebaseHelper.getDocById(parkingSpaceCollection, id);
@@ -173,7 +231,8 @@ const updateParkingSpaceStatus = async (req: AuthRequest, res: Response) => {
 export {
   getParkingSpaces,
   getParkingSpaceAvailable,
-  getBuildingById,
+  getParkingSpaceById,
+  getParkingSpaceStats,
   updateParkingSpaceStatus,
   createParkingSpace,
   updateParkingSpace,

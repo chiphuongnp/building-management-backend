@@ -4,9 +4,10 @@ import { authenticate } from '../middlewares/auth';
 import {
   getParkingSpaces,
   getParkingSpaceAvailable,
-  getBuildingById,
+  getParkingSpaceById,
   createParkingSpace,
   updateParkingSpace,
+  getParkingSpaceStats,
 } from '../services/parkingSpace';
 import {
   validateCreateParkingSpace,
@@ -25,6 +26,8 @@ parkingSpaceRouter.get(
   getParkingSpaces,
 );
 
+parkingSpaceRouter.get('/stats', authenticate, requireRole(UserRole.MANAGER), getParkingSpaceStats);
+
 parkingSpaceRouter.get(
   '/available',
   authenticate,
@@ -37,7 +40,7 @@ parkingSpaceRouter.get(
   authenticate,
   requireRole(UserRole.MANAGER, UserRole.USER),
   validateIdParam,
-  getBuildingById,
+  getParkingSpaceById,
 );
 
 parkingSpaceRouter.post(
