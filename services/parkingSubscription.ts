@@ -44,6 +44,30 @@ const getSubscriptions = async (req: Request, res: Response) => {
   }
 };
 
+const getCurrentSubscription = async (req: Request, res: Response) => {
+  try {
+    const { parkingSpaceId } = req.params;
+    const parkingSubscription = await firebaseHelper.getDocByField(
+      subscriptionCollection(parkingSpaceId),
+      'status',
+      ParkingSubscriptionStatus.RESERVED,
+    );
+    if (!parkingSubscription.length) {
+      return responseSuccess(res, Message.NO_PARKING_SUBSCRIPTION_DATA, parkingSubscription);
+    }
+
+    return responseSuccess(res, Message.GET_CURRENT_PARKING_SUBSCRIPTION, parkingSubscription);
+  } catch (error) {
+    logger.warn(ErrorMessage.CANNOT_GET_CURRENT_PARKING_SUBSCRIPTION + error);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_GET_CURRENT_PARKING_SUBSCRIPTION,
+      ErrorMessage.CANNOT_GET_CURRENT_PARKING_SUBSCRIPTION,
+    );
+  }
+};
+
 const getSubscriptionById = async (req: Request, res: Response) => {
   try {
     const { parkingSpaceId, id: parkingSubscriptionId } = req.params;
@@ -269,6 +293,7 @@ const cancelParkingSubscription = async (req: AuthRequest, res: Response) => {
 
 export {
   getSubscriptions,
+  getCurrentSubscription,
   cancelParkingSubscription,
   updateParkingSubscriptionStatus,
   getSubscriptionById,

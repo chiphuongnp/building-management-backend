@@ -97,6 +97,7 @@ export enum ErrorMessage {
   CANNOT_UPDATE_PARKING_SUBSCRIPTION_STATUS = 'Cannot update parking subscription status!',
   CANNOT_CANCEL_PARKING_SUBSCRIPTION = 'Cannot cancel parking subscription!',
   CANCEL_PARKING_SUBSCRIPTION_FORBIDDEN = 'You are not allowed to cancel this parking subscription!',
+  CANNOT_GET_CURRENT_PARKING_SUBSCRIPTION = 'Can not get current parking subscription!',
 
   //Permission messages
   PERMISSION_NOT_FOUND = 'Permission not found',
@@ -298,6 +299,8 @@ export enum Message {
   GET_PARKING_SUBSCRIPTION = 'Get parking subscription(s) successfully.',
   PARKING_SUBSCRIPTION_STATUS_UPDATED = 'Parking subscription status has been updated successfully.',
   PARKING_SUBSCRIPTION_CANCELED = 'Parking subscription canceled successfully.',
+  GET_CURRENT_PARKING_SUBSCRIPTION = 'Get current parking subscription successfully.',
+  NO_PARKING_SUBSCRIPTION_DATA = 'No parking subscription data available.',
 
   // Order messages
   ORDER_CREATED = 'Order has been created successfully.',
@@ -486,6 +489,7 @@ export enum StatusCode {
   CANNOT_UPDATE_PARKING_SUBSCRIPTION_STATUS = 4125,
   CANNOT_CANCEL_PARKING_SUBSCRIPTION = 4126,
   CANCEL_PARKING_SUBSCRIPTION_FORBIDDEN = 4127,
+  CANNOT_GET_CURRENT_PARKING_SUBSCRIPTION = 4128,
 
   // Facility codes
   CANNOT_GET_FACILITY_LIST = 4141,
