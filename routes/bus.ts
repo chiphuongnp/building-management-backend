@@ -1,6 +1,6 @@
 import express from 'express';
 import { authenticate } from '../middlewares/auth';
-import { validateBus } from '../validations/bus';
+import { validateCreateBus, validateUpdateBus } from '../validations/bus';
 import { requirePermission, requireRole } from '../middlewares/permission';
 import { Permission, UserRole } from '../constants/enum';
 import { upload } from '../middlewares/multer';
@@ -15,7 +15,7 @@ busRouter.post(
   requireRole(UserRole.MANAGER),
   requirePermission(Permission.CREATE_BUS),
   upload.array('bus-images', MAX_IMAGE_COUNT),
-  validateBus,
+  validateCreateBus,
   createBus,
 );
 
@@ -41,7 +41,7 @@ busRouter.patch(
   requireRole(UserRole.MANAGER),
   requirePermission(Permission.UPDATE_BUS),
   upload.array('bus-images', MAX_IMAGE_COUNT),
-  validateBus,
+  validateUpdateBus,
   updateBus,
 );
 

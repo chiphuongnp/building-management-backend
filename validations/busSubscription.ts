@@ -1,6 +1,6 @@
 import Joi from 'joi';
 import { NextFunction, Request, Response } from 'express';
-import { BusSubscriptionStatus, BusSubscriptionType } from '../constants/enum';
+import { BusSubscriptionStatus } from '../constants/enum';
 
 export const bookingBusValidationSchema = Joi.object({
   route_id: Joi.string().required().messages({
@@ -20,13 +20,6 @@ export const bookingBusValidationSchema = Joi.object({
     'string.isoDate': 'Subscription date must be a valid ISO date (YYYY-MM-DD).',
     'any.required': 'Subscription date is required.',
   }),
-  subscription_type: Joi.string()
-    .valid(...Object.values(BusSubscriptionType))
-    .required()
-    .messages({
-      'any.only': `Subscription type must be one of the following: ${Object.values(BusSubscriptionType).join(', ')}.`,
-      'any.required': 'Subscription type is required.',
-    }),
   status: Joi.string()
     .valid(...Object.values(BusSubscriptionStatus))
     .required()

@@ -1,4 +1,4 @@
-import { BusStatus } from '../constants/enum';
+import { BusStatus, BusSeatStatus } from '../constants/enum';
 
 export interface Bus {
   type_name: string;
@@ -9,20 +9,12 @@ export interface Bus {
   image_urls?: string[];
   model: string;
   features?: string[];
-  driver: Driver;
+  driver_id?: string;
   status: BusStatus;
-  seats: BusSeat[];
-}
-
-interface Driver {
-  name: string;
-  phone: string;
-  image_url?: string;
+  seats?: BusSeat[];
 }
 
 export interface BusSeat {
   seat_number: string;
-  is_available: boolean;
-  booked_by?: string | null;
-  booking_id?: string | null;
+  status: BusSeatStatus;
 }
