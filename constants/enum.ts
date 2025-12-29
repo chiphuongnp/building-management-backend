@@ -108,12 +108,6 @@ export enum FacilityStatus {
   RESERVED = 'reserved',
 }
 
-export enum BusStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  MAINTENANCE = 'maintenance',
-}
-
 export enum PickupMethod {
   DINE_IN = 'dine_in',
   TAKEAWAY = 'takeaway',
@@ -230,9 +224,15 @@ export enum RankDiscount {
   PLATINUM = 10,
 }
 
-export enum BusSubscriptionType {
-  SINGLE = 'single',
-  MONTHLY = 'monthly',
+export enum BusStatus {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  MAINTENANCE = 'maintenance',
+}
+
+export enum BusSeatStatus {
+  AVAILABLE = 'available',
+  RESERVED = 'reserved',
 }
 
 export enum BusSubscriptionStatus {

@@ -1,15 +1,13 @@
-import { BusSubscriptionStatus, BusSubscriptionType } from '../constants/enum';
+import { BusSubscriptionStatus } from '../constants/enum';
 
 export interface BusSubscription {
   id: string;
-  employee_id: string;
-  employee_name: string;
-  employee_phone: string;
+  user_id: string;
   route_id: string;
-  route_name: string;
   bus_id: string;
   subscription_date: string;
-  subscription_type: BusSubscriptionType;
+  start_time: Date;
+  end_time: Date;
   status: BusSubscriptionStatus;
   payment_id: string;
   seat_number: string;

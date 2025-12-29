@@ -1,8 +1,8 @@
 import { Response } from 'express';
-import { Collection, Sites } from '../constants/enum';
+import { BusSeatStatus, BusStatus, Collection, Sites } from '../constants/enum';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { AuthRequest } from '../interfaces/jwt';
-import { Bus } from '../interfaces/bus';
+import { Bus, BusSeat } from '../interfaces/bus';
 import {
   firebaseHelper,
   responseError,
@@ -12,10 +12,16 @@ import {
 } from '../utils/index';
 
 const busCollection = `${Sites.TOKYO}/${Collection.BUSES}`;
+const generateSeats = (capacity: number): BusSeat[] => {
+  return Array.from({ length: capacity }, (_, index) => ({
+    seat_number: (index + 1).toString(),
+    status: BusSeatStatus.AVAILABLE,
+  }));
+};
 
 export const createBus = async (req: AuthRequest, res: Response) => {
   try {
-    const data: Partial<Bus> = req.body;
+    const data: Bus = req.body;
     const numberSnapshot = await firebaseHelper.getDocByField(busCollection, 'number', data.number);
     if (numberSnapshot.length) {
       return responseError(
@@ -39,11 +45,14 @@ export const createBus = async (req: AuthRequest, res: Response) => {
     }
 
     const files = req?.files as Express.Multer.File[];
-    const docRef = await firebaseHelper.createDoc(busCollection, {
+    const busData = {
       ...data,
+      status: BusStatus.ACTIVE,
+      seats: generateSeats(data.capacity),
       image_urls: files?.map((file) => file.path.replace(/\\/g, '/')) || [],
       created_by: req.user?.uid,
-    });
+    };
+    const docRef = await firebaseHelper.createDoc(busCollection, busData);
 
     return responseSuccess(res, Message.BUS_CREATED, { id: docRef.id });
   } catch (error) {
