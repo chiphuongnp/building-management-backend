@@ -70,6 +70,10 @@ const updatePasswordSchema = Joi.object({
   }),
 });
 
+const updateUserPermissionsSchema = Joi.object({
+  permissions: Joi.array().items(Joi.string()).min(1).unique().required(),
+});
+
 export const validateUser = (req: Request, res: Response, next: NextFunction) => {
   const { error } = userSchema.validate(req.body);
   if (error) {
@@ -96,6 +100,14 @@ export const validateRegister = (req: Request, res: Response, next: NextFunction
 
 export const validateUpdatePassword = (req: Request, res: Response, next: NextFunction) => {
   const { error } = updatePasswordSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ success: false, message: error.details[0].message });
+  }
+  next();
+};
+
+export const validateUpdateUserPermissions = (req: Request, res: Response, next: NextFunction) => {
+  const { error } = updateUserPermissionsSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ success: false, message: error.details[0].message });
   }

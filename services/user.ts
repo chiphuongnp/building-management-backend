@@ -12,15 +12,33 @@ import { ActiveStatus, Collection, Permission, Sites, UserRole, UserRank } from 
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { AuthRequest } from '../interfaces/jwt';
 import { User } from '../interfaces/user';
+import { Permission as PermissionInterface } from '../interfaces/permission';
 import { OrderByDirection, WhereFilterOp } from 'firebase-admin/firestore';
 import { DEFAULT_AVATAR_URL, DEFAULT_PAGE_TOTAL } from '../constants/constant';
+import permissionSeed from '../seeds/permissions.json';
 import * as ENV from '../configs/envConfig';
 
+const permissionCollection = `${Sites.TOKYO}/${Collection.PERMISSIONS}`;
 const userCollection = `${Sites.TOKYO}/${Collection.USERS}`;
 const getTokenPath = (uid: string) => {
   const tokenPath = `${userCollection}/${uid}/tokens`;
 
   return { tokenPath };
+};
+
+const validatePermissions = async (permissions: Permission[]): Promise<Permission[]> => {
+  const permissionList = [...new Set(permissions)];
+
+  await Promise.all(
+    permissionList.map(async (id) => {
+      const doc: PermissionInterface = await firebaseHelper.getDocById(permissionCollection, id);
+      if (!doc) {
+        throw new Error(`${ErrorMessage.PERMISSION_NOT_FOUND}: ${id}`);
+      }
+    }),
+  );
+
+  return permissionList;
 };
 
 export const getAllUser = async (req: AuthRequest, res: Response) => {
@@ -205,6 +223,15 @@ export const createUser = async (req: AuthRequest, res: Response) => {
       return responseError(res, StatusCode.ACCOUNT_EMAIL_EXISTS, ErrorMessage.ACCOUNT_EMAIL_EXISTS);
     }
 
+    let validPermissions: Permission[] = [];
+    if (permissions) {
+      try {
+        validPermissions = await validatePermissions(permissions);
+      } catch (err: any) {
+        return responseError(res, StatusCode.PERMISSION_NOT_FOUND, err.message);
+      }
+    }
+
     const authUser = await admin.auth().createUser({
       email,
       password,
@@ -217,7 +244,7 @@ export const createUser = async (req: AuthRequest, res: Response) => {
       username,
       phone,
       role: role ? role : UserRole.USER,
-      permissions: role === UserRole.MANAGER ? permissions : [],
+      permissions: role === UserRole.MANAGER ? validPermissions : [],
       full_name: fullName,
       image_url: DEFAULT_AVATAR_URL,
       rank: UserRank.BRONZE,
@@ -268,12 +295,23 @@ export const createSuperManager = async (req: Request, res: Response) => {
       return responseError(res, StatusCode.UNAUTHORIZED, ErrorMessage.UNAUTHORIZED);
     }
 
+    const existingPermissions = await firebaseHelper.getAllDocs(permissionCollection);
+    if (!existingPermissions.length) {
+      const permissionDocs = Object.entries(permissionSeed).map(([id, description]) => ({
+        id,
+        description,
+      }));
+
+      await firebaseHelper.createBatchDocs(permissionCollection, permissionDocs);
+    }
+
     const authUser = await admin.auth().createUser({
       email,
       password,
       displayName: fullName,
     });
     const uid = authUser.uid;
+    const permissions = Object.keys(permissionSeed) as Permission[];
     const userData = {
       id: uid,
       email,
@@ -281,7 +319,7 @@ export const createSuperManager = async (req: Request, res: Response) => {
       phone,
       full_name: fullName,
       role: UserRole.MANAGER,
-      permissions: [Permission.CREATE_USER],
+      permissions,
       image_url: DEFAULT_AVATAR_URL,
       rank: UserRank.BRONZE,
       points: 0,
@@ -349,5 +387,36 @@ export const updatePassword = async (req: AuthRequest, res: Response) => {
       StatusCode.CANNOT_UPDATE_PASSWORD,
       `${ErrorMessage.CANNOT_UPDATE_PASSWORD} | ${err.message}`,
     );
+  }
+};
+
+export const updateUserPermissions = async (req: AuthRequest, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const { permissions } = req.body;
+    const user = await firebaseHelper.getDocById(userCollection, userId);
+    if (!user) {
+      return responseError(res, StatusCode.USER_NOT_FOUND, ErrorMessage.USER_NOT_FOUND);
+    }
+
+    let validPermissions: Permission[];
+    try {
+      validPermissions = await validatePermissions(permissions);
+    } catch (err: any) {
+      return responseError(res, StatusCode.PERMISSION_NOT_FOUND, err.message);
+    }
+
+    await firebaseHelper.updateDoc(userCollection, userId, {
+      permissions: validPermissions,
+      updated_by: req.user?.uid,
+    });
+
+    return responseSuccess(res, Message.USER_UPDATED, {
+      id: userId,
+      permissions: validPermissions,
+    });
+  } catch (error) {
+    logger.warn(`${ErrorMessage.USER_UPDATED} | ${error}`);
+    return responseError(res, StatusCode.USER_UPDATE, ErrorMessage.REQUEST_FAILED);
   }
 };
