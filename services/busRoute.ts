@@ -11,8 +11,7 @@ const busCollection = `${Sites.TOKYO}/${Collection.BUSES}`;
 
 export const createBusRoute = async (req: AuthRequest, res: Response) => {
   try {
-    const data: Partial<BusRoute> = req.body;
-
+    const data: BusRoute = req.body;
     const existingRoute = await firebaseHelper.getDocByField(
       busRouteCollection,
       'route_code',
@@ -38,7 +37,7 @@ export const createBusRoute = async (req: AuthRequest, res: Response) => {
 
     const docRef = await firebaseHelper.createDoc(busRouteCollection, {
       ...data,
-      status: ActiveStatus.INACTIVE,
+      status: ActiveStatus.ACTIVE,
       created_by: req.user?.uid,
     });
 

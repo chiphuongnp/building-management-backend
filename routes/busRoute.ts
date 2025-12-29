@@ -2,7 +2,7 @@ import express from 'express';
 import { authenticate } from '../middlewares/auth';
 import { requirePermission, requireRole } from '../middlewares/permission';
 import { Permission, UserRole } from '../constants/enum';
-import { validateBusRoute } from '../validations/busRoute';
+import { validateCreateBusRoute, validateUpdateBusRoute } from '../validations/busRoute';
 import {
   createBusRoute,
   getBusRouteDetail,
@@ -19,7 +19,7 @@ busRouteRouter.post(
   authenticate,
   requireRole(UserRole.MANAGER),
   requirePermission(Permission.CREATE_BUS_ROUTE),
-  validateBusRoute,
+  validateCreateBusRoute,
   createBusRoute,
 );
 
@@ -44,7 +44,7 @@ busRouteRouter.patch(
   authenticate,
   requireRole(UserRole.MANAGER),
   requirePermission(Permission.UPDATE_BUS_ROUTE),
-  validateBusRoute,
+  validateUpdateBusRoute,
   updateBusRoute,
 );
 
