@@ -1,5 +1,10 @@
 import express from 'express';
-import { validateUpdatePassword, validateUpdateUser, validateUser } from '../validations/user';
+import {
+  validateUpdatePassword,
+  validateUpdateUser,
+  validateUpdateUserPermissions,
+  validateUser,
+} from '../validations/user';
 import {
   createSuperManager,
   createUser,
@@ -9,6 +14,7 @@ import {
   getUsersStats,
   updatePassword,
   updateUser,
+  updateUserPermissions,
 } from '../services/user';
 import { authenticate } from '../middlewares/auth';
 import { requirePermission, requireRole } from '../middlewares/permission';
@@ -65,5 +71,14 @@ usersRouter.patch(
 );
 
 usersRouter.patch('/update-password', authenticate, validateUpdatePassword, updatePassword);
+
+usersRouter.patch(
+  '/:userId/permissions',
+  authenticate,
+  requireRole(UserRole.MANAGER),
+  requirePermission(Permission.UPDATE_PERMISSION),
+  validateUpdateUserPermissions,
+  updateUserPermissions,
+);
 
 export default usersRouter;

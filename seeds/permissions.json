@@ -1,0 +1,63 @@
+{
+  "create_site": "Create site",
+  "update_site": "Update site",
+
+  "create_building": "Create building",
+  "update_building": "Update building",
+
+  "get_all_users": "Get all users",
+  "get_user_detail": "Get user detail",
+  "get_user_stats": "Get user statistics",
+  "update_user": "Update user",
+  "create_user": "Create user",
+
+  "get_permission": "Get permission detail",
+  "create_permission": "Create permission",
+  "update_permission": "Update permission",
+
+  "create_restaurant": "Create restaurant",
+  "update_restaurant": "Update restaurant",
+
+  "view_sales": "View sales",
+  "view_order_list": "View order list",
+  "update_order_status": "Update order status",
+
+  "create_dish": "Create dish",
+  "update_dish": "Update dish",
+
+  "view_menu": "View menu",
+  "create_menu": "Create menu",
+  "update_menu": "Update menu",
+
+  "create_parking_space": "Create parking space",
+  "update_parking_space": "Update parking space",
+
+  "create_facility": "Create facility",
+  "update_facility": "Update facility",
+
+  "update_event_booking_status": "Update event booking status",
+
+  "create_bus": "Create bus",
+  "get_all_buses": "Get all buses",
+  "get_bus": "Get bus detail",
+  "update_bus": "Update bus",
+
+  "create_bus_route": "Create bus route",
+  "get_all_bus_routes": "Get all bus routes",
+  "get_bus_route_detail": "Get bus route detail",
+  "update_bus_route": "Update bus route",
+  "update_bus_route_status": "Update bus route status",
+
+  "get_event_participants": "Get event participants",
+
+  "get_booking_bus_detail": "Get booking bus detail",
+  "get_all_booking_bus": "Get all booking buses",
+  "create_booking_bus": "Create booking bus",
+
+  "create_information": "Create information",
+  "view_information_list": "View information list",
+
+  "view_restaurant_stats": "View restaurant statistics",
+  "view_building_stats": "View building statistics",
+  "view_facility_stats": "View facility statistics"
+}

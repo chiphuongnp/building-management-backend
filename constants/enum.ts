@@ -155,7 +155,6 @@ export enum Permission {
   GET_USER_STATS = 'get_user_stats',
   UPDATE_USER = 'update_user',
   CREATE_USER = 'create_user',
-  GET_ALL_PERMISSIONS = 'get_all_permissions',
   GET_PERMISSION = 'get_permission',
   CREATE_PERMISSION = 'create_permission',
   UPDATE_PERMISSION = 'update_permission',

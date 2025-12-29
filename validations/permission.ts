@@ -7,11 +7,6 @@ const permissionSchema = Joi.object({
     'string.min': 'id must be at least 1 character',
     'string.max': 'id must not exceed 255 characters',
   }),
-  name: Joi.string().required().min(1).max(255).messages({
-    'string.empty': 'Name is required',
-    'string.min': 'Name must be at least 1 character',
-    'string.max': 'Name must not exceed 255 characters',
-  }),
   description: Joi.string().optional().min(1).max(255).messages({
     'string.min': 'Description must be at least 1 character',
     'string.max': 'Description must not exceed 255 characters',

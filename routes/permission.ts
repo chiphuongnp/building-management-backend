@@ -16,7 +16,6 @@ permissionRouter.get(
   '/',
   authenticate,
   requireRole(UserRole.MANAGER),
-  requirePermission(Permission.GET_ALL_PERMISSIONS),
   getPermissions,
 );
 
