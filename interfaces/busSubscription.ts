@@ -5,7 +5,6 @@ export interface BusSubscription {
   user_id: string;
   route_id: string;
   bus_id: string;
-  subscription_date: string;
   start_time: Date;
   end_time: Date;
   status: BusSubscriptionStatus;

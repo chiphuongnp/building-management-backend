@@ -202,6 +202,8 @@ export enum ErrorMessage {
   INVALID_SUBSCRIPTION_SEATS = 'Invalid number of seats requested!',
   SEAT_ALREADY_BOOKED = 'One or more selected seats are already taken!',
   CANNOT_GET_BUS_SUBSCRIPTION_DETAIL = 'Cannot get bus subscription detail!',
+  BUS_ROUTE_INACTIVE = 'Bus route is inactive',
+  BUS_NOT_IN_ROUTE = 'Bus does not belong to this route',
 
   // Momo errors
   CANNOT_CREATE_MOMO_PAYMENT = 'Cannot create momo payment',
@@ -577,6 +579,9 @@ export enum StatusCode {
   SEAT_ALREADY_BOOKED = 4303,
   CANNOT_CREATE_BUS_SUBSCRIPTION = 4304,
   BUS_SUBSCRIPTION_GET_DETAIL_ERROR = 4305,
+  BUS_ROUTE_INACTIVE = 4306,
+  BUS_NOT_IN_ROUTE = 4307,
+  BUS_SUBSCRIPTION_ALREADY_EXISTS = 4308,
 
   //Permission
   PERMISSION_GET_ALL = 5001,
