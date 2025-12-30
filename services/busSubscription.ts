@@ -2,10 +2,18 @@ import { Response } from 'express';
 import { firebaseHelper, responseError, responseSuccess, logger } from '../utils/index';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { AuthRequest } from '../interfaces/jwt';
-import { BusSubscriptionStatus, Collection, Sites } from '../constants/enum';
+import {
+  BusSeatStatus,
+  BusSubscriptionStatus,
+  Collection,
+  Sites,
+  ActiveStatus,
+} from '../constants/enum';
 import { BusSubscription } from '../interfaces/busSubscription';
 import { Bus } from '../interfaces/bus';
 import { User } from '../interfaces/user';
+import { BusRoute } from '../interfaces/busRoute';
+import { Timestamp } from 'firebase-admin/firestore';
 
 const busSubscriptionCollection = `${Sites.TOKYO}/${Collection.BUS_SUBSCRIPTIONS}`;
 const busCollection = `${Sites.TOKYO}/${Collection.BUSES}`;
@@ -68,27 +76,28 @@ export const createBusSubscription = async (req: AuthRequest, res: Response) => 
       return responseError(res, StatusCode.USER_NOT_FOUND, ErrorMessage.USER_NOT_FOUND);
     }
 
-    await firebaseHelper.runTransaction(async (transaction) => {
+    const conflicts = await firebaseHelper.getDocsByFields(busSubscriptionCollection, [
+      { field: 'user_id', operator: '==', value: userId },
+      { field: 'route_id', operator: '==', value: data.route_id },
+      { field: 'start_time', operator: '<', value: Timestamp.fromDate(data.end_time) },
+      { field: 'end_time', operator: '>', value: Timestamp.fromDate(data.start_time) },
+      { field: 'status', operator: '!=', value: BusSubscriptionStatus.CANCELLED },
+    ]);
+    if (conflicts.length) {
+      return responseError(
+        res,
+        StatusCode.BUS_SUBSCRIPTION_ALREADY_EXISTS,
+        ErrorMessage.BUS_SUBSCRIPTION_ALREADY_EXISTS,
+      );
+    }
+
+    const busSubscriptionId = await firebaseHelper.runTransaction(async (transaction) => {
       const bus: Bus = await firebaseHelper.getTransaction(busCollection, data.bus_id, transaction);
       if (!bus) {
         throw new Error(ErrorMessage.BUS_NOT_FOUND);
       }
 
-      const seat = bus.seats.find((s) => s.seat_number === data.seat_number && s.is_available);
-      if (!seat) {
-        throw new Error(ErrorMessage.SEAT_ALREADY_BOOKED);
-      }
-
-      const seatIndex = bus.seats.indexOf(seat);
-      bus.seats[seatIndex].is_available = false;
-      await firebaseHelper.updateTransaction(
-        busCollection,
-        data.bus_id,
-        { seats: bus.seats },
-        transaction,
-      );
-
-      const route = await firebaseHelper.getTransaction(
+      const route: BusRoute = await firebaseHelper.getTransaction(
         busRouteCollection,
         data.route_id,
         transaction,
@@ -97,46 +106,76 @@ export const createBusSubscription = async (req: AuthRequest, res: Response) => 
         throw new Error(ErrorMessage.BUS_ROUTE_NOT_FOUND);
       }
 
+      if (route.status !== ActiveStatus.ACTIVE) {
+        throw new Error(ErrorMessage.BUS_ROUTE_INACTIVE);
+      }
+
+      if (!route.bus_id?.includes(data.bus_id)) {
+        throw new Error(ErrorMessage.BUS_NOT_IN_ROUTE);
+      }
+
       const user: User = await firebaseHelper.getTransaction(userCollection, userId, transaction);
       if (!user) {
         throw new Error(ErrorMessage.USER_NOT_FOUND);
       }
 
-      const subscriptionData: BusSubscription = {
-        ...data,
-        employee_id: user.id,
-        employee_name: user.full_name,
-        employee_phone: user.phone,
-        status: BusSubscriptionStatus.PENDING,
-      };
+      const seat = bus.seats?.find(
+        (s) => s.seat_number === data.seat_number && s.status === BusSeatStatus.AVAILABLE,
+      );
+      if (!seat) {
+        throw new Error(ErrorMessage.SEAT_ALREADY_BOOKED);
+      }
 
-      await firebaseHelper.setTransaction(busSubscriptionCollection, subscriptionData, transaction);
+      seat.status = BusSeatStatus.RESERVED;
+
+      await firebaseHelper.updateTransaction(
+        busCollection,
+        data.bus_id,
+        { seats: bus.seats },
+        transaction,
+      );
+
+      const subscriptionData = {
+        ...data,
+        user_id: userId,
+        status: BusSubscriptionStatus.PENDING,
+        created_at: new Date(),
+      };
+      const busSubscription = await firebaseHelper.setTransaction(
+        busSubscriptionCollection,
+        subscriptionData,
+        transaction,
+      );
+
+      return busSubscription.id;
     });
 
-    return responseSuccess(res, Message.BUS_SUBSCRIPTION_CREATED);
+    return responseSuccess(res, Message.BUS_SUBSCRIPTION_CREATED, { id: busSubscriptionId });
   } catch (error: any) {
-    logger.warn(ErrorMessage.CANNOT_CREATE_BUS_SUBSCRIPTION + error);
+    logger.warn(ErrorMessage.CANNOT_CREATE_BUS_SUBSCRIPTION, error);
 
-    if (error.message === ErrorMessage.BUS_NOT_FOUND) {
-      return responseError(res, StatusCode.BUS_NOT_FOUND, ErrorMessage.BUS_NOT_FOUND);
+    switch (error.message) {
+      case ErrorMessage.BUS_NOT_FOUND:
+        return responseError(res, StatusCode.BUS_NOT_FOUND, error.message);
+
+      case ErrorMessage.SEAT_ALREADY_BOOKED:
+        return responseError(res, StatusCode.SEAT_ALREADY_BOOKED, error.message);
+
+      case ErrorMessage.BUS_ROUTE_NOT_FOUND:
+        return responseError(res, StatusCode.BUS_ROUTE_NOT_FOUND, error.message);
+
+      case ErrorMessage.BUS_NOT_IN_ROUTE:
+        return responseError(res, StatusCode.BUS_NOT_IN_ROUTE, error.message);
+
+      case ErrorMessage.USER_NOT_FOUND:
+        return responseError(res, StatusCode.USER_NOT_FOUND, error.message);
+
+      default:
+        return responseError(
+          res,
+          StatusCode.CANNOT_CREATE_BUS_SUBSCRIPTION,
+          ErrorMessage.CANNOT_CREATE_BUS_SUBSCRIPTION,
+        );
     }
-
-    if (error.message === ErrorMessage.SEAT_ALREADY_BOOKED) {
-      return responseError(res, StatusCode.SEAT_ALREADY_BOOKED, ErrorMessage.SEAT_ALREADY_BOOKED);
-    }
-
-    if (error.message === ErrorMessage.BUS_ROUTE_NOT_FOUND) {
-      return responseError(res, StatusCode.BUS_ROUTE_NOT_FOUND, ErrorMessage.BUS_ROUTE_NOT_FOUND);
-    }
-
-    if (error.message === ErrorMessage.USER_NOT_FOUND) {
-      return responseError(res, StatusCode.USER_NOT_FOUND, ErrorMessage.USER_NOT_FOUND);
-    }
-
-    return responseError(
-      res,
-      StatusCode.CANNOT_CREATE_BUS_SUBSCRIPTION,
-      ErrorMessage.CANNOT_CREATE_BUS_SUBSCRIPTION,
-    );
   }
 };
