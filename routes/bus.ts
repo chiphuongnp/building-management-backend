@@ -5,7 +5,7 @@ import { requirePermission, requireRole } from '../middlewares/permission';
 import { Permission, UserRole } from '../constants/enum';
 import { upload } from '../middlewares/multer';
 import { MAX_IMAGE_COUNT } from '../constants/constant';
-import { createBus, getAllBuses, getBusDetail, updateBus } from '../services/bus';
+import { createBus, getAllBuses, getBusDetail, getBusStats, updateBus } from '../services/bus';
 
 const busRouter = express.Router();
 
@@ -26,6 +26,8 @@ busRouter.get(
   requirePermission(Permission.GET_ALL_BUSES),
   getAllBuses,
 );
+
+busRouter.get('/stats', authenticate, requireRole(UserRole.MANAGER), getBusStats);
 
 busRouter.get(
   '/:id',
