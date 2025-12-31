@@ -9,7 +9,10 @@ import {
   responseSuccess,
   logger,
   deleteImages,
+  capitalizeName,
 } from '../utils/index';
+import { OrderByDirection, WhereFilterOp } from 'firebase-admin/firestore';
+import { DEFAULT_PAGE_TOTAL } from '../constants/constant';
 
 const busCollection = `${Sites.TOKYO}/${Collection.BUSES}`;
 const generateSeats = (capacity: number): BusSeat[] => {
@@ -64,16 +67,116 @@ export const createBus = async (req: AuthRequest, res: Response) => {
 
 export const getAllBuses = async (req: AuthRequest, res: Response) => {
   try {
-    const buses = await firebaseHelper.getAllDocs(busCollection);
-    if (!buses.length) {
-      return responseError(res, StatusCode.BUS_NOT_FOUND, ErrorMessage.BUS_NOT_FOUND);
+    const { status, plate_number, order, order_by } = req.query;
+    const { page, page_size } = req.pagination ?? {};
+    const filters: { field: string; operator: WhereFilterOp; value: any }[] = [];
+    if (plate_number) {
+      const capitalizedName = capitalizeName(plate_number as string);
+      filters.push(
+        { field: 'plate_number', operator: '>=', value: capitalizedName },
+        { field: 'plate_number', operator: '<=', value: capitalizedName + '\uf8ff' },
+      );
     }
 
-    return responseSuccess(res, Message.BUS_GET_ALL, buses);
+    if (status) {
+      filters.push({ field: 'status', operator: '==', value: status });
+    }
+
+    const total = filters.length
+      ? await firebaseHelper.countDocsByFields(busCollection, filters)
+      : await firebaseHelper.countAllDocs(busCollection);
+    const totalPage = page_size
+      ? Math.max(DEFAULT_PAGE_TOTAL, Math.ceil(total / page_size))
+      : DEFAULT_PAGE_TOTAL;
+    const orderBy = plate_number ? 'plate_number' : (order_by as string);
+    const orderDirection = order as OrderByDirection;
+    let buses: Bus[];
+    if (filters.length) {
+      buses = await firebaseHelper.getDocsByFields(
+        busCollection,
+        filters,
+        orderBy,
+        orderDirection,
+        page,
+        page_size,
+      );
+    } else {
+      buses = await firebaseHelper.getAllDocs(
+        busCollection,
+        orderBy,
+        orderDirection,
+        page,
+        page_size,
+      );
+    }
+
+    if (!buses.length) {
+      return responseSuccess(res, Message.NO_BUS_DATA, buses);
+    }
+
+    return responseSuccess(res, Message.BUS_GET_ALL, {
+      buses,
+      pagination: {
+        page,
+        page_size,
+        total,
+        total_page: totalPage,
+      },
+    });
   } catch (error) {
     logger.warn(ErrorMessage.CANNOT_GET_BUS_LIST + error);
 
     return responseError(res, StatusCode.BUS_GET_ALL, ErrorMessage.CANNOT_GET_BUS_LIST);
+  }
+};
+
+export const getBusStats = async (req: AuthRequest, res: Response) => {
+  try {
+    const facilities = await firebaseHelper.getDocsWithFields(busCollection, [
+      'status',
+      'driver_id',
+    ]);
+    const total = facilities.length;
+    const stats = facilities.reduce(
+      (acc, bus) => {
+        switch (bus.status) {
+          case BusStatus.ACTIVE:
+            acc.active++;
+            break;
+          case BusStatus.INACTIVE:
+            acc.inactive++;
+            break;
+          case BusStatus.MAINTENANCE:
+            acc.maintenance++;
+            break;
+        }
+
+        if (bus.driver_id) {
+          acc.driverSet.add(bus.driver_id);
+        }
+
+        return acc;
+      },
+      {
+        active: 0,
+        maintenance: 0,
+        inactive: 0,
+        driverSet: new Set<string>(),
+      },
+    );
+
+    const drivers = Array.from(stats.driverSet);
+    return responseSuccess(res, Message.BUS_GET_STATS, {
+      total,
+      active: stats.active,
+      maintenance: stats.maintenance,
+      inactive: stats.inactive,
+      drivers,
+    });
+  } catch (error) {
+    logger.warn(`${ErrorMessage.CANNOT_GET_BUS_STATS} | ${error}`);
+
+    return responseError(res, StatusCode.CANNOT_GET_BUS_STATS, ErrorMessage.CANNOT_GET_BUS_STATS);
   }
 };
 

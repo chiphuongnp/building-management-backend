@@ -141,6 +141,7 @@ export enum ErrorMessage {
   CANNOT_CREATE_BUS = 'Cannot create bus!',
   CANNOT_UPDATE_BUS = 'Cannot update bus!',
   CANNOT_GET_BUS_DETAIL = 'Cannot get bus detail!',
+  CANNOT_GET_BUS_STATS = `Cannot get bus's stats!`,
 
   // Bus Route error messages
   CANNOT_GET_BUS_ROUTE_LIST = 'Cannot get list of bus routes!',
@@ -334,6 +335,8 @@ export enum Message {
   BUS_UPDATED = 'Bus updated successfully.',
   BUS_GET_ALL = 'Get all buses successfully.',
   BUS_GET_DETAIL = 'Get bus detail successfully.',
+  BUS_GET_STATS = `Get bus's stats successfully`,
+  NO_BUS_DATA = 'No bus data available.',
 
   // Bus Route success messages
   BUS_ROUTE_CREATED = 'Bus route created successfully.',
@@ -599,6 +602,7 @@ export enum StatusCode {
   BUS_UPDATE = 6005,
   BUS_NUMBER_ALREADY_EXISTS = 6007,
   BUS_CODE_ALREADY_EXISTS = 6008,
+  CANNOT_GET_BUS_STATS = 6009,
 
   // Bus Route status codes
   BUS_ROUTE_GET_ALL = 7001,
