@@ -244,8 +244,12 @@ export const updateBus = async (req: AuthRequest, res: Response) => {
       data.image_urls = files.map((file) => file.path.replace(/\\/g, '/'));
     }
 
+    const capacity = data.capacity;
     await firebaseHelper.updateDoc(busCollection, id, {
       ...data,
+      ...(capacity && {
+        seats: generateSeats(capacity),
+      }),
       updated_by: req.user?.uid,
     });
 
@@ -253,5 +257,24 @@ export const updateBus = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     logger.warn(ErrorMessage.CANNOT_UPDATE_BUS + error);
     return responseError(res, StatusCode.BUS_UPDATE, ErrorMessage.CANNOT_UPDATE_BUS);
+  }
+};
+
+export const updateBusStatus = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    await firebaseHelper.updateDoc(busCollection, id, {
+      status: req.body.status,
+    });
+
+    return responseSuccess(res, Message.BUS_STATUS_UPDATED, { id });
+  } catch (error) {
+    logger.warn(ErrorMessage.CANNOT_UPDATE_BUS_STATUS + error);
+
+    return responseError(
+      res,
+      StatusCode.CANNOT_UPDATE_BUS_STATUS,
+      ErrorMessage.CANNOT_UPDATE_BUS_STATUS,
+    );
   }
 };

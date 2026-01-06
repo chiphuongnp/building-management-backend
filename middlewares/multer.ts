@@ -80,7 +80,7 @@ const processImageUrls = async (
               }),
             );
 
-            return `/uploads/${folder}/${newFileName}`;
+            return `uploads/${folder}/${newFileName}`;
           }),
         );
 
