@@ -5,7 +5,14 @@ import { requirePermission, requireRole } from '../middlewares/permission';
 import { Permission, UserRole } from '../constants/enum';
 import { upload } from '../middlewares/multer';
 import { MAX_IMAGE_COUNT } from '../constants/constant';
-import { createBus, getAllBuses, getBusDetail, getBusStats, updateBus } from '../services/bus';
+import {
+  createBus,
+  getAllBuses,
+  getBusDetail,
+  getBusStats,
+  updateBus,
+  updateBusStatus,
+} from '../services/bus';
 
 const busRouter = express.Router();
 
@@ -45,6 +52,14 @@ busRouter.patch(
   upload.array('bus-images', MAX_IMAGE_COUNT),
   validateUpdateBus,
   updateBus,
+);
+
+busRouter.patch(
+  '/update-status/:id',
+  authenticate,
+  requireRole(UserRole.MANAGER),
+  requirePermission(Permission.UPDATE_BUS),
+  updateBusStatus,
 );
 
 export default busRouter;
