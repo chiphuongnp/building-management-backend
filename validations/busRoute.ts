@@ -19,7 +19,7 @@ const busStopSchema = Joi.object({
     'number.positive': 'Order must be a positive number.',
     'any.required': 'Order is required.',
   }),
-  estimated_arrival: Joi.number().positive().required().messages({
+  estimated_arrival: Joi.number().min(0).required().messages({
     'number.base': 'Estimated arrival must be a valid number.',
     'any.required': 'Estimated arrival is required.',
   }),
@@ -58,8 +58,8 @@ export const createBusRouteSchema = Joi.object({
       .valid(...Object.values(DayOfWeek))
       .required()
       .messages({
-        'any.only': `Status must be one of the following: ${Object.values(DayOfWeek).join(', ')}.`,
-        'any.required': 'Status is required.',
+        'any.only': `Day must be one of the following: ${Object.values(DayOfWeek).join(', ')}.`,
+        'any.required': 'Day is required.',
       }),
   ),
   inactive_dates: Joi.array()
