@@ -237,9 +237,9 @@ export enum BusSeatStatus {
 
 export enum BusSubscriptionStatus {
   PENDING = 'pending',
-  CONFIRMED = 'confirmed',
+  RESERVED = 'reserved',
   CANCELLED = 'cancelled',
-  COMPLETED = 'completed',
+  EXPIRED = 'expired',
 }
 
 export enum BusSubscriptionChangeRequestType {

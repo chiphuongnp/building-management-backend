@@ -13,7 +13,8 @@ import { BusSubscription } from '../interfaces/busSubscription';
 import { Bus } from '../interfaces/bus';
 import { User } from '../interfaces/user';
 import { BusRoute } from '../interfaces/busRoute';
-import { Timestamp } from 'firebase-admin/firestore';
+import { OrderByDirection, Timestamp, WhereFilterOp } from 'firebase-admin/firestore';
+import { DEFAULT_PAGE_TOTAL } from '../constants/constant';
 
 const busSubscriptionCollection = `${Sites.TOKYO}/${Collection.BUS_SUBSCRIPTIONS}`;
 const busCollection = `${Sites.TOKYO}/${Collection.BUSES}`;
@@ -22,16 +23,50 @@ const userCollection = `${Sites.TOKYO}/${Collection.USERS}`;
 
 export const getAllBusSubscriptions = async (req: AuthRequest, res: Response) => {
   try {
-    const subscriptions = await firebaseHelper.getAllDocs(busSubscriptionCollection);
-    if (!subscriptions.length) {
-      return responseError(
-        res,
-        StatusCode.BUS_SUBSCRIPTION_NOT_FOUND,
-        ErrorMessage.BUS_SUBSCRIPTION_NOT_FOUND,
+    const { route_id, order, order_by } = req.query;
+    const { page, page_size } = req.pagination ?? {};
+    const filters: { field: string; operator: WhereFilterOp; value: any }[] = [];
+    if (route_id) {
+      filters.push({ field: 'route_id', operator: '==', value: route_id });
+    }
+
+    const total = filters.length
+      ? await firebaseHelper.countDocsByFields(busCollection, filters)
+      : await firebaseHelper.countAllDocs(busCollection);
+    const totalPage = page_size
+      ? Math.max(DEFAULT_PAGE_TOTAL, Math.ceil(total / page_size))
+      : DEFAULT_PAGE_TOTAL;
+    const orderBy = route_id ? 'route_id' : (order_by as string);
+    const orderDirection = order as OrderByDirection;
+    let busSubscription: BusSubscription[];
+    if (filters.length) {
+      busSubscription = await firebaseHelper.getDocsByFields(
+        busSubscriptionCollection,
+        filters,
+        orderBy,
+        orderDirection,
+        page,
+        page_size,
+      );
+    } else {
+      busSubscription = await firebaseHelper.getAllDocs(
+        busSubscriptionCollection,
+        orderBy,
+        orderDirection,
+        page,
+        page_size,
       );
     }
 
-    return responseSuccess(res, Message.BUS_SUBSCRIPTION_GET_ALL, subscriptions);
+    return responseSuccess(res, Message.BUS_SUBSCRIPTION_GET_ALL, {
+      busSubscription,
+      pagination: {
+        page,
+        page_size,
+        total,
+        total_page: totalPage,
+      },
+    });
   } catch (error) {
     logger.warn(ErrorMessage.CANNOT_GET_BUS_SUBSCRIPTION_LIST + error);
 
