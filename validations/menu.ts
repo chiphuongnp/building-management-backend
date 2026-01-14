@@ -57,13 +57,18 @@ const itemSchema = Joi.object<MenuItem>({
     'number.min': 'Quantity must be 1 or greater.',
   }),
   image_urls: Joi.array()
-    .items(Joi.string().required())
+    .items(Joi.string().trim().allow(''))
     .unique()
+    .optional()
+    .custom((value) => {
+      const cleaned = value.filter((v: string) => v && v.trim() !== '');
+
+      return cleaned;
+    })
     .messages({
       'array.unique': 'Image URLs must be unique (case-insensitive) for each dish',
       'array.base': 'image_urls must be an array',
-    })
-    .optional(),
+    }),
 });
 
 const createMenuScheduleSchema = Joi.object<MenuSchedule>({
@@ -80,7 +85,9 @@ const createMenuScheduleSchema = Joi.object<MenuSchedule>({
     .min(1)
     .required()
     .custom((items, helpers) => {
-      const allUrls = items.flatMap((item: MenuItem) => item.image_urls || []);
+      const allUrls = items.flatMap((item: MenuItem) =>
+        (item.image_urls || []).filter((u) => u.trim() !== ''),
+      );
       const duplicates = allUrls.filter(
         (url: string, index: number) => allUrls.indexOf(url) !== index,
       );
@@ -126,12 +133,14 @@ export const validateAddMenuItem = (req: Request, res: Response, next: NextFunct
 };
 
 export const validateUpdateMenuItem = (req: Request, res: Response, next: NextFunction) => {
-  const { error } = itemSchema
+  const { error, value } = itemSchema
     .fork(Object.keys(itemSchema.describe().keys), (schema) => schema.optional())
     .validate(req.body);
   if (error) {
     return res.status(400).json({ status: false, message: error.details[0].message });
   }
+
+  req.body = value;
   next();
 };
 

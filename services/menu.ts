@@ -48,7 +48,7 @@ const getMenuSchedules = async (req: AuthRequest, res: Response, next: NextFunct
 
     return responseSuccess(res, Message.GET_MENU_SCHEDULES, { schedules });
   } catch (error) {
-    logger.warn(ErrorMessage.GET_MENU_SCHEDULES + error);
+    logger.warn(`${ErrorMessage.GET_MENU_SCHEDULES} | ${error}`);
 
     return responseError(res, StatusCode.GET_MENU_SCHEDULES, ErrorMessage.GET_MENU_SCHEDULES);
   }
@@ -75,7 +75,7 @@ const getMenuScheduleById = async (req: AuthRequest, res: Response, next: NextFu
 
     return responseSuccess(res, Message.GET_MENU_SCHEDULES, { schedule });
   } catch (error) {
-    logger.warn(ErrorMessage.GET_MENU_SCHEDULES + error);
+    logger.warn(`${ErrorMessage.GET_MENU_SCHEDULES} | ${error}`);
 
     return responseError(res, StatusCode.GET_MENU_SCHEDULES, ErrorMessage.GET_MENU_SCHEDULES);
   }
@@ -131,7 +131,7 @@ const createMenuSchedule = async (req: AuthRequest, res: Response, next: NextFun
 
     return responseSuccess(res, Message.MENU_SCHEDULE_CREATED, { created_ids });
   } catch (error) {
-    logger.warn(ErrorMessage.CANNOT_CREATE_MENU_SCHEDULE + error);
+    logger.warn(`${ErrorMessage.CANNOT_CREATE_MENU_SCHEDULE} | ${error}`);
 
     return responseError(
       res,
@@ -168,7 +168,9 @@ const addMenuItem = async (req: AuthRequest, res: Response, next: NextFunction) 
     const files = req?.files as Express.Multer.File[];
     const newItem: MenuItem = {
       ...item,
-      image_urls: files?.map((file) => file.path.replace(/\\/g, '/')) || [],
+      image_urls: files.length
+        ? files.map((file) => file.path.replace(/\\/g, '/'))
+        : item.image_urls || [],
       created_by: req.user?.uid,
     };
     const docRef = await firebaseHelper.createDoc(itemPath, newItem);
@@ -179,7 +181,7 @@ const addMenuItem = async (req: AuthRequest, res: Response, next: NextFunction) 
       name: newItem.name,
     });
   } catch (error) {
-    logger.warn(ErrorMessage.CANNOT_CREATE_MENU_ITEM + error);
+    logger.warn(`${ErrorMessage.CANNOT_CREATE_MENU_ITEM} | ${error}`);
 
     return responseError(
       res,
@@ -207,7 +209,7 @@ const updateMenuItem = async (req: AuthRequest, res: Response, next: NextFunctio
       return responseError(res, StatusCode.MENU_ITEM_NOT_FOUND, ErrorMessage.MENU_ITEM_NOT_FOUND);
     }
 
-    const { name } = req.body;
+    const { name, image_urls } = req.body;
     if (name) {
       const existingItems = await firebaseHelper.getAllDocs(itemPath);
       const existingNames = existingItems
@@ -222,15 +224,18 @@ const updateMenuItem = async (req: AuthRequest, res: Response, next: NextFunctio
       }
     }
 
-    const files = req?.files as Express.Multer.File[];
-    const imageUrls = files?.map((f) => f.path.replace(/\\/g, '/')) || [];
-    if (imageUrls.length && item.image_urls?.length) {
-      await deleteImages(item.image_urls);
+    if (image_urls) {
+      const deletedImages = item.image_urls?.filter((url) => !image_urls.includes(url)) ?? [];
+      if (deletedImages.length) await deleteImages(deletedImages);
+
+      item.image_urls = image_urls;
     }
 
+    const files = req?.files as Express.Multer.File[];
+    const newImages = files?.map((f) => f.path.replace(/\\/g, '/')) || [];
     const updatedItem: Partial<MenuItem> = {
       ...req.body,
-      image_urls: imageUrls.length ? imageUrls : item.image_urls || [],
+      image_urls: [...(item.image_urls ?? []), ...newImages],
       updated_by: req.user?.uid,
     };
     await firebaseHelper.updateDoc(itemPath, itemId, updatedItem);
@@ -240,7 +245,7 @@ const updateMenuItem = async (req: AuthRequest, res: Response, next: NextFunctio
       id: itemId,
     });
   } catch (error) {
-    logger.warn(ErrorMessage.CANNOT_UPDATE_MENU_ITEM + error);
+    logger.warn(`${ErrorMessage.CANNOT_UPDATE_MENU_ITEM} | ${error}`);
 
     return responseError(
       res,
