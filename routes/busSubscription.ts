@@ -15,7 +15,6 @@ busSubscriptionRouter.post(
   '/',
   authenticate,
   requireRole(UserRole.MANAGER, UserRole.USER),
-  requirePermission(Permission.CREATE_BOOKING_BUS),
   validateBookingBus,
   createBusSubscription,
 );
