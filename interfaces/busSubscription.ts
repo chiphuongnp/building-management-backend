@@ -7,6 +7,12 @@ export interface BusSubscription {
   bus_id: string;
   start_time: Date;
   end_time: Date;
+  base_amount: number;
+  vat_charge: number;
+  discount: number;
+  points_used: number;
+  total_amount: number;
+  point_earned: number;
   status: BusSubscriptionStatus;
   payment_id: string;
   seat_number: string;

@@ -10,7 +10,7 @@ export const bookingBusValidationSchema = Joi.object({
     'string.empty': 'Bus ID is required.',
     'any.required': 'Bus ID is required.',
   }),
-  start_time: Joi.date().iso().required().messages({
+  start_time: Joi.date().iso().greater('now').required().messages({
     'date.base': 'Start time must be a valid date.',
     'any.required': 'Start time is required.',
   }),
@@ -18,6 +18,14 @@ export const bookingBusValidationSchema = Joi.object({
     'date.base': 'End time must be a valid date.',
     'date.greater': 'End time must be greater than start time.',
     'any.required': 'End time is required.',
+  }),
+  base_amount: Joi.number().min(0).messages({
+    'number.base': 'Amount must be a number',
+    'number.min': 'Amount cannot be negative',
+  }),
+  points_used: Joi.number().min(0).optional().messages({
+    'number.base': 'Points used must be a number',
+    'number.min': 'Points used cannot be negative',
   }),
   payment_id: Joi.string().optional().allow(null).messages({
     'string.base': 'Payment ID must be a string.',
