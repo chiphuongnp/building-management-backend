@@ -12,6 +12,7 @@ export interface ParkingSpace {
   code: string;
   type: ParkingSpaceType;
   status: ParkingSpaceStatus;
+  base_price: number;
   created_at?: Date;
   created_by?: string;
   updated_at?: Date;

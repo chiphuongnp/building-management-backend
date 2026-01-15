@@ -36,6 +36,11 @@ const createParkingSpaceSchema = Joi.object<ParkingSpace>({
       'any.only': 'Type must be either motorbike or car',
       'any.required': 'Type is required',
     }),
+  base_price: Joi.number().min(1000).required().messages({
+    'any.required': 'Price is required.',
+    'number.base': 'Base price must be a number',
+    'number.min': 'Base price cannot be negative',
+  }),
   status: Joi.string()
     .valid(...Object.values(ParkingSpaceStatus))
     .optional()
@@ -55,6 +60,10 @@ const updateParkingSpaceSchema = Joi.object<ParkingSpace>({
     .messages({
       'any.only': 'Type must be either motorbike or car',
     }),
+  base_price: Joi.number().min(1000).optional().messages({
+    'number.base': 'Base price must be a number',
+    'number.min': 'Base price cannot be negative',
+  }),
 });
 
 const updateParkingSpaceStatusSchema = Joi.object<ParkingSpace>({
