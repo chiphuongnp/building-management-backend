@@ -9,6 +9,7 @@ export interface BusRoute {
   departure_time: Date;
   estimated_duration: number;
   status: ActiveStatus;
+  base_price: number;
   operating_dates?: DayOfWeek[];
   inactive_dates?: string[];
   stops?: BusStop[];

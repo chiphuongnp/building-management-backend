@@ -49,6 +49,11 @@ export const createBusRouteSchema = Joi.object({
     'date.base': 'Departure time must be a valid date.',
     'any.required': 'Departure time is required.',
   }),
+  base_price: Joi.number().min(1000).required().messages({
+    'any.required': 'Price is required.',
+    'number.base': 'Base price must be a number',
+    'number.min': 'Base price cannot be negative',
+  }),
   estimated_duration: Joi.number().positive().required().messages({
     'date.base': 'Estimated duration must be a valid date.',
     'any.required': 'Estimated duration is required.',
@@ -85,6 +90,7 @@ export const updateBusRouteSchema = Joi.object({
   operating_dates: Joi.array()
     .items(Joi.string().valid(...Object.values(DayOfWeek)))
     .optional(),
+  base_price: Joi.number().min(1000).optional(),
   inactive_dates: Joi.array().items(Joi.date().iso()).optional(),
   stops: Joi.array().items(busStopSchema).optional(),
 })
