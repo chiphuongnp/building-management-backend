@@ -47,6 +47,19 @@ const updateDishSchema = Joi.object<Partial<Dish>>({
     .messages({
       'any.only': 'Invalid status value',
     }),
+  image_urls: Joi.array()
+    .items(Joi.string().trim().allow(''))
+    .unique()
+    .optional()
+    .custom((value) => {
+      const cleaned = value.filter((v: string) => v && v.trim() !== '');
+
+      return cleaned;
+    })
+    .messages({
+      'array.unique': 'Image URLs must be unique (case-insensitive) for each dish',
+      'array.base': 'image_urls must be an array',
+    }),
 });
 
 const idParamSchema = Joi.object({
@@ -79,10 +92,12 @@ export const validateCreateDish = (req: Request, res: Response, next: NextFuncti
 };
 
 export const validateUpdateDish = (req: Request, res: Response, next: NextFunction) => {
-  const { error } = updateDishSchema.validate(req.body);
+  const { error, value } = updateDishSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ status: false, message: error.details[0].message });
   }
+
+  req.body = value;
   next();
 };
 

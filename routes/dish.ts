@@ -6,18 +6,13 @@ import { upload } from './../middlewares/multer';
 import express from 'express';
 import { Permission, UserRole } from '../constants/enum';
 import { validateCreateDish, validateIdParams, validateUpdateDish } from '../validations/dish';
+import { parsePagination } from '../middlewares/pagination';
 
 const dishRouter = express.Router({ mergeParams: true });
 
-dishRouter.get('/', authenticate, requireRole(UserRole.MANAGER, UserRole.USER), getDishes);
+dishRouter.get('/', authenticate, parsePagination, getDishes);
 
-dishRouter.get(
-  '/:id',
-  authenticate,
-  requireRole(UserRole.MANAGER, UserRole.USER),
-  validateIdParams,
-  getDishById,
-);
+dishRouter.get('/:id', authenticate, validateIdParams, getDishById);
 
 dishRouter.post(
   '/create',
