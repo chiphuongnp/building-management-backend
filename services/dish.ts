@@ -6,10 +6,13 @@ import {
   responseError,
   responseSuccess,
   deleteImages,
+  capitalizeName,
 } from '../utils/index';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { Dish } from '../interfaces/dish';
 import { AuthRequest } from '../interfaces/jwt';
+import { OrderByDirection, WhereFilterOp } from 'firebase-admin/firestore';
+import { DEFAULT_PAGE_TOTAL } from '../constants/constant';
 
 const restaurantUrl = `${Sites.TOKYO}/${Collection.RESTAURANTS}`;
 const getDishPath = (restaurantId: string) => {
@@ -19,12 +22,61 @@ const getDishPath = (restaurantId: string) => {
 const getDishes = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { restaurantId } = req.params;
-    const dishes: Dish[] = await firebaseHelper.getAllDocs(getDishPath(restaurantId));
+    const { name, category, status, order, order_by } = req.query;
+    const { page, page_size } = req.pagination ?? {};
+    const filters: { field: string; operator: WhereFilterOp; value: any }[] = [];
+    if (name) {
+      const capitalizedName = capitalizeName(name as string);
+      filters.push(
+        { field: 'name', operator: '>=', value: capitalizedName },
+        { field: 'name', operator: '<=', value: capitalizedName + '\uf8ff' },
+      );
+    }
+
+    if (category) {
+      filters.push({ field: 'category', operator: '==', value: category });
+    }
+
+    if (status) {
+      filters.push({ field: 'status', operator: '==', value: status });
+    }
+
+    const dishUrl = getDishPath(restaurantId);
+    const total = filters.length
+      ? await firebaseHelper.countDocsByFields(dishUrl, filters)
+      : await firebaseHelper.countAllDocs(dishUrl);
+    const totalPage = page_size
+      ? Math.max(DEFAULT_PAGE_TOTAL, Math.ceil(total / page_size))
+      : DEFAULT_PAGE_TOTAL;
+    const orderBy = name ? 'name' : (order_by as string) || 'created_at';
+    const orderDirection = (order as OrderByDirection) || 'desc';
+    let dishes: Dish[];
+    if (filters.length) {
+      dishes = await firebaseHelper.getDocsByFields(
+        dishUrl,
+        filters,
+        orderBy,
+        orderDirection,
+        page,
+        page_size,
+      );
+    } else {
+      dishes = await firebaseHelper.getAllDocs(dishUrl, orderBy, orderDirection, page, page_size);
+    }
+
     if (!dishes.length) {
       return responseError(res, StatusCode.DISH_NOT_FOUND, ErrorMessage.DISH_NOT_FOUND);
     }
 
-    return responseSuccess(res, Message.DISH_GET_ALL, { dishes });
+    return responseSuccess(res, Message.DISH_GET_ALL, {
+      dishes,
+      pagination: {
+        page,
+        page_size,
+        total,
+        total_page: totalPage,
+      },
+    });
   } catch (error) {
     logger.warn(ErrorMessage.CANNOT_GET_DISH_LIST + error);
 
@@ -88,7 +140,7 @@ const updateDish = async (req: AuthRequest, res: Response, next: NextFunction) =
       return responseError(res, StatusCode.DISH_NOT_FOUND, ErrorMessage.DISH_NOT_FOUND);
     }
 
-    const { name } = req.body;
+    const { name, image_urls } = req.body;
     if (name) {
       const nameSnapshot = await firebaseHelper.getDocByField(dishPath, 'name', name);
       const isDuplicate = nameSnapshot.some((doc) => doc.id !== dishId);
@@ -97,15 +149,18 @@ const updateDish = async (req: AuthRequest, res: Response, next: NextFunction) =
       }
     }
 
-    const files = req?.files as Express.Multer.File[];
-    const imageUrls = files?.map((file) => file.path.replace(/\\/g, '/'));
-    if (imageUrls.length && dish.image_urls?.length) {
-      await deleteImages(dish.image_urls);
+    if (image_urls) {
+      const deletedImages = dish.image_urls?.filter((url) => !image_urls.includes(url)) ?? [];
+      if (deletedImages.length) await deleteImages(deletedImages);
+
+      dish.image_urls = image_urls;
     }
 
+    const files = req?.files as Express.Multer.File[];
+    const newImages = files?.map((f) => f.path.replace(/\\/g, '/')) || [];
     const updatedDish = {
       ...req.body,
-      image_urls: imageUrls.length ? imageUrls : dish.image_urls,
+      image_urls: [...(dish.image_urls ?? []), ...newImages],
       updated_by: req.user?.uid,
     };
     await firebaseHelper.updateDoc(dishPath, dishId, updatedDish);
