@@ -125,10 +125,14 @@ export const validateCreateMenuSchedule = (req: Request, res: Response, next: Ne
 };
 
 export const validateAddMenuItem = (req: Request, res: Response, next: NextFunction) => {
-  const { error } = itemSchema.validate(req.body);
+  const { error, value } = itemSchema.validate(req.body, {
+    convert: true,
+  });
   if (error) {
     return res.status(400).json({ status: false, message: error.details[0].message });
   }
+
+  req.body = value;
   next();
 };
 

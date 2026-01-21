@@ -131,7 +131,7 @@ const createOrder = async (req: AuthRequest, res: Response, next: NextFunction) 
       return order.id;
     });
 
-    return responseSuccess(res, Message.ORDER_CREATED, { id: orderId });
+    return responseSuccess(res, Message.ORDER_CREATED, { id: orderId, amount: finalAmount });
   } catch (error: any) {
     logger.warn(`${ErrorMessage.CANNOT_CREATE_DISH} | ${error}`);
 
