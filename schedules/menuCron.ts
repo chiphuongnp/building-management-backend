@@ -29,6 +29,7 @@ const runMenuItemsSync = async (site: Sites) => {
 
     await Promise.all(
       restaurants.map(async (restaurant: Restaurant) => {
+        const restaurantName = restaurant.name;
         const restaurantId = restaurant.id;
         const { itemPath, menuItemsPath } = getPaths(site, restaurantId, dayOfWeek);
         try {
@@ -48,11 +49,11 @@ const runMenuItemsSync = async (site: Sites) => {
           if (newItems.length) {
             await firebaseHelper.createBatchDocs(menuItemsPath, newItems);
             logger.info(
-              `[MenuCron] Success: ${newItems.length} new items for restaurant ID ${site}/${restaurantId}.`,
+              `[MenuCron] Success: ${newItems.length} new items for restaurant: ${restaurantName}.`,
             );
           }
         } catch (error) {
-          logger.error(`[MenuCron] Failed for restaurant ID ${site}/${restaurantId}: `, error);
+          logger.error(`[MenuCron] Failed for restaurant: ${restaurantName}: `, error);
         }
       }),
     );

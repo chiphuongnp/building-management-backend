@@ -84,10 +84,14 @@ const idParamSchema = Joi.object({
 });
 
 export const validateCreateDish = (req: Request, res: Response, next: NextFunction) => {
-  const { error } = createDishSchema.validate(req.body);
+  const { error, value } = createDishSchema.validate(req.body, {
+    convert: true,
+  });
   if (error) {
     return res.status(400).json({ status: false, message: error.details[0].message });
   }
+
+  req.body = value;
   next();
 };
 
