@@ -1,6 +1,5 @@
 import Joi from 'joi';
 import { Request, Response, NextFunction } from 'express';
-import { FacilityReservationStatus } from '../constants/enum';
 import { getTomorrow } from '../utils/index';
 
 const createReservationSchema = Joi.object({
@@ -19,22 +18,10 @@ const createReservationSchema = Joi.object({
     'number.min': 'Duration must be at least 1 hour',
     'number.max': 'Duration cannot exceed 24 hours',
   }),
-  end_date: Joi.date().iso().greater(Joi.ref('start_time')).optional().messages({
-    'date.base': 'End time must be a valid date',
-    'date.format': 'End time must be in ISO 8601 format',
-    'date.greater': 'End time must be after start time',
-    'any.required': 'End time is required',
-  }),
   points_used: Joi.number().min(0).optional().messages({
     'number.base': 'Points used must be a number',
     'number.min': 'Points used cannot be negative',
   }),
-  status: Joi.string()
-    .valid(...Object.values(FacilityReservationStatus))
-    .optional()
-    .messages({
-      'any.only': 'Status must be either pending, confirmed, cancelled, or completed',
-    }),
 })
   .custom((value: any, helpers: any) => {
     const dateValue = value.start_date;
