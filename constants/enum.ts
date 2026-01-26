@@ -130,6 +130,7 @@ export enum FacilityReservationStatus {
   PENDING = 'pending',
   RESERVED = 'reserved',
   CANCELLED = 'cancelled',
+  EXPIRED = 'expired',
 }
 
 export enum EventBookingStatus {

@@ -4,12 +4,12 @@ import { Collection, ParkingSpaceStatus, Sites } from '../constants/enum';
 import { ParkingSpace } from '../interfaces/parkingSpace';
 import { AuthRequest } from '../interfaces/jwt';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
-import { WhereFilterOp } from 'firebase-admin/firestore';
+import { OrderByDirection, WhereFilterOp } from 'firebase-admin/firestore';
 
 const parkingSpaceCollection = `${Sites.TOKYO}/${Collection.PARKING_SPACES}`;
 const getParkingSpaces = async (req: Request, res: Response) => {
   try {
-    const { building_id } = req.query;
+    const { building_id, order, order_by } = req.query;
     const filters: { field: string; operator: WhereFilterOp; value: any }[] = [];
     if (building_id) {
       filters.push({ field: 'building_id', operator: '==', value: building_id });
@@ -17,7 +17,12 @@ const getParkingSpaces = async (req: Request, res: Response) => {
 
     let parkingSpaces: ParkingSpace[];
     if (filters.length) {
-      parkingSpaces = await firebaseHelper.getDocsByFields(parkingSpaceCollection, filters);
+      parkingSpaces = await firebaseHelper.getDocsByFields(
+        parkingSpaceCollection,
+        filters,
+        order_by as string,
+        order as OrderByDirection,
+      );
     } else {
       parkingSpaces = await firebaseHelper.getAllDocs(parkingSpaceCollection);
     }
