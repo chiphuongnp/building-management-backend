@@ -31,13 +31,7 @@ restaurantRouter.post(
   createRestaurant,
 );
 
-restaurantRouter.get(
-  '/',
-  authenticate,
-  requireRole(UserRole.MANAGER, UserRole.USER),
-  parsePagination,
-  getRestaurants,
-);
+restaurantRouter.get('/', authenticate, parsePagination, getRestaurants);
 
 restaurantRouter.get(
   '/stats',
@@ -47,21 +41,9 @@ restaurantRouter.get(
   getRestaurantsStats,
 );
 
-restaurantRouter.get(
-  '/:id',
-  authenticate,
-  requireRole(UserRole.MANAGER, UserRole.USER),
-  validateRestaurantIdParam,
-  getRestaurant,
-);
+restaurantRouter.get('/:id', authenticate, validateRestaurantIdParam, getRestaurant);
 
-restaurantRouter.get(
-  '/:id/menu',
-  authenticate,
-  requireRole(UserRole.MANAGER, UserRole.USER),
-  validateRestaurantIdParam,
-  getRestaurantMenu,
-);
+restaurantRouter.get('/:id/menu', authenticate, validateRestaurantIdParam, getRestaurantMenu);
 
 restaurantRouter.get(
   '/:id/daily-sale',
