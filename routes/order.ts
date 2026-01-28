@@ -17,6 +17,7 @@ import {
 } from '../services/order';
 import { requirePermission, requireRole } from '../middlewares/permission';
 import { Permission, UserRole } from '../constants/enum';
+import { parsePagination } from '../middlewares/pagination';
 
 const orderRouter = express.Router({ mergeParams: true });
 
@@ -27,6 +28,7 @@ orderRouter.get(
   authenticate,
   requireRole(UserRole.MANAGER),
   requirePermission(Permission.VIEW_ORDER_LIST),
+  parsePagination,
   validateOrderIdParams,
   getOrders,
 );

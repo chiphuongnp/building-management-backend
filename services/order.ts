@@ -13,8 +13,9 @@ import {
   logger,
 } from '../utils/index';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
-import { Timestamp } from 'firebase-admin/firestore';
+import { OrderByDirection, Timestamp, WhereFilterOp } from 'firebase-admin/firestore';
 import { User } from '../interfaces/user';
+import { DEFAULT_ORDER_BY, DEFAULT_PAGE_TOTAL } from '../constants/constant';
 
 const restaurantUrl = `${Sites.TOKYO}/${Collection.RESTAURANTS}`;
 const userUrl = `${Sites.TOKYO}/${Collection.USERS}`;
@@ -44,9 +45,9 @@ const createOrder = async (req: AuthRequest, res: Response, next: NextFunction) 
     const deliveryInfo =
       orders.pickup_method === PickupMethod.DELIVERY
         ? {
-            contact_name: delivery_info?.contact_name || user?.full_name || 'Guest',
-            contact_phone: delivery_info?.contact_phone || user?.phone || '',
-            notes: delivery_info?.notes || '',
+            contact_name: delivery_info?.contact_name ?? user?.full_name!,
+            contact_phone: delivery_info?.contact_phone ?? user?.phone!,
+            ...(delivery_info?.notes ? { notes: delivery_info.notes } : {}),
           }
         : delivery_info;
     const menuItems = await firebaseHelper.getAllDocs(menuPath);
@@ -73,7 +74,7 @@ const createOrder = async (req: AuthRequest, res: Response, next: NextFunction) 
       points_used: finalPointsUsed,
       total_amount: finalAmount,
       points_earned: pointsEarned,
-      delivery_info: deliveryInfo,
+      ...(deliveryInfo && { delivery_info: deliveryInfo }),
     };
 
     const orderId = await firebaseHelper.runTransaction(async (transaction) => {
@@ -203,25 +204,55 @@ const getOrderDetailsByOrderId = async (req: AuthRequest, res: Response, next: N
 const getOrders = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { restaurantId } = req.params;
-    const { date } = req.query;
-    const { orderPath } = getPaths(restaurantId);
-
+    const { status, pickup_method, date, order } = req.query;
+    const { page, page_size } = req.pagination ?? {};
     const dateStr = date as string;
     const startTime = getNormalizedDate(dateStr);
     const endTime = new Date(startTime);
     endTime.setDate(endTime.getDate() + 1);
-
-    const orders: Order[] = await firebaseHelper.getDocsByFields(orderPath, [
+    const filters: { field: string; operator: WhereFilterOp; value: any }[] = [
       { field: 'created_at', operator: '>=', value: Timestamp.fromDate(startTime) },
       { field: 'created_at', operator: '<', value: Timestamp.fromDate(endTime) },
-    ]);
+    ];
+    if (status) {
+      filters.push({ field: 'status', operator: '==', value: status });
+    }
+
+    if (pickup_method) {
+      filters.push({ field: 'pickup_method', operator: '==', value: pickup_method });
+    }
+
+    const { orderPath } = getPaths(restaurantId);
+    const total = filters.length
+      ? await firebaseHelper.countDocsByFields(orderPath, filters)
+      : await firebaseHelper.countAllDocs(orderPath);
+    const totalPage = page_size
+      ? Math.max(DEFAULT_PAGE_TOTAL, Math.ceil(total / page_size))
+      : DEFAULT_PAGE_TOTAL;
+    const orderDirection = order as OrderByDirection;
+    const orders: Order[] = await firebaseHelper.getDocsByFields(
+      orderPath,
+      filters,
+      DEFAULT_ORDER_BY,
+      orderDirection,
+      page,
+      page_size,
+    );
     if (!orders.length) {
       return responseError(res, StatusCode.ORDER_NOT_FOUND, ErrorMessage.ORDER_NOT_FOUND);
     }
 
-    return responseSuccess(res, Message.GET_ORDER_LIST, orders);
+    return responseSuccess(res, Message.GET_ORDER_LIST, {
+      orders,
+      pagination: {
+        page,
+        page_size,
+        total,
+        total_page: totalPage,
+      },
+    });
   } catch (error) {
-    logger.error(ErrorMessage.CANNOT_GET_ORDER_LIST + error);
+    logger.error(`${ErrorMessage.CANNOT_GET_ORDER_LIST} | ${error}`);
 
     return responseError(res, StatusCode.CANNOT_GET_ORDER_LIST, ErrorMessage.CANNOT_GET_ORDER_LIST);
   }
@@ -245,7 +276,7 @@ const getOrdersByUserId = async (req: AuthRequest, res: Response, next: NextFunc
 
     return responseSuccess(res, Message.GET_USER_ORDERS, orders);
   } catch (error) {
-    logger.error(ErrorMessage.CANNOT_GET_USER_ORDERS + error);
+    logger.error(`${ErrorMessage.CANNOT_GET_USER_ORDERS} | ${error}`);
 
     return responseError(
       res,
@@ -269,7 +300,8 @@ const getOrderHistory = async (req: AuthRequest, res: Response, next: NextFuncti
 
     return responseSuccess(res, Message.GET_USER_ORDER_HISTORY, orders);
   } catch (error) {
-    logger.error(ErrorMessage.CANNOT_GET_USER_ORDER_HISTORY + error);
+    logger.error(`${ErrorMessage.CANNOT_GET_USER_ORDER_HISTORY} | ${error}`);
+
     return responseError(
       res,
       StatusCode.CANNOT_GET_USER_ORDER_HISTORY,
@@ -301,7 +333,7 @@ const updateOrderInfo = async (req: AuthRequest, res: Response, next: NextFuncti
 
     return responseSuccess(res, Message.ORDER_UPDATED, { id: orderId });
   } catch (error) {
-    logger.error(ErrorMessage.CANNOT_UPDATE_ORDER_INFO + error);
+    logger.error(`${ErrorMessage.CANNOT_UPDATE_ORDER_INFO} | ${error}`);
 
     return responseError(
       res,
@@ -328,7 +360,7 @@ const updateOrderStatus = async (req: AuthRequest, res: Response, next: NextFunc
 
     return responseSuccess(res, Message.ORDER_STATUS_UPDATED, { id: orderId });
   } catch (error) {
-    logger.error(ErrorMessage.CANNOT_UPDATE_ORDER_STATUS + error);
+    logger.error(`${ErrorMessage.CANNOT_UPDATE_ORDER_STATUS} | ${error}`);
 
     return responseError(
       res,
