@@ -5,6 +5,7 @@ import {
   responseSuccess,
   logger,
   calculatePayment,
+  getTomorrow,
 } from '../utils/index';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { AuthRequest } from '../interfaces/jwt';
@@ -116,11 +117,16 @@ export const createBusSubscription = async (req: AuthRequest, res: Response) => 
       route_id,
       bus_id,
       start_time,
-      end_time,
+      month_duration,
       points_used,
       base_amount,
       seat_number,
-    }: BusSubscription = req.body;
+      ...data
+    } = req.body;
+    const startTime = start_time ? new Date(start_time) : getTomorrow();
+    const endTime = new Date(startTime);
+    endTime.setMonth(endTime.getMonth() + month_duration);
+
     const userId = req.user?.uid;
     if (!userId) {
       return responseError(res, StatusCode.USER_NOT_FOUND, ErrorMessage.USER_NOT_FOUND);
@@ -130,7 +136,7 @@ export const createBusSubscription = async (req: AuthRequest, res: Response) => 
       { field: 'user_id', operator: '==', value: userId },
       { field: 'route_id', operator: '==', value: route_id },
       { field: 'bus_id', operator: '==', value: bus_id },
-      { field: 'start_time', operator: '<', value: Timestamp.fromDate(end_time) },
+      { field: 'start_time', operator: '<', value: Timestamp.fromDate(endTime) },
       { field: 'end_time', operator: '>', value: Timestamp.fromDate(start_time) },
       { field: 'status', operator: '!=', value: BusSubscriptionStatus.CANCELLED },
     ]);
@@ -199,10 +205,10 @@ export const createBusSubscription = async (req: AuthRequest, res: Response) => 
       );
 
       const subscriptionData = {
-        ...req.body,
+        ...data,
         user_id: uid,
-        start_time: Timestamp.fromDate(start_time),
-        end_time: Timestamp.fromDate(end_time),
+        start_time: Timestamp.fromDate(startTime),
+        end_time: Timestamp.fromDate(endTime),
         base_amount,
         vat_charge: vatCharge,
         discount,
@@ -215,6 +221,13 @@ export const createBusSubscription = async (req: AuthRequest, res: Response) => 
       const busSubscription = await firebaseHelper.setTransaction(
         busSubscriptionCollection,
         subscriptionData,
+        transaction,
+      );
+      const updatedPoints = (user.points ?? 0) - finalPointsUsed + pointsEarned;
+      await firebaseHelper.updateTransaction(
+        userCollection,
+        uid,
+        { points: updatedPoints },
         transaction,
       );
 

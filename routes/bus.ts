@@ -36,13 +36,7 @@ busRouter.get(
 
 busRouter.get('/stats', authenticate, requireRole(UserRole.MANAGER), getBusStats);
 
-busRouter.get(
-  '/:id',
-  authenticate,
-  requireRole(UserRole.MANAGER, UserRole.USER),
-  requirePermission(Permission.GET_BUS),
-  getBusDetail,
-);
+busRouter.get('/:id', authenticate, getBusDetail);
 
 busRouter.patch(
   '/:id',
