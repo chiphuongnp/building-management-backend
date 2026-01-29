@@ -10,14 +10,15 @@ export const bookingBusValidationSchema = Joi.object({
     'string.empty': 'Bus ID is required.',
     'any.required': 'Bus ID is required.',
   }),
-  start_time: Joi.date().iso().greater('now').required().messages({
+  start_time: Joi.date().iso().greater('now').optional().messages({
     'date.base': 'Start time must be a valid date.',
     'any.required': 'Start time is required.',
   }),
-  end_time: Joi.date().greater(Joi.ref('start_time')).iso().required().messages({
-    'date.base': 'End time must be a valid date.',
-    'date.greater': 'End time must be greater than start time.',
-    'any.required': 'End time is required.',
+  month_duration: Joi.number().integer().min(1).max(12).required().messages({
+    'number.base': 'Duration must be a number',
+    'number.integer': 'Duration must be an integer',
+    'number.min': 'Duration must be at least 1 month',
+    'number.max': 'Duration cannot exceed 12 months',
   }),
   base_amount: Joi.number().min(0).messages({
     'number.base': 'Amount must be a number',
@@ -26,9 +27,6 @@ export const bookingBusValidationSchema = Joi.object({
   points_used: Joi.number().min(0).optional().messages({
     'number.base': 'Points used must be a number',
     'number.min': 'Points used cannot be negative',
-  }),
-  payment_id: Joi.string().optional().allow(null).messages({
-    'string.base': 'Payment ID must be a string.',
   }),
   seat_number: Joi.string().required().messages({
     'string.empty': 'Seat number is required.',
@@ -45,8 +43,7 @@ export const bookingBusValidationSchema = Joi.object({
 export const validateBookingBus = (req: Request, res: Response, next: NextFunction) => {
   const { error, value } = bookingBusValidationSchema.validate(req.body, { abortEarly: false });
   if (error) {
-    const errorMessages = error.details.map((detail) => detail.message);
-    return res.status(400).json({ errors: errorMessages });
+    return res.status(400).json({ success: false, message: error.details[0].message });
   }
 
   req.body = value;

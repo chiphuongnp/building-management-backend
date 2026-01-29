@@ -23,21 +23,9 @@ busRouteRouter.post(
   createBusRoute,
 );
 
-busRouteRouter.get(
-  '/',
-  authenticate,
-  requireRole(UserRole.MANAGER, UserRole.USER),
-  requirePermission(Permission.GET_ALL_BUS_ROUTES),
-  getAllBusRoutes,
-);
+busRouteRouter.get('/', authenticate, getAllBusRoutes);
 
-busRouteRouter.get(
-  '/:id',
-  authenticate,
-  requireRole(UserRole.MANAGER, UserRole.USER),
-  requirePermission(Permission.GET_BUS_ROUTE_DETAIL),
-  getBusRouteDetail,
-);
+busRouteRouter.get('/:id', authenticate, getBusRouteDetail);
 
 busRouteRouter.patch(
   '/:id',
