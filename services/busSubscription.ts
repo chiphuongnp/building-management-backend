@@ -31,11 +31,15 @@ const userCollection = `${Sites.TOKYO}/${Collection.USERS}`;
 
 export const getAllBusSubscriptions = async (req: AuthRequest, res: Response) => {
   try {
-    const { route_id, order, order_by } = req.query;
+    const { route_id, order, order_by, user_id } = req.query;
     const { page, page_size } = req.pagination ?? {};
     const filters: { field: string; operator: WhereFilterOp; value: any }[] = [];
     if (route_id) {
       filters.push({ field: 'route_id', operator: '==', value: route_id });
+    }
+
+    if (user_id) {
+      filters.push({ field: 'user_id', operator: '==', value: user_id });
     }
 
     const total = filters.length
@@ -207,6 +211,9 @@ export const createBusSubscription = async (req: AuthRequest, res: Response) => 
       const subscriptionData = {
         ...data,
         user_id: uid,
+        route_id,
+        bus_id,
+        seat_number,
         start_time: Timestamp.fromDate(startTime),
         end_time: Timestamp.fromDate(endTime),
         base_amount,

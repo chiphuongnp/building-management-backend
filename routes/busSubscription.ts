@@ -22,8 +22,7 @@ busSubscriptionRouter.post(
 busSubscriptionRouter.get(
   '/',
   authenticate,
-  requireRole(UserRole.MANAGER),
-  requirePermission(Permission.GET_ALL_BOOKING_BUS),
+  requireRole(UserRole.MANAGER, UserRole.USER),
   getAllBusSubscriptions,
 );
 
