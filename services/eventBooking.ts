@@ -18,7 +18,7 @@ const facilityReservationCollection = `${Sites.TOKYO}/${Collection.FACILITY_RESE
 const eventBookingCollection = `${Sites.TOKYO}/${Collection.EVENT_BOOKINGS}`;
 const getEventBookings = async (req: AuthRequest, res: Response) => {
   try {
-    const { status, event_title, order, order_by } = req.query;
+    const { status, event_title, order, order_by, created_by } = req.query;
     const { page, page_size } = req.pagination ?? {};
     const filters: { field: string; operator: WhereFilterOp; value: any }[] = [];
     if (event_title) {
@@ -31,6 +31,10 @@ const getEventBookings = async (req: AuthRequest, res: Response) => {
 
     if (status) {
       filters.push({ field: 'status', operator: '==', value: status });
+    }
+
+    if (created_by) {
+      filters.push({ field: 'created_by', operator: '==', value: created_by });
     }
 
     const total = filters.length
@@ -153,8 +157,11 @@ const createEventBooking = async (req: AuthRequest, res: Response) => {
       }
     }
 
+    const file = req.file as Express.Multer.File | undefined;
+    const newImageUrl = file ? file.path.replace(/\\/g, '/') : null;
     const eventBookingData = {
       ...data,
+      image_url: newImageUrl,
       current_participants: DEFAULT_PARTICIPANTS,
       status: EventBookingStatus.PENDING,
       facility_reservation_id: facilityReservationId ?? null,

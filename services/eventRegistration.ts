@@ -17,10 +17,7 @@ const getEventRegistrationsByUser = async (req: AuthRequest, res: Response) => {
 
     const eventRegistrations: EventRegistration[] = await firebaseHelper.getDocsByFields(
       eventRegistrationCollection,
-      [
-        { field: 'user_id', operator: '==', value: userId },
-        { field: 'status', operator: '==', value: EventRegistrationsStatus.REGISTERED },
-      ],
+      [{ field: 'user_id', operator: '==', value: userId }],
     );
     if (!eventRegistrations.length) {
       return responseSuccess(res, Message.NO_REGISTERED_EVENT, eventRegistrations);
@@ -139,8 +136,25 @@ const createEventRegistration = async (req: AuthRequest, res: Response) => {
       user_id: userId,
       status: EventRegistrationsStatus.REGISTERED,
     };
-    const docRef = await firebaseHelper.createDoc(eventRegistrationCollection, data);
-    return responseSuccess(res, Message.EVENT_REGISTRATION_CREATED, { id: docRef.id });
+    const eventRegistrationId = await firebaseHelper.runTransaction(async (transaction) => {
+      const docRef = await firebaseHelper.setTransaction(
+        eventRegistrationCollection,
+        data,
+        transaction,
+      );
+
+      await firebaseHelper.updateTransaction(
+        eventBookingCollection,
+        eventBookingId,
+        {
+          current_participants: eventBooking.current_participants + 1,
+        },
+        transaction,
+      );
+
+      return docRef.id;
+    });
+    return responseSuccess(res, Message.EVENT_REGISTRATION_CREATED, { id: eventRegistrationId });
   } catch (error) {
     logger.warn(ErrorMessage.CANNOT_CREATE_EVENT_REGISTRATION + error);
 
@@ -172,8 +186,37 @@ const cancelEventRegistration = async (req: AuthRequest, res: Response) => {
       );
     }
 
-    await firebaseHelper.updateDoc(eventRegistrationCollection, id, {
-      status: EventRegistrationsStatus.CANCELLED,
+    const { event_booking_id: eventBookingId } = req.body;
+    const eventBooking: EventBooking = await firebaseHelper.getDocById(
+      eventBookingCollection,
+      eventBookingId,
+    );
+    if (!eventBooking) {
+      return responseError(
+        res,
+        StatusCode.EVENT_BOOKING_NOT_FOUND,
+        ErrorMessage.EVENT_BOOKING_NOT_FOUND,
+      );
+    }
+
+    await firebaseHelper.runTransaction(async (transaction) => {
+      await firebaseHelper.updateTransaction(
+        eventRegistrationCollection,
+        id,
+        {
+          status: EventRegistrationsStatus.CANCELLED,
+        },
+        transaction,
+      );
+
+      await firebaseHelper.updateTransaction(
+        eventBookingCollection,
+        eventBookingId,
+        {
+          current_participants: eventBooking.current_participants - 1,
+        },
+        transaction,
+      );
     });
 
     return responseSuccess(res, Message.EVENT_REGISTRATION_CANCELED, { id });

@@ -3,6 +3,7 @@ import { EventBookingStatus } from '../constants/enum';
 
 export interface EventBooking {
   id: string;
+  image_url: string;
   event_title: string;
   description?: string;
   location?: string;
