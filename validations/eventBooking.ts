@@ -41,7 +41,6 @@ export const createEventBookingSchema = Joi.object({
     'any.required': 'End time is required',
   }),
 })
-  .xor('location', 'facility_reservation_id')
   .custom((value, helpers) => {
     if (value.deadline > value.start_time) {
       return helpers.error('custom.deadlineSmallStartTime');
@@ -84,9 +83,7 @@ const updateEventBookingSchema = Joi.object({
     'date.base': 'Deadline is invalid',
     'date.less': 'Deadline must be before start time',
   }),
-})
-  .nand('location', 'facility_reservation_id')
-  .with('start_time', ['deadline', 'end_time']);
+}).with('start_time', ['deadline', 'end_time']);
 
 const EventBookingStatusSchema = Joi.object({
   status: Joi.string()

@@ -10,23 +10,16 @@ import {
 } from '../validations/eventBooking';
 import {
   createEventBooking,
-  getAvailableEventBooking,
   getEventBookingById,
   getEventBookings,
   updateEventBookingInfo,
   updateEventBookingStatus,
 } from '../services/eventBooking';
+import { upload } from '../middlewares/multer';
 
 const eventBookingRouter = express.Router({ mergeParams: true });
 
-eventBookingRouter.get('/', authenticate, requireRole(UserRole.MANAGER), getEventBookings);
-
-eventBookingRouter.get(
-  '/available',
-  authenticate,
-  requireRole(UserRole.MANAGER, UserRole.USER),
-  getAvailableEventBooking,
-);
+eventBookingRouter.get('/', authenticate, getEventBookings);
 
 eventBookingRouter.get(
   '/:id',
@@ -40,6 +33,7 @@ eventBookingRouter.post(
   '/create',
   authenticate,
   requireRole(UserRole.MANAGER, UserRole.USER),
+  upload.single('event-images'),
   validateCreateEventBooking,
   createEventBooking,
 );
