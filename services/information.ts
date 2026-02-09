@@ -12,6 +12,8 @@ import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { AuthRequest } from '../interfaces/jwt';
 import { Information } from '../interfaces/notification';
 import { User } from '../interfaces/user';
+import { OrderByDirection, Timestamp, WhereFilterOp } from 'firebase-admin/firestore';
+import { DEFAULT_PAGE_TOTAL } from '../constants/constant';
 
 const informationCollection = `${Sites.TOKYO}/${Collection.INFORMATION}`;
 const userCollection = `${Sites.TOKYO}/${Collection.USERS}`;
@@ -31,7 +33,7 @@ export const createInformation = async (req: AuthRequest, res: Response) => {
       ...data,
       ...(schedule_at
         ? { schedule_at: new Date(schedule_at), status: InformationStatus.SCHEDULED }
-        : { status: InformationStatus.SENT }),
+        : { schedule_at: new Date(), status: InformationStatus.SENT }),
       title,
       created_by: req.user?.uid,
     };
@@ -47,7 +49,7 @@ export const createInformation = async (req: AuthRequest, res: Response) => {
       if (!users.length)
         return responseError(res, StatusCode.USER_NOT_FOUND, ErrorMessage.USER_NOT_FOUND);
 
-      await sendInformation(users, newInfo);
+      // await sendInformation(users, newInfo);
     }
 
     return responseSuccess(res, Message.INFO_CREATED, { id: docRef.id });
@@ -77,12 +79,74 @@ export const createInformation = async (req: AuthRequest, res: Response) => {
 
 export const getInformationList = async (req: AuthRequest, res: Response) => {
   try {
-    const informationList: Information[] = await firebaseHelper.getAllDocs(informationCollection);
-    if (!informationList.length) {
-      return responseSuccess(res, Message.INFORMATION_LIST_EMPTY, []);
+    const { status, category, priority, target, schedule_from, schedule_to, order, order_by } =
+      req.query;
+    const { page, page_size } = req.pagination ?? {};
+    const orderDirection = order as OrderByDirection;
+    let orderBy = order_by as string;
+
+    const filters: { field: string; operator: WhereFilterOp; value: any }[] = [];
+    if (status) {
+      filters.push({ field: 'status', operator: '==', value: status });
     }
 
-    return responseSuccess(res, Message.GET_INFORMATION_LIST, { informationList });
+    if (category) {
+      filters.push({ field: 'category', operator: '==', value: category });
+    }
+
+    if (priority) {
+      filters.push({ field: 'priority', operator: '==', value: priority });
+    }
+
+    if (target) {
+      filters.push({ field: 'target', operator: '==', value: target });
+    }
+
+    if (schedule_from && schedule_to) {
+      orderBy = 'schedule_at';
+      const from = Timestamp.fromDate(new Date(schedule_from as string));
+      const to = Timestamp.fromDate(new Date(schedule_to as string));
+      filters.push(
+        { field: 'schedule_at', operator: '>=', value: from },
+        { field: 'schedule_at', operator: '<=', value: to },
+      );
+    }
+
+    const total = filters.length
+      ? await firebaseHelper.countDocsByFields(informationCollection, filters)
+      : await firebaseHelper.countAllDocs(informationCollection);
+    const totalPage = page_size
+      ? Math.max(DEFAULT_PAGE_TOTAL, Math.ceil(total / page_size))
+      : DEFAULT_PAGE_TOTAL;
+    let informationList: Information[];
+    if (filters.length) {
+      informationList = await firebaseHelper.getDocsByFields(
+        informationCollection,
+        filters,
+        orderBy,
+        orderDirection,
+        page,
+        page_size,
+      );
+    } else {
+      informationList = await firebaseHelper.getAllDocs(
+        informationCollection,
+        orderBy,
+        orderDirection,
+        page,
+        page_size,
+      );
+    }
+
+    return responseSuccess(res, Message.GET_INFORMATION_LIST, {
+      informationList,
+      pagination: {
+        page,
+        page_size,
+        total,
+        total_page: totalPage,
+      },
+    });
   } catch (error) {
     logger.warn(`${ErrorMessage.CANNOT_GET_INFORMATION_LIST} | ${error}`);
 

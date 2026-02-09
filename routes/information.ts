@@ -1,3 +1,4 @@
+import { parsePagination } from './../middlewares/pagination';
 import express from 'express';
 import { requirePermission, requireRole } from '../middlewares/permission';
 import { authenticate } from '../middlewares/auth';
@@ -16,13 +17,7 @@ informationRouter.post(
   createInformation,
 );
 
-informationRouter.get(
-  '/',
-  authenticate,
-  requireRole(UserRole.MANAGER),
-  requirePermission(Permission.VIEW_INFORMATION_LIST),
-  getInformationList,
-);
+informationRouter.get('/', authenticate, parsePagination, getInformationList);
 
 informationRouter.get('/:id', authenticate, getInformation);
 
