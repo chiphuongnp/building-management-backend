@@ -38,7 +38,7 @@ export const createPayment = async (req: AuthRequest, res: Response) => {
     });
 
     return responseSuccess(res, Message.PAYMENT_CREATED, { id: paymentId });
-  } catch (error) {
+  } catch (error: any) {
     logger.warn(`${ErrorMessage.CANNOT_CREATE_PAYMENT} | ${error}`);
 
     switch (error.message) {

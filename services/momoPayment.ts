@@ -8,14 +8,11 @@ import { updatePaymentStatus } from './payment';
 
 const createMomoPayment = async (req: Request, res: Response) => {
   try {
-    const {
-      payment_id,
-      amount,
-      orderId = `ORDER_${Date.now()}`,
-      orderInfo = `Order ID: ${orderId}`,
-      requestId = Date.now().toString(),
-      extraData = Buffer.from(JSON.stringify({ payment_id })).toString('base64'),
-    } = req.body;
+    const { payment_id, return_url, amount } = req.body;
+    const orderId = `ORDER_${Date.now()}`;
+    const orderInfo = `Order ID: ${orderId}`;
+    const requestId = Date.now().toString();
+    const extraData = Buffer.from(JSON.stringify({ payment_id, return_url })).toString('base64');
     const rawSignature =
       `accessKey=${momoConfig.accessKey}` +
       `&amount=${amount}` +
@@ -103,7 +100,7 @@ const handleMomoCallback = async (req: Request, res: Response) => {
     }
 
     const decoded = JSON.parse(Buffer.from(String(extraData), 'base64').toString());
-    let paymentId = decoded.payment_id;
+    const { payment_id: paymentId, return_url: returnUrl } = decoded;
 
     if (!Number(resultCode)) {
       await updatePaymentStatus(
@@ -114,7 +111,7 @@ const handleMomoCallback = async (req: Request, res: Response) => {
         true,
       );
 
-      return responseSuccess(res, Message.PAYMENT_SUCCESSFUL);
+      return res.redirect(`${returnUrl}?payment=${true}&payment_id=${paymentId}`);
     }
 
     await updatePaymentStatus(
@@ -125,7 +122,7 @@ const handleMomoCallback = async (req: Request, res: Response) => {
       false,
     );
 
-    return responseSuccess(res, Message.PAYMENT_FAILED);
+    return res.redirect(`${returnUrl}?payment=${false}&payment_id=${paymentId}`);
   } catch (error) {
     logger.error(ErrorMessage.MOMO_CALLBACK_FAILED + error);
 

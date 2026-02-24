@@ -47,6 +47,11 @@ export const createPaymentUrlSchema = Joi.object({
     'number.max': 'Amount must be less than 50.000.000',
     'any.required': 'Amount is required',
   }),
+
+  return_url: Joi.string().required().messages({
+    'string.empty': 'Return url is required',
+    'any.required': 'Return url is required',
+  }),
 });
 
 export const validateCreatePayment = (req: Request, res: Response, next: NextFunction) => {
