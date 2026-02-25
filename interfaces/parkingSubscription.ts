@@ -3,8 +3,8 @@ import { ParkingSubscriptionStatus } from '../constants/enum';
 export interface ParkingSubscription {
   id?: string;
   user_id: string;
-  start_time: Date;
-  end_time: Date;
+  start_date: Date;
+  end_date: Date;
   base_amount: number;
   vat_charge: number;
   discount: number;

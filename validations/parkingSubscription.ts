@@ -47,9 +47,6 @@ const createSubscriptionSchema = Joi.object({
   month_duration: subscriptionFieldsSchema.month_duration.required().messages({
     'any.required': 'Duration is required',
   }),
-  base_amount: subscriptionFieldsSchema.base_amount.required().messages({
-    'any.required': 'Amount is required',
-  }),
   points_used: subscriptionFieldsSchema.points_used,
 })
   .custom(validateStartDate)

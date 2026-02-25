@@ -101,7 +101,8 @@ const handleMomoCallback = async (req: Request, res: Response) => {
 
     const decoded = JSON.parse(Buffer.from(String(extraData), 'base64').toString());
     const { payment_id: paymentId, return_url: returnUrl } = decoded;
-
+    let url = new URL(returnUrl);
+    url.searchParams.set('payment_id', paymentId);
     if (!Number(resultCode)) {
       await updatePaymentStatus(
         paymentId,
@@ -110,8 +111,9 @@ const handleMomoCallback = async (req: Request, res: Response) => {
         PaymentServiceProvider.MOMO,
         true,
       );
+      url.searchParams.set('payment', 'success');
 
-      return res.redirect(`${returnUrl}?payment=${true}&payment_id=${paymentId}`);
+      return res.redirect(url.toString());
     }
 
     await updatePaymentStatus(
@@ -122,7 +124,9 @@ const handleMomoCallback = async (req: Request, res: Response) => {
       false,
     );
 
-    return res.redirect(`${returnUrl}?payment=${false}&payment_id=${paymentId}`);
+    url.searchParams.set('payment', 'failed');
+
+    return res.redirect(url.toString());
   } catch (error) {
     logger.error(ErrorMessage.MOMO_CALLBACK_FAILED + error);
 

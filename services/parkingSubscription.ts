@@ -19,6 +19,7 @@ import { AuthRequest } from '../interfaces/jwt';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { Timestamp } from 'firebase-admin/firestore';
 import { User } from '../interfaces/user';
+import { ParkingSpace } from '../interfaces/parkingSpace';
 
 const parkingCollection = `${Sites.TOKYO}/${Collection.PARKING_SPACES}`;
 const subscriptionCollection = (parkingSpaceId: string) => {
@@ -102,14 +103,14 @@ const createParkingSubscription = async (req: AuthRequest, res: Response) => {
   try {
     const { parkingSpaceId } = req.params;
     const parkingSubscriptionCollection = subscriptionCollection(parkingSpaceId);
-    const { start_date, month_duration, points_used, base_amount, ...data } = req.body;
-    const startTime = start_date ? new Date(start_date) : getTomorrow();
-    const endTime = new Date(startTime);
-    endTime.setMonth(endTime.getMonth() + month_duration);
+    const { start_date, month_duration, points_used, ...data } = req.body;
+    const startDate = start_date ? new Date(start_date) : getTomorrow();
+    const endDate = new Date(startDate);
+    endDate.setMonth(endDate.getMonth() + month_duration);
 
     const conflicts = await firebaseHelper.getDocsByFields(parkingSubscriptionCollection, [
-      { field: 'start_time', operator: '<', value: Timestamp.fromDate(endTime) },
-      { field: 'end_time', operator: '>', value: Timestamp.fromDate(startTime) },
+      { field: 'start_date', operator: '<', value: Timestamp.fromDate(endDate) },
+      { field: 'end_date', operator: '>', value: Timestamp.fromDate(startDate) },
     ]);
     const validConflicts = conflicts.filter(
       (item) => item.status == ParkingSubscriptionStatus.RESERVED,
@@ -132,17 +133,30 @@ const createParkingSubscription = async (req: AuthRequest, res: Response) => {
       return responseError(res, StatusCode.INVALID_POINTS, ErrorMessage.INVALID_POINTS);
     }
 
+    const parkingSpace: ParkingSpace = await firebaseHelper.getDocById(
+      parkingCollection,
+      parkingSpaceId,
+    );
+    if (!parkingSpace) {
+      return responseError(
+        res,
+        StatusCode.PARKING_SPACE_NOT_FOUND,
+        ErrorMessage.PARKING_SPACE_NOT_FOUND,
+      );
+    }
+
+    const baseAmount = parkingSpace.base_price * Number(month_duration);
     const { finalAmount, discount, pointsEarned, finalPointsUsed, vatCharge } = calculatePayment(
-      base_amount,
+      baseAmount,
       user.rank,
       points_used,
       VATRate.DEFAULT,
     );
     const newParkingSubscription = {
       user_id: uid,
-      start_time: Timestamp.fromDate(startTime),
-      end_time: Timestamp.fromDate(endTime),
-      base_amount,
+      start_date: Timestamp.fromDate(startDate),
+      end_date: Timestamp.fromDate(endDate),
+      base_amount: baseAmount,
       vat_charge: vatCharge,
       discount,
       points_used: finalPointsUsed,
@@ -151,7 +165,6 @@ const createParkingSubscription = async (req: AuthRequest, res: Response) => {
       status: ParkingSubscriptionStatus.RESERVED,
       ...data,
     };
-
     const parkingSubscriptionId = await firebaseHelper.runTransaction(async (transaction) => {
       const parkingSubscription = await firebaseHelper.setTransaction(
         parkingSubscriptionCollection,
