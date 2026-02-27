@@ -49,7 +49,7 @@ export const createInformation = async (req: AuthRequest, res: Response) => {
       if (!users.length)
         return responseError(res, StatusCode.USER_NOT_FOUND, ErrorMessage.USER_NOT_FOUND);
 
-      // await sendInformation(users, newInfo);
+      await sendInformation(users, newInfo);
     }
 
     return responseSuccess(res, Message.INFO_CREATED, { id: docRef.id });

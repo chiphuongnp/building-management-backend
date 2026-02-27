@@ -18,3 +18,14 @@ export interface Payment {
   transaction_time: Date;
   created_at: Date;
 }
+
+export interface PaymentReferenceContext {
+  restaurantId?: string | null;
+  buildingId?: string | null;
+}
+
+export interface PaymentExtraData {
+  paymentId: string;
+  returnUrl: string;
+  referenceContext: PaymentReferenceContext;
+}

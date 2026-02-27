@@ -186,6 +186,9 @@ export enum ErrorMessage {
   PAYMENT_NOT_FOUND = 'Payment not found!',
   PAYMENT_FORBIDDEN = 'You are not allowed to handle this payment!',
   INVALID_SIGNATURE = 'Invalid signature!',
+  MISSING_PAYMENT_INFO = 'Missing payment info!',
+  MISSING_REFERENCE_CONTEXT = 'Missing reference context!',
+  UNSUPPORTED_REFERENCE_TYPE = 'Unsupported payment reference type!',
   CANNOT_CREATE_VNPAY_PAYMENT_URL = 'Cannot create vnpay payment url!',
   CANNOT_CALL_BACK_VNPAY_PAYMENT = 'Cannot callback vnpay payment!',
   CANNOT_CALL_BACK_VNPAY_IPN = 'Cannot callback vnpay ipn!',
@@ -376,6 +379,7 @@ export enum Message {
   PAYMENT_FAILED = 'Payment failed.',
   MOMO_CREATED = 'Momo payment has been created successfully.',
   GET_PAYMENT = 'Get payment successfully.',
+  PAYMENT_ALREADY_SUCCESS = 'Payment already success, skip update.',
 
   // Bus Booking success messages
   BUS_SUBSCRIPTION_CREATED = 'Bus subscription created successfully.',
@@ -564,6 +568,7 @@ export enum StatusCode {
   CANNOT_CALL_BACK_VNPAY_PAYMENT = 4250,
   CANNOT_CALL_BACK_VNPAY_IPN = 4251,
   PAYMENT_FORBIDDEN = 4252,
+  MISSING_PAYMENT_INFO = 4253,
 
   // Information codes
   INFORMATION_TITLE_EXISTS = 4261,

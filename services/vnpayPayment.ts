@@ -1,8 +1,14 @@
 import { Request, Response } from 'express';
-import { Collection, PaymentServiceProvider, VnpayRspCode, Sites } from '../constants/enum';
+import {
+  Collection,
+  PaymentServiceProvider,
+  VnpayRspCode,
+  Sites,
+  PaymentReferenceType,
+} from '../constants/enum';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
-import { Payment } from '../interfaces/payment';
-import { updatePaymentStatus } from './payment';
+import { Payment, PaymentExtraData, PaymentReferenceContext } from '../interfaces/payment';
+import { buildReferenceContext, updatePaymentStatus } from './payment';
 import {
   firebaseHelper,
   generateSignature,
@@ -17,7 +23,7 @@ import * as ENV from '../configs/envConfig';
 const paymentCollection = `${Sites.TOKYO}/${Collection.PAYMENTS}`;
 export const createVnpayUrl = async (req: Request, res: Response) => {
   try {
-    const { payment_id: paymentId } = req.body;
+    const { payment_id: paymentId, return_url: returnUrl, amount } = req.body;
     const payment: Payment = await firebaseHelper.getDocById(paymentCollection, paymentId);
     if (!payment)
       return responseError(res, StatusCode.PAYMENT_NOT_FOUND, ErrorMessage.PAYMENT_NOT_FOUND);
@@ -29,12 +35,18 @@ export const createVnpayUrl = async (req: Request, res: Response) => {
       ipAddr = '';
     }
 
+    const referenceContext: PaymentReferenceContext = buildReferenceContext(
+      payment.reference_type,
+      returnUrl,
+    );
+    const extraData = Buffer.from(
+      JSON.stringify({ paymentId, returnUrl, referenceContext }),
+    ).toString('base64');
     const createDate = moment(new Date()).format('YYYYMMDDHHmmss');
     const tmnCode = ENV.VNP_TMN_CODE ?? '';
     const secretKey = ENV.VNP_HASH_SECRET ?? '';
     const vnpUrl = ENV.VNP_URL ?? '';
-    const returnUrl = ENV.VNP_RETURN_URL ?? '';
-
+    const vnpReturnUrl = ENV.VNP_RETURN_URL ?? '';
     let params: Record<string, string | number> = {
       vnp_Version: '2.1.0',
       vnp_Command: 'pay',
@@ -42,10 +54,10 @@ export const createVnpayUrl = async (req: Request, res: Response) => {
       vnp_Locale: 'vn',
       vnp_CurrCode: 'VND',
       vnp_TxnRef: `ORDER_${Date.now()}`,
-      vnp_OrderInfo: `Payment_${payment.id}`,
+      vnp_OrderInfo: extraData,
       vnp_OrderType: 'other',
-      vnp_Amount: req.body.amount * 100,
-      vnp_ReturnUrl: encodeURIComponent(returnUrl),
+      vnp_Amount: amount * 100,
+      vnp_ReturnUrl: encodeURIComponent(vnpReturnUrl),
       vnp_IpAddr: encodeURIComponent(ipAddr),
       vnp_CreateDate: createDate,
     };
@@ -56,7 +68,7 @@ export const createVnpayUrl = async (req: Request, res: Response) => {
     const queryString = qs.stringify(params, { encode: false });
 
     return responseSuccess(res, Message.PAYMENT_URL_CREATED, {
-      payment_url: `${vnpUrl}?${queryString}`,
+      payUrl: `${vnpUrl}?${queryString}`,
       id: paymentId,
     });
   } catch (error) {
@@ -73,13 +85,13 @@ export const createVnpayUrl = async (req: Request, res: Response) => {
 export const vnpayReturnHandler = async (req: Request, res: Response) => {
   try {
     const query = { ...req.query } as Record<string, string>;
-    const vnp_HashSecret = ENV.VNP_HASH_SECRET ?? '';
+    const secretKey = ENV.VNP_HASH_SECRET ?? '';
     const secureHash = query['vnp_SecureHash'];
     delete query['vnp_SecureHash'];
     delete query['vnp_SecureHashType'];
 
     const signData = qs.stringify(sortObject(query), { encode: false });
-    const signed = generateSignature(signData, vnp_HashSecret);
+    const signed = generateSignature(signData, secretKey);
     if (secureHash !== signed) {
       logger.warn(ErrorMessage.INVALID_SIGNATURE);
 
@@ -89,22 +101,42 @@ export const vnpayReturnHandler = async (req: Request, res: Response) => {
     const serviceId = query['vnp_TxnRef'];
     const rspCode = query['vnp_ResponseCode'];
     const orderInfo = query['vnp_OrderInfo'];
-    const paymentId = orderInfo.split('Payment_')[1];
+    if (!orderInfo) {
+      logger.warn(ErrorMessage.MISSING_PAYMENT_INFO);
+
+      return responseError(res, StatusCode.MISSING_PAYMENT_INFO, ErrorMessage.MISSING_PAYMENT_INFO);
+    }
+
+    const decoded = JSON.parse(
+      Buffer.from(String(orderInfo), 'base64').toString(),
+    ) as PaymentExtraData;
+    const { paymentId, returnUrl, referenceContext } = decoded;
     const amount = Number(query['vnp_Amount']) / 100;
     const payment: Payment = await firebaseHelper.getDocById(paymentCollection, paymentId);
     if (!payment) {
       return responseError(res, StatusCode.PAYMENT_NOT_FOUND, ErrorMessage.PAYMENT_NOT_FOUND);
     }
 
+    let url = new URL(returnUrl);
+    url.searchParams.set('payment_id', paymentId);
     if (rspCode === VnpayRspCode.SUCCESS) {
-      await updatePaymentStatus(paymentId, serviceId, amount, PaymentServiceProvider.VNPAY, true);
+      await updatePaymentStatus(
+        paymentId,
+        serviceId,
+        amount,
+        PaymentServiceProvider.VNPAY,
+        true,
+        referenceContext,
+      );
+      url.searchParams.set('payment', 'success');
 
-      return responseSuccess(res, Message.PAYMENT_SUCCESSFUL);
+      return res.redirect(url.toString());
     }
 
     await updatePaymentStatus(paymentId, serviceId, amount, PaymentServiceProvider.VNPAY, false);
+    url.searchParams.set('payment', 'failed');
 
-    return responseSuccess(res, Message.PAYMENT_FAILED);
+    return res.redirect(url.toString());
   } catch (error) {
     logger.warn(`${ErrorMessage.CANNOT_CALL_BACK_VNPAY_PAYMENT} | ${error}`);
 
