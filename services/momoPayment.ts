@@ -1,18 +1,42 @@
 import axios from 'axios';
 import { Request, Response } from 'express';
 import { momoConfig } from '../configs/momo';
-import { generateSignature, responseError, responseSuccess, logger } from '../utils/index';
+import {
+  generateSignature,
+  responseError,
+  responseSuccess,
+  logger,
+  firebaseHelper,
+} from '../utils/index';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
-import { HmacAlgorithm, PaymentServiceProvider } from '../constants/enum';
-import { updatePaymentStatus } from './payment';
+import {
+  Collection,
+  HmacAlgorithm,
+  PaymentReferenceType,
+  PaymentServiceProvider,
+  Sites,
+} from '../constants/enum';
+import { buildReferenceContext, updatePaymentStatus } from './payment';
+import { Payment, PaymentExtraData, PaymentReferenceContext } from '../interfaces/payment';
 
+const paymentCollection = `${Sites.TOKYO}/${Collection.PAYMENTS}`;
 const createMomoPayment = async (req: Request, res: Response) => {
   try {
-    const { payment_id, return_url, amount } = req.body;
+    const { payment_id: paymentId, return_url: returnUrl, amount } = req.body;
+    const payment: Payment = await firebaseHelper.getDocById(paymentCollection, paymentId);
+    if (!payment)
+      return responseError(res, StatusCode.PAYMENT_NOT_FOUND, ErrorMessage.PAYMENT_NOT_FOUND);
+
+    const referenceContext: PaymentReferenceContext = buildReferenceContext(
+      payment.reference_type,
+      returnUrl,
+    );
+    const extraData = Buffer.from(
+      JSON.stringify({ paymentId, returnUrl, referenceContext }),
+    ).toString('base64');
     const orderId = `ORDER_${Date.now()}`;
     const orderInfo = `Order ID: ${orderId}`;
     const requestId = Date.now().toString();
-    const extraData = Buffer.from(JSON.stringify({ payment_id, return_url })).toString('base64');
     const rawSignature =
       `accessKey=${momoConfig.accessKey}` +
       `&amount=${amount}` +
@@ -99,8 +123,10 @@ const handleMomoCallback = async (req: Request, res: Response) => {
       return responseError(res, StatusCode.INVALID_SIGNATURE, ErrorMessage.INVALID_SIGNATURE);
     }
 
-    const decoded = JSON.parse(Buffer.from(String(extraData), 'base64').toString());
-    const { payment_id: paymentId, return_url: returnUrl } = decoded;
+    const decoded = JSON.parse(
+      Buffer.from(String(extraData), 'base64').toString(),
+    ) as PaymentExtraData;
+    const { paymentId, returnUrl, referenceContext } = decoded;
     let url = new URL(returnUrl);
     url.searchParams.set('payment_id', paymentId);
     if (!Number(resultCode)) {
@@ -110,6 +136,7 @@ const handleMomoCallback = async (req: Request, res: Response) => {
         Number(amount),
         PaymentServiceProvider.MOMO,
         true,
+        referenceContext,
       );
       url.searchParams.set('payment', 'success');
 

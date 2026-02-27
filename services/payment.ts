@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import {
   Collection,
+  PaymentReferenceType,
   PaymentServiceProvider,
   PaymentStatus,
   Sites,
@@ -8,12 +9,13 @@ import {
 } from '../constants/enum';
 import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { AuthRequest } from '../interfaces/jwt';
-import { Payment } from '../interfaces/payment';
+import { Payment, PaymentReferenceContext } from '../interfaces/payment';
 import { User } from '../interfaces/user';
 import { firebaseHelper, responseError, responseSuccess, logger } from '../utils/index';
 
 const userCollection = `${Sites.TOKYO}/${Collection.USERS}`;
 const paymentCollection = `${Sites.TOKYO}/${Collection.PAYMENTS}`;
+const restaurantCollection = `${Sites.TOKYO}/${Collection.RESTAURANTS}`;
 export const createPayment = async (req: AuthRequest, res: Response) => {
   try {
     const paymentId = await firebaseHelper.runTransaction(async (transaction) => {
@@ -77,18 +79,101 @@ export const getPayment = async (req: AuthRequest, res: Response) => {
 
 export const updatePaymentStatus = async (
   paymentId: string,
-  orderId: string,
+  serviceId: string,
   amount: number,
   provider: PaymentServiceProvider,
   isSuccess: boolean,
+  referenceContext?: PaymentReferenceContext,
 ) => {
   if (!paymentId) return;
 
-  await firebaseHelper.updateDoc(paymentCollection, paymentId, {
-    status: isSuccess ? PaymentStatus.SUCCESS : PaymentStatus.FAILED,
-    amount,
-    service_id: orderId,
-    service_type: provider,
-    transaction_time: new Date(),
+  await firebaseHelper.runTransaction(async (transaction) => {
+    const payment: Payment = await firebaseHelper.getTransaction(
+      paymentCollection,
+      paymentId,
+      transaction,
+    );
+    if (!payment) {
+      throw new Error(ErrorMessage.PAYMENT_NOT_FOUND);
+    }
+
+    if (payment.status === PaymentStatus.SUCCESS) {
+      logger.info(Message.PAYMENT_ALREADY_SUCCESS);
+
+      return;
+    }
+
+    if (isSuccess) {
+      switch (payment.reference_type) {
+        case PaymentReferenceType.ORDER: {
+          if (!referenceContext) {
+            throw new Error(ErrorMessage.MISSING_REFERENCE_CONTEXT);
+          }
+
+          const orderPath = `${restaurantCollection}/${referenceContext.restaurantId}/${Collection.ORDERS}`;
+          const order = await firebaseHelper.getTransaction(
+            orderPath,
+            payment.reference_id,
+            transaction,
+          );
+          if (!order) {
+            throw new Error(ErrorMessage.ORDER_NOT_FOUND);
+          }
+
+          await firebaseHelper.updateTransaction(
+            orderPath,
+            payment.reference_id,
+            { payment_status: PaymentStatus.SUCCESS },
+            transaction,
+          );
+
+          break;
+        }
+
+        default: {
+          throw new Error(`${ErrorMessage.UNSUPPORTED_REFERENCE_TYPE} ${payment.reference_type}`);
+        }
+      }
+    }
+
+    await firebaseHelper.updateTransaction(
+      paymentCollection,
+      paymentId,
+      {
+        status: isSuccess ? PaymentStatus.SUCCESS : PaymentStatus.FAILED,
+        amount,
+        service_id: serviceId,
+        service_type: provider,
+        transaction_time: new Date(),
+      },
+      transaction,
+    );
   });
+};
+
+export const buildReferenceContext = (referenceType: PaymentReferenceType, returnUrl: string) => {
+  const url = new URL(returnUrl);
+
+  switch (referenceType) {
+    case PaymentReferenceType.ORDER: {
+      const restaurantId = url.searchParams.get('restaurantId');
+      if (!restaurantId) {
+        throw new Error(`${ErrorMessage.MISSING_REFERENCE_CONTEXT} RestaurantID`);
+      }
+
+      return { restaurantId };
+    }
+
+    case PaymentReferenceType.PARKING_SUBSCRIPTION: {
+      const buildingId = url.searchParams.get('buildingId');
+      if (!buildingId) {
+        throw new Error(`${ErrorMessage.MISSING_REFERENCE_CONTEXT} BuildingID`);
+      }
+
+      return { buildingId };
+    }
+
+    default:
+      throw new Error(`${ErrorMessage.UNSUPPORTED_REFERENCE_TYPE} ${referenceType}`);
+  }
 };
