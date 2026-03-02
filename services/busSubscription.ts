@@ -16,6 +16,7 @@ import {
   Sites,
   ActiveStatus,
   VATRate,
+  PaymentStatus,
 } from '../constants/enum';
 import { BusSubscription } from '../interfaces/busSubscription';
 import { Bus } from '../interfaces/bus';
@@ -117,16 +118,8 @@ export const getBusSubscriptionDetail = async (req: AuthRequest, res: Response) 
 
 export const createBusSubscription = async (req: AuthRequest, res: Response) => {
   try {
-    const {
-      route_id,
-      bus_id,
-      start_time,
-      month_duration,
-      points_used,
-      base_amount,
-      seat_number,
-      ...data
-    } = req.body;
+    const { route_id, bus_id, start_time, month_duration, points_used, seat_number, ...data } =
+      req.body;
     const startTime = start_time ? new Date(start_time) : getTomorrow();
     const endTime = new Date(startTime);
     endTime.setMonth(endTime.getMonth() + month_duration);
@@ -162,14 +155,7 @@ export const createBusSubscription = async (req: AuthRequest, res: Response) => 
       return responseError(res, StatusCode.INVALID_POINTS, ErrorMessage.INVALID_POINTS);
     }
 
-    const { finalAmount, discount, pointsEarned, finalPointsUsed, vatCharge } = calculatePayment(
-      base_amount,
-      user.rank,
-      points_used,
-      VATRate.DEFAULT,
-    );
-
-    const busSubscriptionId = await firebaseHelper.runTransaction(async (transaction) => {
+    const busSubscription = await firebaseHelper.runTransaction(async (transaction) => {
       const bus: Bus = await firebaseHelper.getTransaction(busCollection, bus_id, transaction);
       if (!bus) {
         throw new Error(ErrorMessage.BUS_NOT_FOUND);
@@ -208,6 +194,14 @@ export const createBusSubscription = async (req: AuthRequest, res: Response) => 
         transaction,
       );
 
+      const base_amount = route.base_price * month_duration;
+      const { finalAmount, discount, pointsEarned, finalPointsUsed, vatCharge } = calculatePayment(
+        base_amount,
+        user.rank,
+        points_used,
+        VATRate.DEFAULT,
+      );
+
       const subscriptionData = {
         ...data,
         user_id: uid,
@@ -222,7 +216,8 @@ export const createBusSubscription = async (req: AuthRequest, res: Response) => 
         points_used: finalPointsUsed,
         total_amount: finalAmount,
         points_earned: pointsEarned,
-        status: BusSubscriptionStatus.PENDING,
+        status: BusSubscriptionStatus.RESERVED,
+        payment_status: PaymentStatus.PENDING,
         created_at: new Date(),
       };
       const busSubscription = await firebaseHelper.setTransaction(
@@ -238,13 +233,10 @@ export const createBusSubscription = async (req: AuthRequest, res: Response) => 
         transaction,
       );
 
-      return busSubscription.id;
+      return { id: busSubscription.id, finalAmount };
     });
 
-    return responseSuccess(res, Message.BUS_SUBSCRIPTION_CREATED, {
-      id: busSubscriptionId,
-      finalAmount,
-    });
+    return responseSuccess(res, Message.BUS_SUBSCRIPTION_CREATED, busSubscription);
   } catch (error: any) {
     logger.warn(ErrorMessage.CANNOT_CREATE_BUS_SUBSCRIPTION, error);
 

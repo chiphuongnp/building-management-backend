@@ -1,4 +1,4 @@
-import { BusSubscriptionStatus } from '../constants/enum';
+import { BusSubscriptionStatus, PaymentStatus } from '../constants/enum';
 
 export interface BusSubscription {
   id: string;
@@ -15,6 +15,7 @@ export interface BusSubscription {
   point_earned: number;
   status: BusSubscriptionStatus;
   payment_id: string;
+  payment_status: PaymentStatus;
   seat_number: string;
   notes?: string;
   created_at: Date;
