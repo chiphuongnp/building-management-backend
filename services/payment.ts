@@ -16,6 +16,7 @@ import { firebaseHelper, responseError, responseSuccess, logger } from '../utils
 const userCollection = `${Sites.TOKYO}/${Collection.USERS}`;
 const paymentCollection = `${Sites.TOKYO}/${Collection.PAYMENTS}`;
 const restaurantCollection = `${Sites.TOKYO}/${Collection.RESTAURANTS}`;
+const busSubscriptionCollection = `${Sites.TOKYO}/${Collection.BUS_SUBSCRIPTIONS}`;
 export const createPayment = async (req: AuthRequest, res: Response) => {
   try {
     const paymentId = await firebaseHelper.runTransaction(async (transaction) => {
@@ -130,6 +131,26 @@ export const updatePaymentStatus = async (
           break;
         }
 
+        case PaymentReferenceType.BUS_SUBSCRIPTION: {
+          const busSubscription = await firebaseHelper.getTransaction(
+            busSubscriptionCollection,
+            payment.reference_id,
+            transaction,
+          );
+          if (!busSubscription) {
+            throw new Error(ErrorMessage.BUS_SUBSCRIPTION_NOT_FOUND);
+          }
+
+          await firebaseHelper.updateTransaction(
+            busSubscriptionCollection,
+            payment.reference_id,
+            { payment_status: PaymentStatus.SUCCESS },
+            transaction,
+          );
+
+          break;
+        }
+
         default: {
           throw new Error(`${ErrorMessage.UNSUPPORTED_REFERENCE_TYPE} ${payment.reference_type}`);
         }
@@ -174,6 +195,6 @@ export const buildReferenceContext = (referenceType: PaymentReferenceType, retur
     }
 
     default:
-      throw new Error(`${ErrorMessage.UNSUPPORTED_REFERENCE_TYPE} ${referenceType}`);
+      return null;
   }
 };

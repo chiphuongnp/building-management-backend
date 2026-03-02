@@ -27,7 +27,7 @@ const createMomoPayment = async (req: Request, res: Response) => {
     if (!payment)
       return responseError(res, StatusCode.PAYMENT_NOT_FOUND, ErrorMessage.PAYMENT_NOT_FOUND);
 
-    const referenceContext: PaymentReferenceContext = buildReferenceContext(
+    const referenceContext: PaymentReferenceContext | null = buildReferenceContext(
       payment.reference_type,
       returnUrl,
     );
