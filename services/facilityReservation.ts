@@ -15,6 +15,7 @@ import {
   FacilityReservationStatus,
   FacilityStatus,
   FacilityType,
+  PaymentStatus,
   Sites,
   VATRate,
 } from '../constants/enum';
@@ -180,6 +181,7 @@ const createFacilityReservation = async (req: AuthRequest, res: Response) => {
       start_time: Timestamp.fromDate(startTime),
       end_time: Timestamp.fromDate(endTime),
       status: FacilityReservationStatus.RESERVED,
+      payment_status: PaymentStatus.PENDING,
       ...data,
     };
     const { finalAmount, discount, pointsEarned, finalPointsUsed, vatCharge } = calculatePayment(
@@ -212,13 +214,15 @@ const createFacilityReservation = async (req: AuthRequest, res: Response) => {
         transaction,
       );
 
-      const updatedPoints = (user.points ?? 0) - finalPointsUsed + pointsEarned;
-      await firebaseHelper.updateTransaction(
-        userCollection,
-        uid,
-        { points: updatedPoints },
-        transaction,
-      );
+      if (facility.base_price) {
+        const updatedPoints = (user.points ?? 0) - finalPointsUsed + pointsEarned;
+        await firebaseHelper.updateTransaction(
+          userCollection,
+          uid,
+          { points: updatedPoints },
+          transaction,
+        );
+      }
 
       return facilityReservation.id;
     });
