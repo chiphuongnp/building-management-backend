@@ -28,3 +28,8 @@ export const getLastMonth = () => {
   const now = getNormalizedDate();
   return new Date(now.setMonth(now.getMonth() - 1));
 };
+
+export const getThisMonth = () => {
+  const now = getNormalizedDate();
+  return new Date(now.setMonth(now.getMonth()));
+};
