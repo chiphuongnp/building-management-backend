@@ -11,7 +11,15 @@ import { ErrorMessage, Message, StatusCode } from '../constants/message';
 import { AuthRequest } from '../interfaces/jwt';
 import { Payment, PaymentReferenceContext } from '../interfaces/payment';
 import { User } from '../interfaces/user';
-import { firebaseHelper, responseError, responseSuccess, logger } from '../utils/index';
+import {
+  firebaseHelper,
+  responseError,
+  responseSuccess,
+  logger,
+  getThisMonth,
+} from '../utils/index';
+import { Timestamp } from 'firebase-admin/firestore';
+import { POINTS_EARN_RATE } from '../constants/constant';
 
 const userCollection = `${Sites.TOKYO}/${Collection.USERS}`;
 const paymentCollection = `${Sites.TOKYO}/${Collection.PAYMENTS}`;
@@ -71,6 +79,40 @@ export const getPayment = async (req: AuthRequest, res: Response) => {
     }
 
     return responseSuccess(res, Message.GET_PAYMENT, { payment });
+  } catch (error) {
+    logger.warn(`${ErrorMessage.CANNOT_GET_PAYMENT} | ${error}`);
+
+    return responseError(res, StatusCode.CANNOT_GET_PAYMENT, ErrorMessage.CANNOT_GET_PAYMENT);
+  }
+};
+
+export const getUserPayments = async (req: AuthRequest, res: Response) => {
+  try {
+    const { from, to } = req.query;
+    const startTime = from ? new Date(from as string) : getThisMonth();
+    const endTime = to ? new Date(to as string) : new Date();
+    const payments: Payment[] = await firebaseHelper.getDocsByFields(paymentCollection, [
+      { field: 'transaction_time', operator: '>=', value: Timestamp.fromDate(startTime) },
+      { field: 'transaction_time', operator: '<', value: Timestamp.fromDate(endTime) },
+      { field: 'status', operator: '==', value: PaymentStatus.SUCCESS },
+      { field: 'user_id', operator: '==', value: req.user?.uid },
+    ]);
+    if (!payments.length) {
+      return responseSuccess(res, Message.GET_PAYMENT, {
+        payments: [],
+        totalAmount: 0,
+        pointsEarned: 0,
+      });
+    }
+
+    const totalAmount = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+    const pointsEarned = Math.floor(totalAmount / POINTS_EARN_RATE);
+
+    return responseSuccess(res, Message.GET_PAYMENT, {
+      payments,
+      totalAmount,
+      pointsEarned,
+    });
   } catch (error) {
     logger.warn(`${ErrorMessage.CANNOT_GET_PAYMENT} | ${error}`);
 
