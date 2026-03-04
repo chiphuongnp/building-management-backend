@@ -25,6 +25,7 @@ const userCollection = `${Sites.TOKYO}/${Collection.USERS}`;
 const paymentCollection = `${Sites.TOKYO}/${Collection.PAYMENTS}`;
 const restaurantCollection = `${Sites.TOKYO}/${Collection.RESTAURANTS}`;
 const busSubscriptionCollection = `${Sites.TOKYO}/${Collection.BUS_SUBSCRIPTIONS}`;
+const facilityReservationCollection = `${Sites.TOKYO}/${Collection.FACILITY_RESERVATIONS}`;
 export const createPayment = async (req: AuthRequest, res: Response) => {
   try {
     const paymentId = await firebaseHelper.runTransaction(async (transaction) => {
@@ -185,6 +186,26 @@ export const updatePaymentStatus = async (
 
           await firebaseHelper.updateTransaction(
             busSubscriptionCollection,
+            payment.reference_id,
+            { payment_status: PaymentStatus.SUCCESS },
+            transaction,
+          );
+
+          break;
+        }
+
+        case PaymentReferenceType.FACILITY_RESERVATION: {
+          const facilityReservation = await firebaseHelper.getTransaction(
+            facilityReservationCollection,
+            payment.reference_id,
+            transaction,
+          );
+          if (!facilityReservation) {
+            throw new Error(ErrorMessage.FACILITY_RESERVATION_NOT_FOUND);
+          }
+
+          await firebaseHelper.updateTransaction(
+            facilityReservationCollection,
             payment.reference_id,
             { payment_status: PaymentStatus.SUCCESS },
             transaction,

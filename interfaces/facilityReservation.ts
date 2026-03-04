@@ -1,5 +1,5 @@
 import { firestore } from 'firebase-admin';
-import { FacilityReservationStatus } from '../constants/enum';
+import { FacilityReservationStatus, PaymentStatus } from '../constants/enum';
 
 export interface FacilityReservation {
   id: string;
@@ -14,6 +14,7 @@ export interface FacilityReservation {
   total_amount: number;
   point_earned: number;
   status: FacilityReservationStatus;
+  payment_status: PaymentStatus;
   created_at: Date | firestore.Timestamp;
   updated_at?: Date | firestore.Timestamp | null;
   created_by?: string;
