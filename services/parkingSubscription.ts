@@ -11,6 +11,7 @@ import {
   Collection,
   ParkingSpaceStatus,
   ParkingSubscriptionStatus,
+  PaymentStatus,
   Sites,
   VATRate,
 } from '../constants/enum';
@@ -163,6 +164,7 @@ const createParkingSubscription = async (req: AuthRequest, res: Response) => {
       total_amount: finalAmount,
       points_earned: pointsEarned,
       status: ParkingSubscriptionStatus.RESERVED,
+      payment_status: PaymentStatus.PENDING,
       ...data,
     };
     const parkingSubscriptionId = await firebaseHelper.runTransaction(async (transaction) => {
