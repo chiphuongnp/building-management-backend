@@ -35,7 +35,7 @@ export const createVnpayUrl = async (req: Request, res: Response) => {
       ipAddr = '';
     }
 
-    const referenceContext: PaymentReferenceContext = buildReferenceContext(
+    const referenceContext: PaymentReferenceContext | null = buildReferenceContext(
       payment.reference_type,
       returnUrl,
     );
