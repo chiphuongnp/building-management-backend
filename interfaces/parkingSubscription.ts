@@ -1,4 +1,4 @@
-import { ParkingSubscriptionStatus } from '../constants/enum';
+import { ParkingSubscriptionStatus, PaymentStatus } from '../constants/enum';
 
 export interface ParkingSubscription {
   id?: string;
@@ -11,6 +11,7 @@ export interface ParkingSubscription {
   points_used: number;
   total_amount: number;
   point_earned: number;
+  payment_status: PaymentStatus;
   status: ParkingSubscriptionStatus;
   created_at?: Date;
   created_by?: string;

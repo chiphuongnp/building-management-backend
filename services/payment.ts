@@ -26,6 +26,7 @@ const paymentCollection = `${Sites.TOKYO}/${Collection.PAYMENTS}`;
 const restaurantCollection = `${Sites.TOKYO}/${Collection.RESTAURANTS}`;
 const busSubscriptionCollection = `${Sites.TOKYO}/${Collection.BUS_SUBSCRIPTIONS}`;
 const facilityReservationCollection = `${Sites.TOKYO}/${Collection.FACILITY_RESERVATIONS}`;
+const parkingCollection = `${Sites.TOKYO}/${Collection.PARKING_SPACES}`;
 export const createPayment = async (req: AuthRequest, res: Response) => {
   try {
     const paymentId = await firebaseHelper.runTransaction(async (transaction) => {
@@ -214,6 +215,31 @@ export const updatePaymentStatus = async (
           break;
         }
 
+        case PaymentReferenceType.PARKING_SUBSCRIPTION: {
+          if (!referenceContext) {
+            throw new Error(ErrorMessage.MISSING_REFERENCE_CONTEXT);
+          }
+
+          const parkingSubscriptionCollection = `${parkingCollection}/${referenceContext.parkingId}/${Collection.PARKING_SUBSCRIPTIONS}`;
+          const parking = await firebaseHelper.getTransaction(
+            parkingSubscriptionCollection,
+            payment.reference_id,
+            transaction,
+          );
+          if (!parking) {
+            throw new Error(ErrorMessage.PARKING_SUBSCRIPTION_NOT_FOUND);
+          }
+
+          await firebaseHelper.updateTransaction(
+            parkingSubscriptionCollection,
+            payment.reference_id,
+            { payment_status: PaymentStatus.SUCCESS },
+            transaction,
+          );
+
+          break;
+        }
+
         default: {
           throw new Error(`${ErrorMessage.UNSUPPORTED_REFERENCE_TYPE} ${payment.reference_type}`);
         }
@@ -254,7 +280,12 @@ export const buildReferenceContext = (referenceType: PaymentReferenceType, retur
         throw new Error(`${ErrorMessage.MISSING_REFERENCE_CONTEXT} BuildingID`);
       }
 
-      return { buildingId };
+      const parkingId = url.searchParams.get('parkingId');
+      if (!parkingId) {
+        throw new Error(`${ErrorMessage.MISSING_REFERENCE_CONTEXT} ParkingId`);
+      }
+
+      return { buildingId, parkingId };
     }
 
     default:

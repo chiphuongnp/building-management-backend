@@ -22,6 +22,7 @@ export interface Payment {
 export interface PaymentReferenceContext {
   restaurantId?: string | null;
   buildingId?: string | null;
+  parkingId?: string | null;
 }
 
 export interface PaymentExtraData {
