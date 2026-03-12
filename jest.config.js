@@ -2,6 +2,7 @@ module.exports = {
   preset: 'ts-jest',
   testMatch: ['**/*.test.ts'],
   testEnvironment: 'node',
+  setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   reporters: [
     'default',
     [
@@ -10,7 +11,6 @@ module.exports = {
         pageTitle: 'Test Report',
         includeFailureMsg: true,
         includeSuiteFailure: true,
-        sort: 'titleAsc',
         outputPath: 'test-results/test-report.html',
       },
     ],

@@ -7,7 +7,8 @@
     "node": "22"
   },
   "scripts": {
-    "test": "jest --watchAll",
+    "test": "jest --runInBand",
+    "test:watch": "jest --runInBand --watchAll",
     "dev": "nodemon --exec tsx app.ts",
     "build": "tsc --project tsconfig.json",
     "emulator": "firebase emulators:start --only functions,firestore",
