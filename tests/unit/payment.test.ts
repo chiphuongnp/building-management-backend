@@ -28,13 +28,13 @@ import {
   mockUserPayments,
 } from '../data/payment';
 
-const mockedFirebase = firebaseHelper as jest.Mocked<typeof firebaseHelper>;
-const mockedLogger = logger as jest.Mocked<typeof logger>;
+const mockedFirebase = jest.mocked(firebaseHelper);
+const mockedLogger = jest.mocked(logger);
+const mockedGetThisMonth = jest.mocked(getThisMonth);
 beforeEach(() => {
   jest.clearAllMocks();
 
-  (getThisMonth as jest.Mock).mockReturnValue(new Date('2026-03-01'));
-
+  mockedGetThisMonth.mockReturnValue(new Date('2026-03-01'));
   mockedFirebase.runTransaction.mockImplementation(async (cb) => cb({} as Transaction));
 });
 
@@ -425,7 +425,7 @@ describe('getUserPayments()', () => {
       const req = mockReq(query);
       const res = mockRes();
       mockedFirebase.getDocsByFields.mockResolvedValue(payments as never);
-      await getUserPayments(req, res);
+      const response = await getUserPayments(req, res);
 
       expect(mockedFirebase.getDocsByFields).toHaveBeenCalledWith(
         paymentCollection,
@@ -447,10 +447,19 @@ describe('getUserPayments()', () => {
       );
 
       const totalAmount = payments.reduce((s, p) => s + (p.amount || 0), 0);
+      const pointsEarned = Math.floor(totalAmount / POINTS_EARN_RATE);
       expect(responseSuccess).toHaveBeenCalledWith(res, Message.GET_PAYMENT, {
         payments,
         totalAmount,
-        pointsEarned: Math.floor(totalAmount / POINTS_EARN_RATE),
+        pointsEarned,
+      });
+      expect(response).toEqual({
+        success: true,
+        data: expect.objectContaining({
+          payments,
+          totalAmount,
+          pointsEarned,
+        }),
       });
     });
   });
@@ -460,7 +469,7 @@ describe('getUserPayments()', () => {
       const req = mockReq();
       const res = mockRes();
       mockedFirebase.getDocsByFields.mockRejectedValue(new Error('firestore error') as never);
-      await getUserPayments(req, res);
+      const response = await getUserPayments(req, res);
 
       expect(mockedLogger.warn).toHaveBeenCalled();
       expect(responseError).toHaveBeenCalledWith(
@@ -468,6 +477,11 @@ describe('getUserPayments()', () => {
         StatusCode.CANNOT_GET_PAYMENT,
         ErrorMessage.CANNOT_GET_PAYMENT,
       );
+      expect(response).toEqual({
+        success: false,
+        status: StatusCode.CANNOT_GET_PAYMENT,
+        message: ErrorMessage.CANNOT_GET_PAYMENT,
+      });
     });
   });
 });
@@ -496,10 +510,14 @@ describe('getPayment()', () => {
       const req = mockReq(undefined, user, { id: payment.id });
       const res = mockRes();
       mockedFirebase.getDocById.mockResolvedValue(payment as never);
-      await getPayment(req, res);
+      const response = await getPayment(req, res);
 
       expect(responseSuccess).toHaveBeenCalledWith(res, Message.GET_PAYMENT, {
         payment,
+      });
+      expect(response).toEqual({
+        success: true,
+        data: expect.objectContaining({ payment }),
       });
     });
   });
@@ -535,9 +553,14 @@ describe('getPayment()', () => {
       const req = mockReq(undefined, user, { id: '0BfJJphzrcrqv8idzNEJ' });
       const res = mockRes();
       mockedFirebase.getDocById.mockResolvedValue(payment as never);
-      await getPayment(req, res);
+      const response = await getPayment(req, res);
 
       expect(responseError).toHaveBeenCalledWith(res, error.StatusCode, error.ErrorMessage);
+      expect(response).toEqual({
+        success: false,
+        status: error.StatusCode,
+        message: error.ErrorMessage,
+      });
     });
 
     test('should handle firestore error', async () => {
@@ -548,7 +571,7 @@ describe('getPayment()', () => {
       );
       const res = mockRes();
       mockedFirebase.getDocById.mockRejectedValue(new Error('firestore error') as never);
-      await getPayment(req, res);
+      const response = await getPayment(req, res);
 
       expect(mockedLogger.warn).toHaveBeenCalled();
       expect(responseError).toHaveBeenCalledWith(
@@ -556,6 +579,11 @@ describe('getPayment()', () => {
         StatusCode.CANNOT_GET_PAYMENT,
         ErrorMessage.CANNOT_GET_PAYMENT,
       );
+      expect(response).toEqual({
+        success: false,
+        status: StatusCode.CANNOT_GET_PAYMENT,
+        message: ErrorMessage.CANNOT_GET_PAYMENT,
+      });
     });
   });
 });
@@ -575,7 +603,7 @@ describe('createPayment()', () => {
       const { req, res } = createPaymentReqRes();
       mockedFirebase.getTransaction.mockResolvedValue(mockUser as never);
       mockedFirebase.setTransaction.mockResolvedValue(mockPayment);
-      await createPayment(req, res);
+      const response = await createPayment(req, res);
 
       expect(mockedFirebase.getTransaction).toHaveBeenCalled();
       expect(mockedFirebase.setTransaction).toHaveBeenCalledWith(
@@ -589,6 +617,10 @@ describe('createPayment()', () => {
       expect(responseSuccess).toHaveBeenCalledWith(res, Message.PAYMENT_CREATED, {
         id: '0BfJJphzrcrqv8idzNEJ',
       });
+      expect(response).toEqual({
+        success: true,
+        data: expect.objectContaining({ id: '0BfJJphzrcrqv8idzNEJ' }),
+      });
     });
   });
 
@@ -596,19 +628,24 @@ describe('createPayment()', () => {
     test('should return USER_NOT_FOUND when user does not exist', async () => {
       const { req, res } = createPaymentReqRes();
       mockedFirebase.getTransaction.mockResolvedValue(null as never);
-      await createPayment(req, res);
+      const response = await createPayment(req, res);
 
       expect(responseError).toHaveBeenCalledWith(
         res,
         StatusCode.USER_NOT_FOUND,
         ErrorMessage.USER_NOT_FOUND,
       );
+      expect(response).toEqual({
+        success: false,
+        status: StatusCode.USER_NOT_FOUND,
+        message: ErrorMessage.USER_NOT_FOUND,
+      });
     });
 
     test('should return CANNOT_CREATE_PAYMENT when transaction fails', async () => {
       const { req, res } = createPaymentReqRes();
       mockedFirebase.runTransaction.mockRejectedValue(new Error('firestore error'));
-      await createPayment(req, res);
+      const response = await createPayment(req, res);
 
       expect(mockedLogger.warn).toHaveBeenCalled();
       expect(responseError).toHaveBeenCalledWith(
@@ -616,6 +653,11 @@ describe('createPayment()', () => {
         StatusCode.CANNOT_CREATE_PAYMENT,
         ErrorMessage.CANNOT_CREATE_PAYMENT,
       );
+      expect(response).toEqual({
+        success: false,
+        status: StatusCode.CANNOT_CREATE_PAYMENT,
+        message: ErrorMessage.CANNOT_CREATE_PAYMENT,
+      });
     });
 
     test('should return error when setTransaction fails', async () => {
@@ -624,13 +666,18 @@ describe('createPayment()', () => {
         id: '2Wv3zE7vsianIJyrafPFJ98YWSj2',
       } as never);
       mockedFirebase.setTransaction.mockRejectedValue(new Error('fail'));
-      await createPayment(req, res);
+      const response = await createPayment(req, res);
 
       expect(responseError).toHaveBeenCalledWith(
         res,
         StatusCode.CANNOT_CREATE_PAYMENT,
         ErrorMessage.CANNOT_CREATE_PAYMENT,
       );
+      expect(response).toEqual({
+        success: false,
+        status: StatusCode.CANNOT_CREATE_PAYMENT,
+        message: ErrorMessage.CANNOT_CREATE_PAYMENT,
+      });
     });
   });
 });

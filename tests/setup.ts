@@ -1,20 +1,24 @@
 import {
-  firebaseHelperMock,
   loggerMock,
   getThisMonthMock,
-  capitalizeName,
-  responseSuccess,
-  responseError,
+  capitalizeNameMock,
+  responseSuccessMock,
+  responseErrorMock,
 } from './helpers/utilMock';
 
-jest.mock('../utils', () => ({
-  firebaseHelper: firebaseHelperMock,
-  logger: loggerMock,
-  responseSuccess: responseSuccess,
-  responseError: responseError,
-  getThisMonth: getThisMonthMock,
-  capitalizeName: capitalizeName,
-}));
+jest.mock('../utils/firebaseHelper');
+jest.mock('../utils', () => {
+  const actual = jest.requireActual('../utils');
+
+  return {
+    ...actual,
+    logger: loggerMock,
+    responseSuccess: responseSuccessMock,
+    responseError: responseErrorMock,
+    getThisMonth: getThisMonthMock,
+    capitalizeName: capitalizeNameMock,
+  };
+});
 
 beforeEach(() => {
   jest.clearAllMocks();
