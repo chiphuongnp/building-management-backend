@@ -1,17 +1,19 @@
 import {
   firebaseHelperMock,
   loggerMock,
-  responseSuccessMock,
-  responseErrorMock,
   getThisMonthMock,
+  capitalizeName,
+  responseSuccess,
+  responseError,
 } from './helpers/utilMock';
 
 jest.mock('../utils', () => ({
   firebaseHelper: firebaseHelperMock,
   logger: loggerMock,
-  responseSuccess: responseSuccessMock,
-  responseError: responseErrorMock,
+  responseSuccess: responseSuccess,
+  responseError: responseError,
   getThisMonth: getThisMonthMock,
+  capitalizeName: capitalizeName,
 }));
 
 beforeEach(() => {
