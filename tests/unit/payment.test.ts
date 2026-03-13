@@ -422,7 +422,7 @@ describe('getUserPayments()', () => {
 
     test.each(validCases)('$name', async ({ input }) => {
       const { payments, query } = input;
-      const req = mockReq(query);
+      const req = mockReq({ query });
       const res = mockRes();
       mockedFirebase.getDocsByFields.mockResolvedValue(payments as never);
       const response = await getUserPayments(req, res);
@@ -507,7 +507,7 @@ describe('getPayment()', () => {
 
     test.each(validCases)('$name', async ({ input }) => {
       const { payment, user } = input;
-      const req = mockReq(undefined, user, { id: payment.id });
+      const req = mockReq({ user, params: { id: payment.id } });
       const res = mockRes();
       mockedFirebase.getDocById.mockResolvedValue(payment as never);
       const response = await getPayment(req, res);
@@ -550,7 +550,7 @@ describe('getPayment()', () => {
 
     test.each(errorCases)('$name', async ({ input, error }) => {
       const { payment, user } = input;
-      const req = mockReq(undefined, user, { id: '0BfJJphzrcrqv8idzNEJ' });
+      const req = mockReq({ user, params: { id: '0BfJJphzrcrqv8idzNEJ' } });
       const res = mockRes();
       mockedFirebase.getDocById.mockResolvedValue(payment as never);
       const response = await getPayment(req, res);
@@ -564,11 +564,10 @@ describe('getPayment()', () => {
     });
 
     test('should handle firestore error', async () => {
-      const req = mockReq(
-        undefined,
-        { uid: '2Wv3zE7vsianIJyrafPFJ98YWSj2' },
-        { id: '0BfJJphzrcrqv8idzNEJ' },
-      );
+      const req = mockReq({
+        user: { uid: '2Wv3zE7vsianIJyrafPFJ98YWSj2' },
+        params: { id: '0BfJJphzrcrqv8idzNEJ' },
+      });
       const res = mockRes();
       mockedFirebase.getDocById.mockRejectedValue(new Error('firestore error') as never);
       const response = await getPayment(req, res);
@@ -590,9 +589,7 @@ describe('getPayment()', () => {
 
 describe('createPayment()', () => {
   const createPaymentReqRes = () => {
-    const req = mockReq(undefined, { uid: '2Wv3zE7vsianIJyrafPFJ98YWSj2' }, undefined, {
-      amount: 1000,
-    });
+    const req = mockReq({ user: { uid: '2Wv3zE7vsianIJyrafPFJ98YWSj2' }, body: { amount: 1000 } });
     const res = mockRes();
 
     return { req, res };
