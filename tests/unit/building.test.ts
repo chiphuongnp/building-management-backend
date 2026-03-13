@@ -65,7 +65,7 @@ describe('getBuildings()', () => {
     ];
 
     test.each(filteredCases)('$name', async ({ query }) => {
-      const req = mockReq(query);
+      const req = mockReq({ query });
       const res = mockRes();
 
       mockedFirebase.countDocsByFields.mockResolvedValue(1);
@@ -82,7 +82,7 @@ describe('getBuildings()', () => {
     });
 
     test('should return paginated buildings', async () => {
-      const req = mockReq({}, undefined, undefined, undefined, { page: 2, page_size: 5 });
+      const req = mockReq({ query: {}, pagination: { page: 2, page_size: 5 } });
       const res = mockRes();
 
       mockedFirebase.countAllDocs.mockResolvedValue(20);
@@ -104,7 +104,7 @@ describe('getBuildings()', () => {
     });
 
     test('should return buildings sorted by name ascending', async () => {
-      const req = mockReq({ order_by: 'name', order: 'asc' });
+      const req = mockReq({ query: { order_by: 'name', order: 'asc' } });
       const res = mockRes();
 
       mockedFirebase.countAllDocs.mockResolvedValue(2);
@@ -123,7 +123,7 @@ describe('getBuildings()', () => {
 
   describe('edge cases', () => {
     test('should return empty result when no buildings found', async () => {
-      const req = mockReq({ name: 'NotExist' });
+      const req = mockReq({ query: { name: 'NotExist' } });
       const res = mockRes();
 
       mockedFirebase.countDocsByFields.mockResolvedValue(0);
@@ -162,7 +162,7 @@ describe('getBuildings()', () => {
     });
 
     test('should use DEFAULT_PAGE_TOTAL when page_size is undefined', async () => {
-      const req = mockReq({}, undefined, undefined, undefined, { page: 1, page_size: undefined });
+      const req = mockReq({ query: {}, pagination: { page: 1, page_size: undefined } });
       const res = mockRes();
 
       mockedFirebase.countAllDocs.mockResolvedValue(10);
@@ -184,7 +184,7 @@ describe('getBuildings()', () => {
 
   describe('error cases', () => {
     test('should return error when firebase fails', async () => {
-      const req = mockReq({ status: ActiveStatus.ACTIVE });
+      const req = mockReq({ query: { status: ActiveStatus.ACTIVE } });
       const res = mockRes();
 
       mockedFirebase.getDocsByFields.mockRejectedValue(new Error('firebase error'));
@@ -252,7 +252,7 @@ describe('getBuildingsStats()', () => {
 describe('getBuildingById()', () => {
   describe('valid cases', () => {
     test('should return building when building exists', async () => {
-      const req = mockReq(undefined, undefined, { id: 'AjBfMRzDyXC8wbM4KHWb' });
+      const req = mockReq({ params: { id: 'AjBfMRzDyXC8wbM4KHWb' } });
       const res = mockRes();
 
       mockedFirebase.getDocById.mockResolvedValue(mockBuildings[0]);
@@ -264,7 +264,7 @@ describe('getBuildingById()', () => {
 
   describe('edge cases', () => {
     test('should handle missing id parameter', async () => {
-      const req = mockReq(undefined, undefined, {});
+      const req = mockReq({ params: {} });
       const res = mockRes();
 
       mockedFirebase.getDocById.mockResolvedValue(null);
@@ -291,7 +291,7 @@ describe('getBuildingById()', () => {
     ];
 
     test.each(errorCases)('$name', async ({ mockFire }) => {
-      const req = mockReq(undefined, undefined, { id: 'building1' });
+      const req = mockReq({ params: { id: 'building1' } });
       const res = mockRes();
 
       mockFire();
@@ -309,10 +309,8 @@ describe('getBuildingById()', () => {
 describe('createBuilding()', () => {
   describe('valid cases', () => {
     test('should create building successfully', async () => {
-      const req = mockReq(undefined, undefined, undefined, {
-        name: 'Tokyo Tower',
-        code: 'TOKYO',
-        address: 'Tokyo, Japan',
+      const req = mockReq({
+        body: { name: 'Tokyo Tower', code: 'TOKYO', address: 'Tokyo, Japan' },
       });
       const res = mockRes();
 
@@ -345,7 +343,7 @@ describe('createBuilding()', () => {
     ];
 
     test.each(duplicateCases)('$name', async ({ mockFire, statusCode, errorMessage }) => {
-      const req = mockReq(undefined, undefined, undefined, { name: 'Tokyo Tower', code: 'TOKYO' });
+      const req = mockReq({ body: { name: 'Tokyo Tower', code: 'TOKYO' } });
       const res = mockRes();
 
       mockFire();
@@ -355,7 +353,7 @@ describe('createBuilding()', () => {
     });
 
     test('should return error when create building fails', async () => {
-      const req = mockReq(undefined, undefined, undefined, { name: 'Tokyo Tower', code: 'TOKYO' });
+      const req = mockReq({ body: { name: 'Tokyo Tower', code: 'TOKYO' } });
       const res = mockRes();
 
       mockedFirebase.getDocByField.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
@@ -406,7 +404,7 @@ describe('updateBuilding()', () => {
     ];
 
     test.each(validCases)('$name', async ({ params, body, mockFire }) => {
-      const req = mockReq(undefined, undefined, params, body);
+      const req = mockReq({ params, body });
       const res = mockRes();
 
       mockFire();
@@ -418,7 +416,7 @@ describe('updateBuilding()', () => {
 
   describe('error cases', () => {
     test('should return error when building not found', async () => {
-      const req = mockReq(undefined, undefined, { id: 'building_999' }, {});
+      const req = mockReq({ params: { id: 'building_999' }, body: {} });
       const res = mockRes();
 
       mockedFirebase.getDocById.mockResolvedValue(null);
@@ -447,7 +445,7 @@ describe('updateBuilding()', () => {
     ];
 
     test.each(duplicateCases)('$name', async ({ body, statusCode, errorMessage }) => {
-      const req = mockReq(undefined, undefined, { id: 'AjBfMRzDyXC8wbM4KHWb' }, body);
+      const req = mockReq({ params: { id: 'AjBfMRzDyXC8wbM4KHWb' }, body });
       const res = mockRes();
 
       mockedFirebase.getDocById.mockResolvedValue(mockBuildings[0]);
@@ -458,7 +456,7 @@ describe('updateBuilding()', () => {
     });
 
     test('should return error when firebase update fails', async () => {
-      const req = mockReq(undefined, undefined, { id: 'building_1' }, { address: 'Osaka, Japan' });
+      const req = mockReq({ params: { id: 'building_1' }, body: { address: 'Osaka, Japan' } });
       const res = mockRes();
 
       mockedFirebase.getDocById.mockResolvedValue(mockBuildings[0]);
@@ -477,12 +475,10 @@ describe('updateBuilding()', () => {
 describe('updateBuildingStatus()', () => {
   describe('valid cases', () => {
     test('should update building status successfully', async () => {
-      const req = mockReq(
-        undefined,
-        undefined,
-        { id: 'AjBfMRzDyXC8wbM4KHWb' },
-        { status: ActiveStatus.INACTIVE },
-      );
+      const req = mockReq({
+        params: { id: 'AjBfMRzDyXC8wbM4KHWb' },
+        body: { status: ActiveStatus.INACTIVE },
+      });
       const res = mockRes();
 
       mockedFirebase.updateDoc.mockResolvedValue({} as any);
@@ -494,12 +490,10 @@ describe('updateBuildingStatus()', () => {
 
   describe('error cases', () => {
     test('should return error when firebase fails', async () => {
-      const req = mockReq(
-        undefined,
-        undefined,
-        { id: 'AjBfMRzDyXC8wbM4Khhh' },
-        { status: ActiveStatus.ACTIVE },
-      );
+      const req = mockReq({
+        params: { id: 'AjBfMRzDyXC8wbM4Khhh' },
+        body: { status: ActiveStatus.ACTIVE },
+      });
       const res = mockRes();
 
       mockedFirebase.updateDoc.mockRejectedValue(new Error('Firebase error'));
