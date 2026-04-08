@@ -8,6 +8,7 @@ type MockReqOptions = {
   pagination?: any;
   headers?: any;
   socket?: any;
+  files?: any;
 };
 
 export const mockReq = ({
@@ -18,6 +19,7 @@ export const mockReq = ({
   pagination = { page: 1, page_size: 10 },
   headers = {},
   socket = { remoteAddress: '127.0.0.1' },
+  files = [],
 }: MockReqOptions = {}) =>
   ({
     query,
@@ -27,6 +29,7 @@ export const mockReq = ({
     pagination,
     headers,
     socket,
+    files: files === null ? undefined : files,
   }) as any;
 
 export const mockRes = () => {
