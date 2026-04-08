@@ -1,3 +1,5 @@
+import { MOCK_SIGNATURE } from '../data/payment';
+
 export const loggerMock = {
   warn: jest.fn(),
   info: jest.fn(),
@@ -22,3 +24,4 @@ export const responseErrorMock = jest
 export const getThisMonthMock = jest.fn(() => new Date('2026-03-01'));
 export const capitalizeNameMock = jest.fn((name: string) => name);
 export const deleteImagesMock = jest.fn();
+export const generateSignatureMock = jest.fn(() => MOCK_SIGNATURE);

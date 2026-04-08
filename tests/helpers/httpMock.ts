@@ -35,9 +35,9 @@ export const mockReq = ({
 export const mockRes = () => {
   const res: any = {};
   res.status = jest.fn().mockReturnValue(res);
-  res.json = jest.fn().mockImplementation(function (data) {
-    return data;
-  });
+  res.json = jest.fn().mockImplementation((data) => data);
+  res.redirect = jest.fn().mockImplementation((url) => url);
+  res.send = jest.fn().mockImplementation((data) => data);
 
   return res;
 };

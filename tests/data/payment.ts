@@ -48,3 +48,7 @@ export const mockParkingSubscription = {
   id: 'C6TIGqBnUJvaGLlaWeBW',
   payment_status: PaymentStatus.PENDING,
 };
+
+export const MOCK_NOW = 1704067200000; // 2024-01-01T00:00:00Z
+export const MOCK_MOMENT = '20240101000000'; // moment().format('YYYYMMDDHHmmss')
+export const MOCK_SIGNATURE = 'mock_signature';
