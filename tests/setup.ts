@@ -4,6 +4,7 @@ import {
   capitalizeNameMock,
   responseSuccessMock,
   responseErrorMock,
+  deleteImagesMock,
 } from './helpers/utilMock';
 
 jest.mock('../utils/firebaseHelper');
@@ -17,6 +18,7 @@ jest.mock('../utils', () => {
     responseError: responseErrorMock,
     getThisMonth: getThisMonthMock,
     capitalizeName: capitalizeNameMock,
+    deleteImages: deleteImagesMock,
   };
 });
 

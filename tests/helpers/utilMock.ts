@@ -1,5 +1,3 @@
-import { Response } from 'express';
-
 export const loggerMock = {
   warn: jest.fn(),
   info: jest.fn(),
@@ -23,3 +21,4 @@ export const responseErrorMock = jest
 
 export const getThisMonthMock = jest.fn(() => new Date('2026-03-01'));
 export const capitalizeNameMock = jest.fn((name: string) => name);
+export const deleteImagesMock = jest.fn();
