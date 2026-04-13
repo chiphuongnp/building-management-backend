@@ -1,3 +1,4 @@
+import { MOCK_MOMENT, MOCK_NOW } from './data/payment';
 import {
   loggerMock,
   getThisMonthMock,
@@ -5,7 +6,14 @@ import {
   responseSuccessMock,
   responseErrorMock,
   deleteImagesMock,
+  generateSignatureMock,
 } from './helpers/utilMock';
+
+jest.mock('moment', () => {
+  return () => ({
+    format: () => MOCK_MOMENT,
+  });
+});
 
 jest.mock('../utils/firebaseHelper');
 jest.mock('../utils', () => {
@@ -19,9 +27,12 @@ jest.mock('../utils', () => {
     getThisMonth: getThisMonthMock,
     capitalizeName: capitalizeNameMock,
     deleteImages: deleteImagesMock,
+    generateSignature: generateSignatureMock,
   };
 });
 
 beforeEach(() => {
   jest.clearAllMocks();
+
+  jest.spyOn(Date, 'now').mockReturnValue(MOCK_NOW);
 });
