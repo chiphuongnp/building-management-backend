@@ -12,6 +12,6 @@
     "moduleResolution": "node",
     "types": ["jest", "node", "multer"]
   },
-  "include": ["emulator.ts", "triggers/*.ts"],
+  "include": ["emulator.ts", "triggers/*.ts", "tests/*/*.ts"],
   "exclude": ["node_modules", "dist", "utils/**/*"]
 }
