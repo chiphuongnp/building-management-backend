@@ -95,7 +95,7 @@ export const updateBusRoute = async (req: AuthRequest, res: Response) => {
       return responseError(res, StatusCode.BUS_ROUTE_NOT_FOUND, ErrorMessage.BUS_ROUTE_NOT_FOUND);
     }
 
-    if (data.route_code && data.route_code !== existingBusRoute.routeCode) {
+    if (data.route_code && data.route_code !== existingBusRoute.route_code) {
       const duplicateRoute = await firebaseHelper.getDocByField(
         busRouteCollection,
         'route_code',
