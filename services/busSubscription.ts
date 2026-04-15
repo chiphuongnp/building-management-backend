@@ -134,7 +134,7 @@ export const createBusSubscription = async (req: AuthRequest, res: Response) => 
       { field: 'route_id', operator: '==', value: route_id },
       { field: 'bus_id', operator: '==', value: bus_id },
       { field: 'start_time', operator: '<', value: Timestamp.fromDate(endTime) },
-      { field: 'end_time', operator: '>', value: Timestamp.fromDate(start_time) },
+      { field: 'end_time', operator: '>', value: Timestamp.fromDate(startTime) },
       { field: 'status', operator: '!=', value: BusSubscriptionStatus.CANCELLED },
     ]);
     if (conflicts.length) {
@@ -145,12 +145,7 @@ export const createBusSubscription = async (req: AuthRequest, res: Response) => 
       );
     }
 
-    const uid = req.user?.uid;
-    if (!uid) {
-      return responseError(res, StatusCode.ACCOUNT_NOT_FOUND, ErrorMessage.ACCOUNT_NOT_FOUND);
-    }
-
-    const user: User = await firebaseHelper.getDocById(userCollection, uid);
+    const user: User = await firebaseHelper.getDocById(userCollection, userId);
     if (points_used > (user.points ?? 0)) {
       return responseError(res, StatusCode.INVALID_POINTS, ErrorMessage.INVALID_POINTS);
     }
@@ -204,7 +199,7 @@ export const createBusSubscription = async (req: AuthRequest, res: Response) => 
 
       const subscriptionData = {
         ...data,
-        user_id: uid,
+        user_id: userId,
         route_id,
         bus_id,
         seat_number,
@@ -228,7 +223,7 @@ export const createBusSubscription = async (req: AuthRequest, res: Response) => 
       const updatedPoints = (user.points ?? 0) - finalPointsUsed + pointsEarned;
       await firebaseHelper.updateTransaction(
         userCollection,
-        uid,
+        userId,
         { points: updatedPoints },
         transaction,
       );
@@ -250,11 +245,11 @@ export const createBusSubscription = async (req: AuthRequest, res: Response) => 
       case ErrorMessage.BUS_ROUTE_NOT_FOUND:
         return responseError(res, StatusCode.BUS_ROUTE_NOT_FOUND, error.message);
 
+      case ErrorMessage.BUS_ROUTE_INACTIVE:
+        return responseError(res, StatusCode.BUS_ROUTE_INACTIVE, error.message);
+
       case ErrorMessage.BUS_NOT_IN_ROUTE:
         return responseError(res, StatusCode.BUS_NOT_IN_ROUTE, error.message);
-
-      case ErrorMessage.USER_NOT_FOUND:
-        return responseError(res, StatusCode.USER_NOT_FOUND, error.message);
 
       default:
         return responseError(
