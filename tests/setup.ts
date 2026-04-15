@@ -7,6 +7,8 @@ import {
   responseErrorMock,
   deleteImagesMock,
   generateSignatureMock,
+  calculatePaymentMock,
+  mockGetTomorrowMock,
 } from './helpers/utilMock';
 
 jest.mock('moment', () => {
@@ -28,6 +30,8 @@ jest.mock('../utils', () => {
     capitalizeName: capitalizeNameMock,
     deleteImages: deleteImagesMock,
     generateSignature: generateSignatureMock,
+    calculatePayment: calculatePaymentMock,
+    getTomorrow: mockGetTomorrowMock,
   };
 });
 
