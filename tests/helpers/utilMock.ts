@@ -22,8 +22,10 @@ export const responseErrorMock = jest
   }));
 
 export const getThisMonthMock = jest.fn(() => new Date('2026-03-01'));
-export const capitalizeNameMock = jest.fn((name: string) => name);
 export const deleteImagesMock = jest.fn();
 export const generateSignatureMock = jest.fn(() => MOCK_SIGNATURE);
 export const calculatePaymentMock = jest.fn();
 export const mockGetTomorrowMock = jest.fn(() => new Date('2026-04-01'));
+export const createUserMock = jest.fn();
+export const updateUserMock = jest.fn();
+export const revokeRefreshTokensMock = jest.fn();

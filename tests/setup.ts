@@ -2,13 +2,15 @@ import { MOCK_MOMENT, MOCK_NOW } from './data/payment';
 import {
   loggerMock,
   getThisMonthMock,
-  capitalizeNameMock,
   responseSuccessMock,
   responseErrorMock,
   deleteImagesMock,
   generateSignatureMock,
   calculatePaymentMock,
   mockGetTomorrowMock,
+  createUserMock,
+  revokeRefreshTokensMock,
+  updateUserMock,
 } from './helpers/utilMock';
 
 jest.mock('moment', () => {
@@ -27,11 +29,17 @@ jest.mock('../utils', () => {
     responseSuccess: responseSuccessMock,
     responseError: responseErrorMock,
     getThisMonth: getThisMonthMock,
-    capitalizeName: capitalizeNameMock,
     deleteImages: deleteImagesMock,
     generateSignature: generateSignatureMock,
     calculatePayment: calculatePaymentMock,
     getTomorrow: mockGetTomorrowMock,
+    admin: {
+      auth: () => ({
+        createUser: createUserMock,
+        updateUser: updateUserMock,
+        revokeRefreshTokens: revokeRefreshTokensMock,
+      }),
+    },
   };
 });
 
