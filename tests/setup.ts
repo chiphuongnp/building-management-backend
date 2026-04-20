@@ -6,7 +6,6 @@ import {
   responseErrorMock,
   deleteImagesMock,
   generateSignatureMock,
-  calculatePaymentMock,
   mockGetTomorrowMock,
   createUserMock,
   revokeRefreshTokensMock,
@@ -31,7 +30,6 @@ jest.mock('../utils', () => {
     getThisMonth: getThisMonthMock,
     deleteImages: deleteImagesMock,
     generateSignature: generateSignatureMock,
-    calculatePayment: calculatePaymentMock,
     getTomorrow: mockGetTomorrowMock,
     admin: {
       auth: () => ({

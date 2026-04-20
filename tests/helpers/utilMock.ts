@@ -24,8 +24,30 @@ export const responseErrorMock = jest
 export const getThisMonthMock = jest.fn(() => new Date('2026-03-01'));
 export const deleteImagesMock = jest.fn();
 export const generateSignatureMock = jest.fn(() => MOCK_SIGNATURE);
-export const calculatePaymentMock = jest.fn();
 export const mockGetTomorrowMock = jest.fn(() => new Date('2026-04-01'));
 export const createUserMock = jest.fn();
 export const updateUserMock = jest.fn();
 export const revokeRefreshTokensMock = jest.fn();
+export const utilMock =
+  (overrides = {}) =>
+  () => {
+    const actual = jest.requireActual('../../utils');
+    return {
+      ...actual,
+      logger: loggerMock,
+      responseSuccess: responseSuccessMock,
+      responseError: responseErrorMock,
+      getThisMonth: getThisMonthMock,
+      deleteImages: deleteImagesMock,
+      generateSignature: generateSignatureMock,
+      getTomorrow: mockGetTomorrowMock,
+      admin: {
+        auth: () => ({
+          createUser: createUserMock,
+          updateUser: updateUserMock,
+          revokeRefreshTokens: revokeRefreshTokensMock,
+        }),
+      },
+      ...overrides,
+    };
+  };
