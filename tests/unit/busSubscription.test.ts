@@ -1,3 +1,10 @@
+jest.mock('../../utils', () => {
+  const { utilMock } = require('../helpers/utilMock');
+  return utilMock({
+    calculateHoursDifference: jest.fn(),
+    calculatePayment: jest.fn(),
+  })();
+});
 import { BusSeatStatus, ActiveStatus } from '../../constants/enum';
 import { ErrorMessage, StatusCode } from '../../constants/message';
 import {
