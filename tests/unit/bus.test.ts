@@ -277,52 +277,6 @@ describe('getAllBuses()', () => {
       );
     });
 
-    test('should capitalize plate_number before filtering', async () => {
-      mockedFirebase.countDocsByFields.mockResolvedValue(1);
-      mockedFirebase.getDocsByFields.mockResolvedValue([mockBuses[0]]);
-
-      const req = mockReq({
-        query: { plate_number: 'abc-1234' },
-        pagination: { page: 1, page_size: 10 },
-      });
-      const res = mockRes();
-      const response = await getAllBuses(req, res);
-
-      expect(mockedFirebase.getDocsByFields).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.arrayContaining([
-          expect.objectContaining({
-            field: 'plate_number',
-            operator: '>=',
-            value: 'abc-1234',
-          }),
-          expect.objectContaining({
-            field: 'plate_number',
-            operator: '<=',
-            value: 'abc-1234\uf8ff',
-          }),
-        ]),
-        'plate_number',
-        undefined,
-        1,
-        10,
-      );
-
-      expect(response).toEqual(
-        expect.objectContaining({
-          success: true,
-          data: expect.objectContaining({
-            buses: expect.any(Array),
-            pagination: expect.objectContaining({
-              page: 1,
-              page_size: 10,
-              total: 1,
-            }),
-          }),
-        }),
-      );
-    });
-
     test('should apply order and order_by when provided', async () => {
       mockedFirebase.countAllDocs.mockResolvedValue(2);
       mockedFirebase.getAllDocs.mockResolvedValue(mockBuses);

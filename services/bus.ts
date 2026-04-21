@@ -71,10 +71,9 @@ export const getAllBuses = async (req: AuthRequest, res: Response) => {
     const { page, page_size } = req.pagination ?? {};
     const filters: { field: string; operator: WhereFilterOp; value: any }[] = [];
     if (plate_number) {
-      const capitalizedName = capitalizeName(plate_number as string);
       filters.push(
-        { field: 'plate_number', operator: '>=', value: capitalizedName },
-        { field: 'plate_number', operator: '<=', value: capitalizedName + '\uf8ff' },
+        { field: 'plate_number', operator: '>=', value: plate_number },
+        { field: 'plate_number', operator: '<=', value: plate_number + '\uf8ff' },
       );
     }
 
