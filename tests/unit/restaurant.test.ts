@@ -1,20 +1,52 @@
-import { getRestaurants, getRestaurant, getRestaurantsStats } from './../../services/restaurant';
+import {
+  getRestaurants,
+  getRestaurant,
+  getRestaurantsStats,
+  createRestaurant,
+  updateRestaurant,
+  getRestaurantMenu,
+  getRestaurantDailySale,
+  getRestaurantDishSales,
+  updateRestaurantStatus,
+} from './../../services/restaurant';
 import { StatusCode, ErrorMessage, Message } from '../../constants/message';
 import {
   capitalizeName,
   firebaseHelper,
+  getNormalizedDate,
   logger,
   responseError,
   responseSuccess,
 } from '../../utils';
 import { mockReq, mockRes } from '../helpers/httpMock';
 import { ActiveStatus, Collection, Sites } from '../../constants/enum';
-import { mockRestaurant, mockRestaurants, mockRestaurantStats } from '../data/restaurant.mock';
+import {
+  mockBuilding,
+  mockCreateRestaurantBody,
+  mockDailySale,
+  mockDefaultDailySale,
+  mockDefaultDishSales,
+  mockDishSales,
+  mockMenuItems,
+  mockRestaurant,
+  mockRestaurants,
+  mockRestaurantStats,
+  mockUid,
+} from '../data/restaurant.mock';
 import { DEFAULT_PAGE_TOTAL } from '../../constants/constant';
 
 const mockedFirebase = jest.mocked(firebaseHelper);
 const mockedLogger = jest.mocked(logger);
+const mockedGetNormalizedDate = jest.mocked(getNormalizedDate);
 const restaurantUrl = `${Sites.TOKYO}/${Collection.RESTAURANTS}`;
+const buildingUrl = `${Sites.TOKYO}/${Collection.BUILDINGS}`;
+const getPaths = (restaurantId: string) => {
+  const menuPath = `${restaurantUrl}/${restaurantId}/${Collection.MENU_ITEMS}`;
+  const dailySalePath = `${restaurantUrl}/${restaurantId}/${Collection.DAILY_SALES}`;
+  const dishSalePath = `${restaurantUrl}/${restaurantId}/${Collection.DISH_SALES}`;
+
+  return { menuPath, dailySalePath, dishSalePath };
+};
 
 describe('getRestaurants()', () => {
   describe('filtered cases', () => {
@@ -666,6 +698,726 @@ describe('getRestaurant()', () => {
         success: false,
         status: StatusCode.CANNOT_GET_RESTAURANT_DETAIL,
         message: ErrorMessage.CANNOT_GET_RESTAURANT_DETAIL,
+      });
+    });
+  });
+});
+
+describe('createRestaurant()', () => {
+  test('should create restaurant successfully', async () => {
+    const req = mockReq({ body: mockCreateRestaurantBody, user: { uid: mockUid } });
+    const res = mockRes();
+
+    mockedFirebase.getDocById.mockResolvedValue(mockBuilding);
+    mockedFirebase.getDocByField.mockResolvedValue([]);
+    mockedFirebase.createDoc.mockResolvedValue({ id: mockRestaurant.id } as any);
+    const response = await createRestaurant(req, res);
+
+    expect(mockedFirebase.getDocById).toHaveBeenCalledWith(
+      buildingUrl,
+      mockCreateRestaurantBody.building_id,
+    );
+    expect(mockedFirebase.createDoc).toHaveBeenCalledWith(
+      restaurantUrl,
+      expect.objectContaining({
+        name: mockCreateRestaurantBody.name,
+        building_id: mockCreateRestaurantBody.building_id,
+        status: ActiveStatus.ACTIVE,
+        created_by: mockUid,
+      }),
+    );
+    expect(responseSuccess).toHaveBeenCalledWith(res, Message.RESTAURANT_CREATED, {
+      id: mockRestaurant.id,
+    });
+    expect(response).toEqual({
+      success: true,
+      data: { id: mockRestaurant.id },
+    });
+  });
+
+  describe('error cases', () => {
+    test('should return error when building not found', async () => {
+      const req = mockReq({ body: mockCreateRestaurantBody });
+      const res = mockRes();
+
+      mockedFirebase.getDocById.mockResolvedValue(null);
+      const response = await createRestaurant(req, res);
+
+      expect(responseError).toHaveBeenCalledWith(
+        res,
+        StatusCode.BUILDING_NOT_FOUND,
+        ErrorMessage.BUILDING_NOT_FOUND,
+      );
+      expect(response).toEqual({
+        success: false,
+        status: StatusCode.BUILDING_NOT_FOUND,
+        message: ErrorMessage.BUILDING_NOT_FOUND,
+      });
+    });
+
+    test('should return error when restaurant name already exists', async () => {
+      const req = mockReq({ body: mockCreateRestaurantBody });
+      const res = mockRes();
+
+      mockedFirebase.getDocById.mockResolvedValue(mockBuilding);
+      mockedFirebase.getDocByField.mockResolvedValue([mockRestaurant]);
+      const response = await createRestaurant(req, res);
+
+      expect(responseError).toHaveBeenCalledWith(
+        res,
+        StatusCode.RESTAURANT_NAME_EXISTS,
+        ErrorMessage.RESTAURANT_NAME_EXISTS,
+      );
+      expect(response).toEqual({
+        success: false,
+        status: StatusCode.RESTAURANT_NAME_EXISTS,
+        message: ErrorMessage.RESTAURANT_NAME_EXISTS,
+      });
+    });
+
+    test('should handle error when createDoc throws', async () => {
+      const req = mockReq({ body: mockCreateRestaurantBody, user: { uid: mockUid } });
+      const res = mockRes();
+
+      mockedFirebase.getDocById.mockResolvedValue(mockBuilding);
+      mockedFirebase.getDocByField.mockResolvedValue([]);
+      mockedFirebase.createDoc.mockRejectedValue(new Error('DB error'));
+      const response = await createRestaurant(req, res);
+
+      expect(mockedLogger.warn).toHaveBeenCalled();
+      expect(responseError).toHaveBeenCalledWith(
+        res,
+        StatusCode.CANNOT_CREATE_RESTAURANT,
+        ErrorMessage.CANNOT_CREATE_RESTAURANT,
+      );
+      expect(response).toEqual({
+        success: false,
+        status: StatusCode.CANNOT_CREATE_RESTAURANT,
+        message: ErrorMessage.CANNOT_CREATE_RESTAURANT,
+      });
+    });
+  });
+});
+
+describe('updateRestaurant()', () => {
+  describe('valid cases', () => {
+    test('should update restaurant successfully without changing building_id or name', async () => {
+      const req = mockReq({
+        params: { id: mockRestaurant.id },
+        body: { description: 'new desc' },
+        user: { uid: mockUid },
+      });
+      const res = mockRes();
+
+      mockedFirebase.getDocById.mockResolvedValueOnce(mockRestaurant);
+      mockedFirebase.updateDoc.mockResolvedValue(undefined as any);
+      const response = await updateRestaurant(req, res);
+
+      expect(mockedFirebase.updateDoc).toHaveBeenCalledWith(restaurantUrl, mockRestaurant.id, {
+        description: 'new desc',
+        updated_by: mockUid,
+      });
+      expect(responseSuccess).toHaveBeenCalledWith(res, Message.RESTAURANT_UPDATED, {
+        id: mockRestaurant.id,
+      });
+      expect(response).toEqual({
+        success: true,
+        data: { id: mockRestaurant.id },
+      });
+    });
+
+    test('should update restaurant with new building_id', async () => {
+      const req = mockReq({
+        params: { id: mockRestaurant.id },
+        body: { building_id: mockBuilding.id },
+        user: { uid: mockUid },
+      });
+      const res = mockRes();
+
+      mockedFirebase.getDocById
+        .mockResolvedValueOnce(mockRestaurant)
+        .mockResolvedValueOnce(mockBuilding);
+      mockedFirebase.updateDoc.mockResolvedValue(undefined as any);
+      const response = await updateRestaurant(req, res);
+
+      expect(mockedFirebase.getDocById).toHaveBeenCalledWith(restaurantUrl, mockRestaurant.id);
+      expect(mockedFirebase.getDocById).toHaveBeenCalledWith(buildingUrl, mockBuilding.id);
+      expect(mockedFirebase.updateDoc).toHaveBeenCalledWith(restaurantUrl, mockRestaurant.id, {
+        building_id: mockBuilding.id,
+        updated_by: mockUid,
+      });
+      expect(responseSuccess).toHaveBeenCalledWith(res, Message.RESTAURANT_UPDATED, {
+        id: mockRestaurant.id,
+      });
+      expect(response).toEqual({
+        success: true,
+        data: { id: mockRestaurant.id },
+      });
+    });
+
+    test('should update restaurant with new name (no duplicate)', async () => {
+      const req = mockReq({
+        params: { id: mockRestaurant.id },
+        body: { name: 'New Name' },
+        user: { uid: mockUid },
+      });
+      const res = mockRes();
+
+      mockedFirebase.getDocById.mockResolvedValueOnce(mockRestaurant);
+      mockedFirebase.getDocByField.mockResolvedValueOnce([{ ...mockRestaurant }]);
+      mockedFirebase.updateDoc.mockResolvedValue(undefined as any);
+      const response = await updateRestaurant(req, res);
+
+      expect(mockedFirebase.getDocById).toHaveBeenCalledWith(restaurantUrl, mockRestaurant.id);
+      expect(mockedFirebase.getDocByField).toHaveBeenCalledWith(restaurantUrl, 'name', 'New Name');
+      expect(mockedFirebase.updateDoc).toHaveBeenCalledWith(restaurantUrl, mockRestaurant.id, {
+        name: 'New Name',
+        updated_by: mockUid,
+      });
+      expect(responseSuccess).toHaveBeenCalledWith(res, Message.RESTAURANT_UPDATED, {
+        id: mockRestaurant.id,
+      });
+      expect(response).toEqual({
+        success: true,
+        data: { id: mockRestaurant.id },
+      });
+    });
+  });
+
+  describe('error cases', () => {
+    test('should return error when restaurant not found', async () => {
+      const req = mockReq({ params: { id: mockRestaurant.id }, body: {} });
+      const res = mockRes();
+
+      mockedFirebase.getDocById.mockResolvedValueOnce(null);
+      const response = await updateRestaurant(req, res);
+
+      expect(responseError).toHaveBeenCalledWith(
+        res,
+        StatusCode.RESTAURANT_NOT_FOUND,
+        ErrorMessage.RESTAURANT_NOT_FOUND,
+      );
+      expect(response).toEqual({
+        success: false,
+        status: StatusCode.RESTAURANT_NOT_FOUND,
+        message: ErrorMessage.RESTAURANT_NOT_FOUND,
+      });
+    });
+
+    test('should return error when building not found', async () => {
+      const req = mockReq({
+        params: { id: mockRestaurant.id },
+        body: { building_id: mockBuilding.id },
+      });
+      const res = mockRes();
+
+      mockedFirebase.getDocById.mockResolvedValueOnce(mockRestaurant).mockResolvedValueOnce(null);
+      const response = await updateRestaurant(req, res);
+
+      expect(responseError).toHaveBeenCalledWith(
+        res,
+        StatusCode.BUILDING_NOT_FOUND,
+        ErrorMessage.BUILDING_NOT_FOUND,
+      );
+      expect(response).toEqual({
+        success: false,
+        status: StatusCode.BUILDING_NOT_FOUND,
+        message: ErrorMessage.BUILDING_NOT_FOUND,
+      });
+    });
+
+    test('should return error when name is duplicate', async () => {
+      const req = mockReq({ params: { id: mockRestaurant.id }, body: { name: 'Pizza Hut' } });
+      const res = mockRes();
+
+      mockedFirebase.getDocById.mockResolvedValueOnce(mockRestaurant);
+      mockedFirebase.getDocByField.mockResolvedValueOnce([
+        { ...mockRestaurant, id: 'xatrgjGstsC8wbM4hgGty' },
+      ]);
+      const response = await updateRestaurant(req, res);
+
+      expect(responseError).toHaveBeenCalledWith(
+        res,
+        StatusCode.RESTAURANT_NAME_EXISTS,
+        ErrorMessage.RESTAURANT_NAME_EXISTS,
+      );
+      expect(response).toEqual({
+        success: false,
+        status: StatusCode.RESTAURANT_NAME_EXISTS,
+        message: ErrorMessage.RESTAURANT_NAME_EXISTS,
+      });
+    });
+
+    test('should handle error when getDocById throws', async () => {
+      const req = mockReq({ params: { id: mockRestaurant.id }, body: {} });
+      const res = mockRes();
+
+      mockedFirebase.getDocById.mockRejectedValue(new Error('DB error'));
+      const response = await updateRestaurant(req, res);
+
+      expect(mockedLogger.warn).toHaveBeenCalled();
+      expect(responseError).toHaveBeenCalledWith(
+        res,
+        StatusCode.CANNOT_UPDATE_RESTAURANT,
+        ErrorMessage.CANNOT_UPDATE_RESTAURANT,
+      );
+      expect(response).toEqual({
+        success: false,
+        status: StatusCode.CANNOT_UPDATE_RESTAURANT,
+        message: ErrorMessage.CANNOT_UPDATE_RESTAURANT,
+      });
+    });
+
+    test('should handle error when getDocByField throws', async () => {
+      const req = mockReq({ params: { id: mockRestaurant.id }, body: { name: 'New Name' } });
+      const res = mockRes();
+
+      mockedFirebase.getDocById.mockResolvedValueOnce(mockRestaurant);
+      mockedFirebase.getDocByField.mockRejectedValue(new Error('DB error'));
+      const response = await updateRestaurant(req, res);
+
+      expect(mockedLogger.warn).toHaveBeenCalled();
+      expect(responseError).toHaveBeenCalledWith(
+        res,
+        StatusCode.CANNOT_UPDATE_RESTAURANT,
+        ErrorMessage.CANNOT_UPDATE_RESTAURANT,
+      );
+      expect(response).toEqual({
+        success: false,
+        status: StatusCode.CANNOT_UPDATE_RESTAURANT,
+        message: ErrorMessage.CANNOT_UPDATE_RESTAURANT,
+      });
+    });
+
+    test('should handle error when updateDoc throws', async () => {
+      const req = mockReq({
+        params: { id: mockRestaurant.id },
+        body: { name: 'New Name' },
+        user: { uid: mockUid },
+      });
+      const res = mockRes();
+
+      mockedFirebase.getDocById.mockResolvedValueOnce(mockRestaurant);
+      mockedFirebase.getDocByField.mockResolvedValueOnce([mockRestaurant]);
+      mockedFirebase.updateDoc.mockRejectedValue(new Error('DB error'));
+      const response = await updateRestaurant(req, res);
+
+      expect(mockedLogger.warn).toHaveBeenCalled();
+      expect(responseError).toHaveBeenCalledWith(
+        res,
+        StatusCode.CANNOT_UPDATE_RESTAURANT,
+        ErrorMessage.CANNOT_UPDATE_RESTAURANT,
+      );
+      expect(response).toEqual({
+        success: false,
+        status: StatusCode.CANNOT_UPDATE_RESTAURANT,
+        message: ErrorMessage.CANNOT_UPDATE_RESTAURANT,
+      });
+    });
+  });
+});
+
+describe('getRestaurantMenu()', () => {
+  test('should return menu items successfully', async () => {
+    const req = mockReq({ params: { id: mockRestaurant.id } });
+    const res = mockRes();
+    const { menuPath } = getPaths(mockRestaurant.id);
+
+    mockedFirebase.getDocById.mockResolvedValueOnce(mockRestaurant);
+    mockedFirebase.getAllDocs.mockResolvedValueOnce(mockMenuItems);
+    const response = await getRestaurantMenu(req, res);
+
+    expect(mockedFirebase.getDocById).toHaveBeenCalledWith(restaurantUrl, mockRestaurant.id);
+    expect(mockedFirebase.getAllDocs).toHaveBeenCalledWith(menuPath);
+    expect(responseSuccess).toHaveBeenCalledWith(res, Message.GET_MENU_ITEMS, mockMenuItems);
+    expect(response).toEqual({ success: true, data: mockMenuItems });
+  });
+
+  describe('error cases', () => {
+    test('should return error when restaurant not found', async () => {
+      const req = mockReq({ params: { id: mockRestaurant.id } });
+      const res = mockRes();
+
+      mockedFirebase.getDocById.mockResolvedValueOnce(null);
+      const response = await getRestaurantMenu(req, res);
+
+      expect(responseError).toHaveBeenCalledWith(
+        res,
+        StatusCode.RESTAURANT_NOT_FOUND,
+        ErrorMessage.RESTAURANT_NOT_FOUND,
+      );
+      expect(response).toEqual({
+        success: false,
+        status: StatusCode.RESTAURANT_NOT_FOUND,
+        message: ErrorMessage.RESTAURANT_NOT_FOUND,
+      });
+    });
+
+    test('should return error when menu items not found', async () => {
+      const req = mockReq({ params: { id: mockRestaurant.id } });
+      const res = mockRes();
+
+      mockedFirebase.getDocById.mockResolvedValueOnce(mockRestaurant);
+      mockedFirebase.getAllDocs.mockResolvedValueOnce([]);
+      const response = await getRestaurantMenu(req, res);
+
+      expect(mockedFirebase.getAllDocs).toHaveBeenCalled();
+      expect(responseError).toHaveBeenCalledWith(
+        res,
+        StatusCode.MENU_ITEM_LIST_NOT_FOUND,
+        ErrorMessage.MENU_ITEM_LIST_NOT_FOUND,
+      );
+      expect(response).toEqual({
+        success: false,
+        status: StatusCode.MENU_ITEM_LIST_NOT_FOUND,
+        message: ErrorMessage.MENU_ITEM_LIST_NOT_FOUND,
+      });
+    });
+
+    test('should handle error when getDocById throws', async () => {
+      const req = mockReq({ params: { id: mockRestaurant.id } });
+      const res = mockRes();
+
+      mockedFirebase.getDocById.mockRejectedValue(new Error('DB error'));
+      const response = await getRestaurantMenu(req, res);
+
+      expect(mockedLogger.warn).toHaveBeenCalled();
+      expect(responseError).toHaveBeenCalledWith(
+        res,
+        StatusCode.CANNOT_GET_MENU_ITEM_LIST,
+        ErrorMessage.CANNOT_GET_MENU_ITEM_LIST,
+      );
+      expect(response).toEqual({
+        success: false,
+        status: StatusCode.CANNOT_GET_MENU_ITEM_LIST,
+        message: ErrorMessage.CANNOT_GET_MENU_ITEM_LIST,
+      });
+    });
+
+    test('should handle error when getAllDocs throws', async () => {
+      const req = mockReq({ params: { id: mockRestaurant.id } });
+      const res = mockRes();
+
+      mockedFirebase.getDocById.mockResolvedValueOnce(mockRestaurant);
+      mockedFirebase.getAllDocs.mockRejectedValue(new Error('DB error'));
+      const response = await getRestaurantMenu(req, res);
+
+      expect(mockedLogger.warn).toHaveBeenCalled();
+      expect(responseError).toHaveBeenCalledWith(
+        res,
+        StatusCode.CANNOT_GET_MENU_ITEM_LIST,
+        ErrorMessage.CANNOT_GET_MENU_ITEM_LIST,
+      );
+      expect(response).toEqual({
+        success: false,
+        status: StatusCode.CANNOT_GET_MENU_ITEM_LIST,
+        message: ErrorMessage.CANNOT_GET_MENU_ITEM_LIST,
+      });
+    });
+  });
+});
+
+describe('getRestaurantDailySale()', () => {
+  describe('valid cases', () => {
+    test('should return default sale when date is today', async () => {
+      const now = mockDefaultDailySale.id;
+      const req = mockReq({ params: { id: mockRestaurant.id }, query: { date: now } });
+      const res = mockRes();
+
+      mockedGetNormalizedDate
+        .mockReturnValueOnce(new Date(`${now}T00:00:00.000Z`))
+        .mockReturnValueOnce(new Date(`${now}T00:00:00.000Z`));
+      mockedFirebase.getDocById.mockResolvedValueOnce(mockRestaurant);
+      const response = await getRestaurantDailySale(req, res);
+
+      expect(responseSuccess).toHaveBeenCalledWith(
+        res,
+        Message.NO_SALES_DATA,
+        mockDefaultDailySale,
+      );
+      expect(response).toEqual({ success: true, data: mockDefaultDailySale });
+    });
+
+    test('should return daily sale when date is not today', async () => {
+      const now = mockDefaultDailySale.id;
+      const dailySaleId = mockDailySale.id;
+      const req = mockReq({ params: { id: mockRestaurant.id }, query: { date: dailySaleId } });
+      const res = mockRes();
+      const { dailySalePath } = getPaths(mockRestaurant.id);
+
+      mockedGetNormalizedDate
+        .mockReturnValueOnce(new Date(`${now}T00:00:00.000Z`))
+        .mockReturnValueOnce(new Date(`${dailySaleId}T00:00:00.000Z`));
+      mockedFirebase.getDocById
+        .mockResolvedValueOnce(mockRestaurant)
+        .mockResolvedValueOnce(mockDailySale);
+      const response = await getRestaurantDailySale(req, res);
+
+      expect(mockedFirebase.getDocById).toHaveBeenCalledWith(restaurantUrl, mockRestaurant.id);
+      expect(mockedFirebase.getDocById).toHaveBeenCalledWith(dailySalePath, mockDailySale.id);
+      expect(responseSuccess).toHaveBeenCalledWith(res, Message.GET_DAILY_SALES, mockDailySale);
+      expect(response).toEqual({ success: true, data: mockDailySale });
+    });
+  });
+
+  describe('error cases', () => {
+    test('should return error when restaurant not found', async () => {
+      const req = mockReq({ params: { id: mockRestaurant.id } });
+      const res = mockRes();
+
+      mockedFirebase.getDocById.mockResolvedValueOnce(null);
+      const response = await getRestaurantDailySale(req, res);
+
+      expect(responseError).toHaveBeenCalledWith(
+        res,
+        StatusCode.RESTAURANT_NOT_FOUND,
+        ErrorMessage.RESTAURANT_NOT_FOUND,
+      );
+      expect(response).toEqual({
+        success: false,
+        status: StatusCode.RESTAURANT_NOT_FOUND,
+        message: ErrorMessage.RESTAURANT_NOT_FOUND,
+      });
+    });
+
+    test('should return error when daily sale not found', async () => {
+      const now = mockDefaultDailySale.id;
+      const dailySaleId = mockDailySale.id;
+      const req = mockReq({ params: { id: mockRestaurant.id }, query: { date: dailySaleId } });
+      const res = mockRes();
+      const { dailySalePath } = getPaths(mockRestaurant.id);
+
+      mockedGetNormalizedDate
+        .mockReturnValueOnce(new Date(`${now}T00:00:00.000Z`))
+        .mockReturnValueOnce(new Date(`${dailySaleId}T00:00:00.000Z`));
+      mockedFirebase.getDocById.mockResolvedValueOnce(mockRestaurant).mockResolvedValueOnce(null);
+      const response = await getRestaurantDailySale(req, res);
+
+      expect(mockedFirebase.getDocById).toHaveBeenCalledWith(dailySalePath, mockDailySale.id);
+      expect(responseError).toHaveBeenCalledWith(
+        res,
+        StatusCode.DAILY_SALES_NOT_FOUND,
+        ErrorMessage.DAILY_SALES_NOT_FOUND,
+      );
+      expect(response).toEqual({
+        success: false,
+        status: StatusCode.DAILY_SALES_NOT_FOUND,
+        message: ErrorMessage.DAILY_SALES_NOT_FOUND,
+      });
+    });
+
+    test('should handle error when getDocById throws', async () => {
+      const req = mockReq({ params: { id: mockRestaurant.id } });
+      const res = mockRes();
+
+      mockedFirebase.getDocById.mockRejectedValue(new Error('DB error'));
+      const response = await getRestaurantDailySale(req, res);
+
+      expect(mockedLogger.warn).toHaveBeenCalled();
+      expect(responseError).toHaveBeenCalledWith(
+        res,
+        StatusCode.CANNOT_GET_DAILY_SALES,
+        ErrorMessage.CANNOT_GET_DAILY_SALES,
+      );
+      expect(response).toEqual({
+        success: false,
+        status: StatusCode.CANNOT_GET_DAILY_SALES,
+        message: ErrorMessage.CANNOT_GET_DAILY_SALES,
+      });
+    });
+  });
+});
+
+describe('getRestaurantDishSales()', () => {
+  describe('valid cases', () => {
+    test('should return default dish sales when date is today', async () => {
+      const now = mockDefaultDishSales[0].daily_sale_id;
+      const req = mockReq({ params: { id: mockRestaurant.id }, query: { date: now } });
+      const res = mockRes();
+
+      mockedGetNormalizedDate
+        .mockReturnValueOnce(new Date(`${now}T00:00:00.000Z`))
+        .mockReturnValueOnce(new Date(`${now}T00:00:00.000Z`));
+      mockedFirebase.getDocById.mockResolvedValueOnce(mockRestaurant);
+      const response = await getRestaurantDishSales(req, res);
+
+      expect(responseSuccess).toHaveBeenCalledWith(
+        res,
+        Message.NO_SALES_DATA,
+        mockDefaultDishSales,
+      );
+      expect(response).toEqual({ success: true, data: mockDefaultDishSales });
+    });
+
+    test('should return dish sales when date is not today', async () => {
+      const now = mockDefaultDishSales[0].daily_sale_id;
+      const dailySaleId = mockDishSales[0].daily_sale_id;
+      const req = mockReq({ params: { id: mockRestaurant.id }, query: { date: dailySaleId } });
+      const res = mockRes();
+      const { dishSalePath } = getPaths(mockRestaurant.id);
+
+      mockedGetNormalizedDate
+        .mockReturnValueOnce(new Date(`${now}T00:00:00.000Z`))
+        .mockReturnValueOnce(new Date(`${dailySaleId}T00:00:00.000Z`));
+      mockedFirebase.getDocById.mockResolvedValueOnce(mockRestaurant);
+      mockedFirebase.getDocsByFields.mockResolvedValueOnce(mockDishSales);
+      const response = await getRestaurantDishSales(req, res);
+
+      expect(mockedFirebase.getDocsByFields).toHaveBeenCalledWith(dishSalePath, [
+        { field: 'date_id', operator: '==', value: dailySaleId },
+      ]);
+      expect(responseSuccess).toHaveBeenCalledWith(res, Message.GET_DISH_SALES, mockDishSales);
+      expect(response).toEqual({ success: true, data: mockDishSales });
+    });
+  });
+
+  describe('error cases', () => {
+    test('should return error when restaurant not found', async () => {
+      const req = mockReq({ params: { id: mockRestaurant.id } });
+      const res = mockRes();
+
+      mockedFirebase.getDocById.mockResolvedValueOnce(null);
+      const response = await getRestaurantDishSales(req, res);
+
+      expect(responseError).toHaveBeenCalledWith(
+        res,
+        StatusCode.RESTAURANT_NOT_FOUND,
+        ErrorMessage.RESTAURANT_NOT_FOUND,
+      );
+
+      expect(response).toEqual({
+        success: false,
+        status: StatusCode.RESTAURANT_NOT_FOUND,
+        message: ErrorMessage.RESTAURANT_NOT_FOUND,
+      });
+    });
+
+    test('should return error when dish sales not found', async () => {
+      const now = mockDefaultDishSales[0].daily_sale_id;
+      const dailySaleId = mockDishSales[0].daily_sale_id;
+      const req = mockReq({ params: { id: mockRestaurant.id }, query: { date: dailySaleId } });
+      const res = mockRes();
+      const { dishSalePath } = getPaths(mockRestaurant.id);
+
+      mockedGetNormalizedDate
+        .mockReturnValueOnce(new Date(`${now}T00:00:00.000Z`))
+        .mockReturnValueOnce(new Date(`${dailySaleId}T00:00:00.000Z`));
+      mockedFirebase.getDocById.mockResolvedValueOnce(mockRestaurant);
+      mockedFirebase.getDocsByFields.mockResolvedValueOnce([]);
+      const response = await getRestaurantDishSales(req, res);
+
+      expect(mockedFirebase.getDocsByFields).toHaveBeenCalledWith(dishSalePath, [
+        { field: 'date_id', operator: '==', value: dailySaleId },
+      ]);
+      expect(responseError).toHaveBeenCalledWith(
+        res,
+        StatusCode.DISH_SALES_NOT_FOUND,
+        ErrorMessage.DISH_SALES_NOT_FOUND,
+      );
+      expect(response).toEqual({
+        success: false,
+        status: StatusCode.DISH_SALES_NOT_FOUND,
+        message: ErrorMessage.DISH_SALES_NOT_FOUND,
+      });
+    });
+
+    test('should handle error when getDocsByFields throws', async () => {
+      const req = mockReq({ params: { id: mockRestaurant.id } });
+      const res = mockRes();
+
+      mockedFirebase.getDocById.mockResolvedValueOnce(mockRestaurant);
+      mockedFirebase.getDocsByFields.mockRejectedValue(new Error('DB error'));
+      const response = await getRestaurantDishSales(req, res);
+
+      expect(mockedLogger.warn).toHaveBeenCalled();
+      expect(responseError).toHaveBeenCalledWith(
+        res,
+        StatusCode.CANNOT_GET_DISH_SALES,
+        ErrorMessage.CANNOT_GET_DISH_SALES,
+      );
+      expect(response).toEqual({
+        success: false,
+        status: StatusCode.CANNOT_GET_DISH_SALES,
+        message: ErrorMessage.CANNOT_GET_DISH_SALES,
+      });
+    });
+  });
+});
+
+describe('updateRestaurantStatus()', () => {
+  describe('valid cases', () => {
+    test('should update restaurant status successfully', async () => {
+      const req = mockReq({
+        params: { id: mockRestaurant.id },
+        body: { status: ActiveStatus.ACTIVE },
+        user: { uid: mockUid },
+      });
+      const res = mockRes();
+
+      mockedFirebase.getDocById.mockResolvedValueOnce(mockRestaurant);
+      mockedFirebase.updateDoc.mockResolvedValueOnce(undefined as any);
+      const response = await updateRestaurantStatus(req, res);
+
+      expect(mockedFirebase.getDocById).toHaveBeenCalledWith(restaurantUrl, mockRestaurant.id);
+      expect(mockedFirebase.updateDoc).toHaveBeenCalledWith(restaurantUrl, mockRestaurant.id, {
+        status: ActiveStatus.ACTIVE,
+        updated_by: mockUid,
+      });
+      expect(responseSuccess).toHaveBeenCalledWith(res, Message.ORDER_UPDATED, {
+        id: mockRestaurant.id,
+      });
+      expect(response).toEqual({
+        success: true,
+        data: { id: mockRestaurant.id },
+      });
+    });
+  });
+
+  describe('error cases', () => {
+    test('should return error when restaurant not found', async () => {
+      const req = mockReq({
+        params: { id: mockRestaurant.id },
+        body: { status: ActiveStatus.ACTIVE },
+      });
+      const res = mockRes();
+
+      mockedFirebase.getDocById.mockResolvedValueOnce(null);
+      const response = await updateRestaurantStatus(req, res);
+
+      expect(responseError).toHaveBeenCalledWith(
+        res,
+        StatusCode.RESTAURANT_NOT_FOUND,
+        ErrorMessage.RESTAURANT_NOT_FOUND,
+      );
+      expect(response).toEqual({
+        success: false,
+        status: StatusCode.RESTAURANT_NOT_FOUND,
+        message: ErrorMessage.RESTAURANT_NOT_FOUND,
+      });
+    });
+
+    test('should handle error when updateDoc throws', async () => {
+      const req = mockReq({
+        params: { id: mockRestaurant.id },
+        body: { status: ActiveStatus.ACTIVE },
+        user: { uid: mockUid },
+      });
+      const res = mockRes();
+
+      mockedFirebase.getDocById.mockResolvedValueOnce(mockRestaurant);
+      mockedFirebase.updateDoc.mockRejectedValue(new Error('DB error'));
+      const response = await updateRestaurantStatus(req, res);
+
+      expect(mockedLogger.warn).toHaveBeenCalled();
+      expect(responseError).toHaveBeenCalledWith(
+        res,
+        StatusCode.CANNOT_UPDATE_ORDER_STATUS,
+        ErrorMessage.CANNOT_UPDATE_ORDER_STATUS,
+      );
+      expect(response).toEqual({
+        success: false,
+        status: StatusCode.CANNOT_UPDATE_ORDER_STATUS,
+        message: ErrorMessage.CANNOT_UPDATE_ORDER_STATUS,
       });
     });
   });
