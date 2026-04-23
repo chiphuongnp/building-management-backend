@@ -29,6 +29,7 @@ export const createUserMock = jest.fn();
 export const updateUserMock = jest.fn();
 export const revokeRefreshTokensMock = jest.fn();
 export const verifyIdTokenMock = jest.fn();
+export const getNormalizedDateMock = jest.fn();
 export const utilMock =
   (overrides = {}) =>
   () => {
