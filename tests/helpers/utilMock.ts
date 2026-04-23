@@ -28,6 +28,7 @@ export const mockGetTomorrowMock = jest.fn(() => new Date('2026-04-01'));
 export const createUserMock = jest.fn();
 export const updateUserMock = jest.fn();
 export const revokeRefreshTokensMock = jest.fn();
+export const verifyIdTokenMock = jest.fn();
 export const utilMock =
   (overrides = {}) =>
   () => {
@@ -46,6 +47,7 @@ export const utilMock =
           createUser: createUserMock,
           updateUser: updateUserMock,
           revokeRefreshTokens: revokeRefreshTokensMock,
+          verifyIdToken: verifyIdTokenMock,
         }),
       },
       ...overrides,
