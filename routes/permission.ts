@@ -8,16 +8,11 @@ import {
   updatePermission,
 } from '../services/permission';
 import { authenticate } from '../middlewares/auth';
-import { validatePermission } from '../validations/permission';
+import { validateCreatePermission, validateUpdatePermission } from '../validations/permission';
 
 const permissionRouter = express.Router();
 
-permissionRouter.get(
-  '/',
-  authenticate,
-  requireRole(UserRole.MANAGER),
-  getPermissions,
-);
+permissionRouter.get('/', authenticate, requireRole(UserRole.MANAGER), getPermissions);
 
 permissionRouter.get(
   '/:id',
@@ -32,7 +27,7 @@ permissionRouter.post(
   authenticate,
   requireRole(UserRole.MANAGER),
   requirePermission(Permission.CREATE_PERMISSION),
-  validatePermission,
+  validateCreatePermission,
   createPermission,
 );
 
@@ -41,7 +36,7 @@ permissionRouter.patch(
   authenticate,
   requireRole(UserRole.MANAGER),
   requirePermission(Permission.UPDATE_PERMISSION),
-  validatePermission,
+  validateUpdatePermission,
   updatePermission,
 );
 

@@ -6,13 +6,14 @@ import { AuthRequest } from '../interfaces/jwt';
 import { Permission } from '../interfaces/permission';
 
 const permissionCollection = `${Sites.TOKYO}/${Collection.PERMISSIONS}`;
-
 export const getPermissions = async (req: Request, res: Response) => {
   try {
     const permissions = await firebaseHelper.getAllDocs(permissionCollection);
+
     return responseSuccess(res, Message.PERMISSION_GET_ALL, permissions);
   } catch (error) {
     logger.warn(ErrorMessage.CANNOT_GET_PERMISSION_LIST + error);
+
     return responseError(
       res,
       StatusCode.PERMISSION_GET_ALL,
@@ -32,6 +33,7 @@ export const getPermissionById = async (req: Request, res: Response) => {
     return responseSuccess(res, Message.PERMISSION_GET_DETAIL, permission);
   } catch (error) {
     logger.warn(ErrorMessage.PERMISSION_GET_DETAIL + error);
+
     return responseError(res, StatusCode.PERMISSION_GET_DETAIL, ErrorMessage.PERMISSION_GET_DETAIL);
   }
 };
@@ -48,13 +50,14 @@ export const createPermission = async (req: AuthRequest, res: Response) => {
       );
     }
 
-    const docRef = await firebaseHelper.createDoc(permissionCollection, {
+    await firebaseHelper.createDoc(permissionCollection, {
       ...data,
       created_by: req.user?.uid,
     });
-    return responseSuccess(res, Message.PERMISSION_CREATED, data);
+    return responseSuccess(res, Message.PERMISSION_CREATED, data.id);
   } catch (error) {
     logger.warn(ErrorMessage.CANNOT_CREATE_PERMISSION + error);
+
     return responseError(res, StatusCode.PERMISSION_CREATE, ErrorMessage.CANNOT_CREATE_PERMISSION);
   }
 };
@@ -62,28 +65,20 @@ export const createPermission = async (req: AuthRequest, res: Response) => {
 export const updatePermission = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const data: Permission = req.body;
+    const data = req.body;
     const permission = await firebaseHelper.getDocById(permissionCollection, id);
     if (!permission) {
       return responseError(res, StatusCode.PERMISSION_NOT_FOUND, ErrorMessage.PERMISSION_NOT_FOUND);
     }
 
-    const idSnapshot = await firebaseHelper.getDocByField(permissionCollection, 'id', data.id);
-    if (idSnapshot.length) {
-      return responseError(
-        res,
-        StatusCode.PERMISSION_ALREADY_EXISTS,
-        ErrorMessage.PERMISSION_ALREADY_EXISTS,
-      );
-    }
-
-    const docRef = await firebaseHelper.updateDoc(permissionCollection, id, {
+    await firebaseHelper.updateDoc(permissionCollection, id, {
       ...data,
       updated_by: req.user?.uid,
     });
-    return responseSuccess(res, Message.PERMISSION_UPDATED, data);
+    return responseSuccess(res, Message.PERMISSION_UPDATED, id);
   } catch (error) {
     logger.warn(ErrorMessage.CANNOT_UPDATE_PERMISSION + error);
+
     return responseError(res, StatusCode.PERMISSION_UPDATE, ErrorMessage.CANNOT_UPDATE_PERMISSION);
   }
 };
