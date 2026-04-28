@@ -10,6 +10,7 @@ import {
   createUserMock,
   revokeRefreshTokensMock,
   updateUserMock,
+  getNormalizedDateMock,
 } from './helpers/utilMock';
 
 jest.mock('moment', () => {
@@ -31,6 +32,7 @@ jest.mock('../utils', () => {
     deleteImages: deleteImagesMock,
     generateSignature: generateSignatureMock,
     getTomorrow: mockGetTomorrowMock,
+    getNormalizedDate: getNormalizedDateMock,
     admin: {
       auth: () => ({
         createUser: createUserMock,
