@@ -232,7 +232,7 @@ const updateEventBookingInfo = async (req: AuthRequest, res: Response) => {
     const dataEventBooking = {
       ...data,
       ...(location && { location: facilityReservationId ? null : location }),
-      ...(facilityReservationId && { facility_reservation_id: facilityReservationId ?? null }),
+      ...(facilityReservationId && { facility_reservation_id: facilityReservationId }),
       ...(startTime && {
         start_time: formatToTimestamp(startTime),
         deadline: formatToTimestamp(deadline),
