@@ -3,16 +3,10 @@ jest.mock('../../utils', () => {
 
   return utilMock({ calculatePayment: jest.fn() })();
 });
-import { Collection, OrderStatus, PickupMethod, Sites, VATRate } from '../../constants/enum';
+import { Collection, OrderStatus, PickupMethod, Sites } from '../../constants/enum';
 import { ErrorMessage, Message, StatusCode } from '../../constants/message';
 import { DEFAULT_ORDER_BY, DEFAULT_PAGE_TOTAL } from '../../constants/constant';
-import {
-  calculatePayment,
-  firebaseHelper,
-  logger,
-  responseError,
-  responseSuccess,
-} from '../../utils';
+import { calculatePayment, firebaseHelper, responseError, responseSuccess } from '../../utils';
 import { mockReq, mockRes } from '../helpers/httpMock';
 import { Transaction } from 'firebase-admin/firestore';
 import {
@@ -24,7 +18,15 @@ import {
   mockRestaurantId,
   mockUser,
 } from '../data/order.mock';
-import { createOrder, getOrderDetailsByOrderId, getOrders } from '../../services/order';
+import {
+  createOrder,
+  getOrderDetailsByOrderId,
+  getOrderHistory,
+  getOrders,
+  getOrdersByUserId,
+  updateOrderInfo,
+  updateOrderStatus,
+} from '../../services/order';
 
 const restaurantUrl = `${Sites.TOKYO}/${Collection.RESTAURANTS}`;
 const userUrl = `${Sites.TOKYO}/${Collection.USERS}`;
@@ -38,7 +40,6 @@ const getPaths = (restaurantId: string) => {
 
 const mockedCalculatePayment = jest.mocked(calculatePayment);
 const mockedFirebase = jest.mocked(firebaseHelper);
-const mockedLogger = jest.mocked(logger);
 beforeEach(() => {
   jest.clearAllMocks();
 
@@ -614,20 +615,266 @@ describe('getOrders()', () => {
         message: error.message,
       });
     });
+  });
+});
 
-    test('should log error when exception occurs', async () => {
+describe('getOrdersByUserId()', () => {
+  describe('valid cases', () => {
+    test('should return user orders successfully', async () => {
       const req = mockReq({
         params: { restaurantId: mockRestaurantId },
-        query: { date: '2026-05-01' },
+        user: { uid: mockUser.id },
+      });
+      const res = mockRes();
+      const { orderPath } = getPaths(mockRestaurantId);
+
+      mockedFirebase.getDocsByFields.mockResolvedValueOnce([mockOrder]);
+      const response = await getOrdersByUserId(req, res, jest.fn());
+
+      expect(mockedFirebase.getDocsByFields).toHaveBeenCalledWith(orderPath, [
+        { field: 'user_id', operator: '==', value: mockUser.id },
+        {
+          field: 'status',
+          operator: 'in',
+          value: [OrderStatus.PENDING, OrderStatus.PREPARING, OrderStatus.DELIVERING],
+        },
+      ]);
+      expect(responseSuccess).toHaveBeenCalledWith(res, Message.GET_USER_ORDERS, [mockOrder]);
+      expect(response).toEqual({ success: true, data: [mockOrder] });
+    });
+  });
+
+  describe('error cases', () => {
+    const errorCases = [
+      {
+        name: 'should return error when orders not found',
+        mockFire: () => {
+          mockedFirebase.getDocsByFields.mockResolvedValueOnce([]);
+        },
+        error: { status: StatusCode.ORDER_NOT_FOUND, message: ErrorMessage.ORDER_NOT_FOUND },
+      },
+      {
+        name: 'should handle unknown error',
+        mockFire: () => {
+          mockedFirebase.getDocsByFields.mockRejectedValueOnce(new Error('DB error'));
+        },
+        error: {
+          status: StatusCode.CANNOT_GET_USER_ORDERS,
+          message: ErrorMessage.CANNOT_GET_USER_ORDERS,
+        },
+      },
+    ];
+
+    test.each(errorCases)('$name', async ({ mockFire, error }) => {
+      const req = mockReq({
+        params: { restaurantId: mockRestaurantId },
+        user: { uid: mockUser.id },
       });
       const res = mockRes();
 
-      mockedFirebase.countDocsByFields.mockRejectedValueOnce(new Error('DB error'));
-      await getOrders(req, res, jest.fn());
+      mockFire();
+      const response = await getOrdersByUserId(req, res, jest.fn());
 
-      expect(mockedLogger.error).toHaveBeenCalledWith(
-        `${ErrorMessage.CANNOT_GET_ORDER_LIST} | Error: DB error`,
-      );
+      expect(responseError).toHaveBeenCalledWith(res, error.status, error.message);
+      expect(response).toEqual({ success: false, status: error.status, message: error.message });
+    });
+  });
+});
+
+describe('getOrderHistory()', () => {
+  describe('valid cases', () => {
+    test('should return order history successfully', async () => {
+      const req = mockReq({
+        params: { restaurantId: mockRestaurantId },
+        user: { uid: mockUser.id },
+      });
+      const res = mockRes();
+      const { orderPath } = getPaths(mockRestaurantId);
+
+      mockedFirebase.getDocsByFields.mockResolvedValueOnce([mockOrder]);
+      const response = await getOrderHistory(req, res, jest.fn());
+
+      expect(mockedFirebase.getDocsByFields).toHaveBeenCalledWith(orderPath, [
+        { field: 'user_id', operator: '==', value: mockUser.id },
+        { field: 'status', operator: '==', value: OrderStatus.COMPLETED },
+      ]);
+      expect(responseSuccess).toHaveBeenCalledWith(res, Message.GET_USER_ORDER_HISTORY, [
+        mockOrder,
+      ]);
+      expect(response).toEqual({ success: true, data: [mockOrder] });
+    });
+  });
+
+  describe('error cases', () => {
+    const errorCases = [
+      {
+        name: 'should return error when orders not found',
+        mockFire: () => {
+          mockedFirebase.getDocsByFields.mockResolvedValueOnce([]);
+        },
+        error: { status: StatusCode.ORDER_NOT_FOUND, message: ErrorMessage.ORDER_NOT_FOUND },
+      },
+      {
+        name: 'should handle unknown error',
+        mockFire: () => {
+          mockedFirebase.getDocsByFields.mockRejectedValueOnce(new Error('DB error'));
+        },
+        error: {
+          status: StatusCode.CANNOT_GET_USER_ORDER_HISTORY,
+          message: ErrorMessage.CANNOT_GET_USER_ORDER_HISTORY,
+        },
+      },
+    ];
+
+    test.each(errorCases)('$name', async ({ mockFire, error }) => {
+      const req = mockReq({
+        params: { restaurantId: mockRestaurantId },
+        user: { uid: mockUser.id },
+      });
+      const res = mockRes();
+
+      mockFire();
+      const response = await getOrderHistory(req, res, jest.fn());
+
+      expect(responseError).toHaveBeenCalledWith(res, error.status, error.message);
+      expect(response).toEqual({ success: false, status: error.status, message: error.message });
+    });
+  });
+});
+
+describe('updateOrderInfo()', () => {
+  describe('valid cases', () => {
+    test('should update order successfully', async () => {
+      const req = mockReq({
+        params: { restaurantId: mockRestaurantId, id: mockOrderId },
+        body: { note: 'updated' },
+        user: { uid: mockUser.id },
+      });
+      const res = mockRes();
+      const { orderPath } = getPaths(mockRestaurantId);
+
+      mockedFirebase.getDocById.mockResolvedValueOnce({ ...mockOrder, user_id: mockUser.id });
+      const response = await updateOrderInfo(req, res, jest.fn());
+
+      expect(mockedFirebase.getDocById).toHaveBeenCalledWith(orderPath, mockOrderId);
+      expect(mockedFirebase.updateDoc).toHaveBeenCalledWith(orderPath, mockOrderId, {
+        note: 'updated',
+        updated_by: mockUser.id,
+      });
+      expect(responseSuccess).toHaveBeenCalledWith(res, Message.ORDER_UPDATED, { id: mockOrderId });
+      expect(response).toEqual({ success: true, data: { id: mockOrderId } });
+    });
+  });
+
+  describe('error cases', () => {
+    const errorCases = [
+      {
+        name: 'should return error when order not found',
+        mockFire: () => {
+          mockedFirebase.getDocById.mockResolvedValueOnce(null);
+        },
+        error: { status: StatusCode.ORDER_NOT_FOUND, message: ErrorMessage.ORDER_NOT_FOUND },
+      },
+      {
+        name: 'should return error when user is forbidden',
+        mockFire: () => {
+          mockedFirebase.getDocById.mockResolvedValueOnce({
+            ...mockOrder,
+            user_id: 'another-user',
+          });
+        },
+        error: {
+          status: StatusCode.UPDATE_ORDER_FORBIDDEN,
+          message: ErrorMessage.UPDATE_ORDER_FORBIDDEN,
+        },
+      },
+      {
+        name: 'should handle unknown error',
+        mockFire: () => {
+          mockedFirebase.getDocById.mockRejectedValueOnce(new Error('DB error'));
+        },
+        error: {
+          status: StatusCode.CANNOT_UPDATE_ORDER_INFO,
+          message: ErrorMessage.CANNOT_UPDATE_ORDER_INFO,
+        },
+      },
+    ];
+
+    test.each(errorCases)('$name', async ({ mockFire, error }) => {
+      const req = mockReq({
+        params: { restaurantId: mockRestaurantId, id: mockOrderId },
+        user: { uid: mockUser.id },
+      });
+      const res = mockRes();
+
+      mockFire();
+      const response = await updateOrderInfo(req, res, jest.fn());
+
+      expect(responseError).toHaveBeenCalledWith(res, error.status, error.message);
+      expect(response).toEqual({ success: false, status: error.status, message: error.message });
+    });
+  });
+});
+
+describe('updateOrderStatus()', () => {
+  describe('valid cases', () => {
+    test('should update order status successfully', async () => {
+      const req = mockReq({
+        params: { restaurantId: mockRestaurantId, id: mockOrderId },
+        body: { status: OrderStatus.PREPARING },
+        user: { uid: mockUser.id },
+      });
+      const res = mockRes();
+      const { orderPath } = getPaths(mockRestaurantId);
+
+      mockedFirebase.getDocById.mockResolvedValueOnce(mockOrder);
+      const response = await updateOrderStatus(req, res, jest.fn());
+
+      expect(mockedFirebase.getDocById).toHaveBeenCalledWith(orderPath, mockOrderId);
+      expect(mockedFirebase.updateDoc).toHaveBeenCalledWith(orderPath, mockOrderId, {
+        status: OrderStatus.PREPARING,
+        updated_by: mockUser.id,
+      });
+      expect(responseSuccess).toHaveBeenCalledWith(res, Message.ORDER_STATUS_UPDATED, {
+        id: mockOrderId,
+      });
+      expect(response).toEqual({ success: true, data: { id: mockOrderId } });
+    });
+  });
+
+  describe('error cases', () => {
+    const errorCases = [
+      {
+        name: 'should return error when order not found',
+        mockFire: () => {
+          mockedFirebase.getDocById.mockResolvedValueOnce(null);
+        },
+        error: { status: StatusCode.ORDER_NOT_FOUND, message: ErrorMessage.ORDER_NOT_FOUND },
+      },
+      {
+        name: 'should handle unknown error',
+        mockFire: () => {
+          mockedFirebase.getDocById.mockRejectedValueOnce(new Error('DB error'));
+        },
+        error: {
+          status: StatusCode.CANNOT_UPDATE_ORDER_STATUS,
+          message: ErrorMessage.CANNOT_UPDATE_ORDER_STATUS,
+        },
+      },
+    ];
+
+    test.each(errorCases)('$name', async ({ mockFire, error }) => {
+      const req = mockReq({
+        params: { restaurantId: mockRestaurantId, id: mockOrderId },
+        user: { uid: mockUser.id },
+      });
+      const res = mockRes();
+
+      mockFire();
+      const response = await updateOrderStatus(req, res, jest.fn());
+
+      expect(responseError).toHaveBeenCalledWith(res, error.status, error.message);
+      expect(response).toEqual({ success: false, status: error.status, message: error.message });
     });
   });
 });
