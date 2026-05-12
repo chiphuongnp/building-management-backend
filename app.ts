@@ -26,6 +26,7 @@ import informationRouter from './routes/information';
 import cors from 'cors';
 import path from 'path';
 import * as ENV from './configs/envConfig';
+import chatRouter from './routes/chatBot';
 
 const app: Application = express();
 app.use(
@@ -69,6 +70,7 @@ app.use(
 app.use('/momo', momoRouter);
 app.use('/vnpay', vnpayRouter);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/chat', chatRouter);
 
 const PORT = ENV.APP_PORT || 5000;
 app.listen(PORT, () => {

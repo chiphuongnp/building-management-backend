@@ -244,6 +244,11 @@ export enum ErrorMessage {
   REFRESH_TOKEN_REQUIRED = 'Refresh token is required!',
   CANNOT_CREATE_SUPER_MANAGER = 'Cannot create super manager!',
   CANNOT_UPDATE_PASSWORD = 'Cannot update password!',
+
+  // Chat errors
+  CANNOT_PROCESS_CHAT = 'Cannot process chat message!',
+  CANNOT_CLEAR_SESSION = 'Cannot clear session!',
+  CHAT_SESSION_NOT_FOUND = 'Chat session not found!',
 }
 
 export enum Message {
@@ -399,6 +404,10 @@ export enum Message {
   LOGIN_SUCCESS = 'Login successfully',
   REGISTER_SUCCESS = 'Register successfully',
   LOGOUT_SUCCESS = 'Logout successfully',
+
+  // Chat messages
+  CHAT_SUCCESS = 'Chat response retrieved successfully',
+  SESSION_CLEARED = 'Session cleared successfully',
 }
 
 export enum StatusCode {
@@ -619,4 +628,8 @@ export enum StatusCode {
   BUS_ROUTE_CREATE = 7004,
   BUS_ROUTE_UPDATE = 7005,
   BUS_ROUTE_ALREADY_EXISTS = 7006,
+
+  // Chat status codes
+  CHAT_ERROR = 7010,
+  CHAT_SESSION_NOT_FOUND = 7011,
 }

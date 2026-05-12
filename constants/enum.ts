@@ -301,3 +301,10 @@ export enum OrderDirection {
   ASCENDING = 'asc',
   DESCENDING = 'desc',
 }
+
+export enum ChatRole {
+  USER = 'user',
+  ASSISTANT = 'assistant',
+  SYSTEM = 'system',
+  TOOL = 'tool',
+}
