@@ -25,4 +25,5 @@ export const {
   FE_URL,
   BE_URL,
   INIT_MANAGER_SECRET,
+  GROQ_API_KEY,
 } = process.env;
