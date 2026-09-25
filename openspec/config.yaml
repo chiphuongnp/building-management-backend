@@ -9,8 +9,6 @@ context: |
   Domain: Building Management Ecosystem (BME) — core backend for multi-site building operations, resident services, orders, parking, transport, and events.
   Reference: Detailed project context and conventions are in openspec/project.md
 
-
-
 # Per-artifact rules (optional)
 # Add custom rules for specific artifacts.
 # Example:

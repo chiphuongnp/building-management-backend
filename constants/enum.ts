@@ -95,6 +95,7 @@ export enum CronSchedule {
   EVENT_EXPIRATION = '0 0 * * *',
   USER_RANK = '0 0 1 * *',
   INFORMATION = '*/10 * * * *',
+  LOG_CLEANUP = '0 0 * * *',
 }
 
 export enum FacilityType {

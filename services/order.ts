@@ -223,7 +223,7 @@ const getOrders = async (req: AuthRequest, res: Response, next: NextFunction) =>
     }
 
     const { orderPath } = getPaths(restaurantId);
-    const total = await firebaseHelper.countDocsByFields(orderPath, filters)
+    const total = await firebaseHelper.countDocsByFields(orderPath, filters);
     const totalPage = page_size
       ? Math.max(DEFAULT_PAGE_TOTAL, Math.ceil(total / page_size))
       : DEFAULT_PAGE_TOTAL;

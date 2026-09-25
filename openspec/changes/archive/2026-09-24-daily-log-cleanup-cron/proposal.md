@@ -21,7 +21,7 @@ Implementing an automated daily log cleanup job ensures old log files (older tha
 
 ### Modified Capabilities
 
-*(None - no existing spec requirements are being modified)*
+_(None - no existing spec requirements are being modified)_
 
 ## Impact
 

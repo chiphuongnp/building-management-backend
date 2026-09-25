@@ -18,7 +18,6 @@ export const mockOrderBody = {
   order_details: mockOrderDetail,
 };
 
-
 export const mockTransaction = { id: 'TxN4bC8dEfGhIjKlMnOp' };
 
 export const mockRestaurantId = 'AbCdEfGhIjKlMnOpQrSt';
